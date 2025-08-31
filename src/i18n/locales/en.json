@@ -1,0 +1,123 @@
+{
+  "common": {
+    "appName": "KidsViewer",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "name": "Name",
+    "forgotPassword": "Forgot Password?",
+    "loginSuccess": "Login successful!",
+    "registerSuccess": "Registration successful!",
+    "invalidCredentials": "Invalid email or password",
+    "userExists": "User already exists",
+    "passwordsNotMatch": "Passwords do not match"
+  },
+  "parent": {
+    "dashboard": "Parent Dashboard",
+    "addChild": "Add Child",
+    "childName": "Child Name",
+    "ageGroup": "Age Group",
+    "ageGroups": {
+      "preschool": "Preschool (2-4 years)",
+      "young": "Young Child (4-6 years)",
+      "older": "Older Child (6-12 years)"
+    },
+    "settings": "Settings",
+    "timeLimit": "Time Limit",
+    "questionCount": "Question Count",
+    "subjects": "Subjects",
+    "allowedUrls": "Allowed URLs",
+    "addUrl": "Add URL",
+    "urlPlaceholder": "Enter video platform URL",
+    "dailyReport": "Daily Report",
+    "usageStats": "Usage Statistics",
+    "learningProgress": "Learning Progress"
+  },
+  "child": {
+    "viewer": "Video Viewer",
+    "timeRemaining": "Time Remaining",
+    "unlockToContinue": "Answer questions to continue watching",
+    "questionsRemaining": "Questions remaining",
+    "correctAnswers": "Correct answers",
+    "incorrectAnswers": "Incorrect answers",
+    "accuracy": "Accuracy",
+    "level": "Level",
+    "score": "Score"
+  },
+  "questions": {
+    "math": "Math",
+    "chinese": "Chinese",
+    "english": "English",
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "types": {
+      "multiple-choice": "Multiple Choice",
+      "true-false": "True/False",
+      "fill-blank": "Fill in the Blank",
+      "calculation": "Calculation"
+    },
+    "answer": "Answer",
+    "correct": "Correct!",
+    "incorrect": "Incorrect. Try again!",
+    "explanation": "Explanation",
+    "nextQuestion": "Next Question"
+  },
+  "navigation": {
+    "home": "Home",
+    "parent": "Parent",
+    "child": "Child",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "time": {
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "hours": "hours",
+    "timeUp": "Time's up!",
+    "breakTime": "Break time!",
+    "continueWatching": "Continue watching"
+  },
+  "messages": {
+    "welcome": "Welcome to KidsViewer!",
+    "setupComplete": "Setup complete!",
+    "childAdded": "Child added successfully!",
+    "settingsSaved": "Settings saved successfully!",
+    "sessionStarted": "Video session started",
+    "sessionEnded": "Video session ended",
+    "questionsCompleted": "All questions completed!",
+    "unlockSuccess": "Unlocked successfully!",
+    "goodJob": "Good job! Keep learning!"
+  },
+  "errors": {
+    "networkError": "Network error. Please try again.",
+    "invalidInput": "Please check your input.",
+    "sessionExpired": "Session expired. Please login again.",
+    "permissionDenied": "Permission denied.",
+    "fileNotFound": "File not found.",
+    "unknownError": "An unknown error occurred."
+  }
+} 

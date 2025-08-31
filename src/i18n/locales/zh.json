@@ -1,0 +1,123 @@
+{
+  "common": {
+    "appName": "儿童视界",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "cancel": "取消",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "submit": "提交",
+    "close": "关闭",
+    "yes": "是",
+    "no": "否"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "logout": "退出登录",
+    "email": "邮箱",
+    "phone": "手机号",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "name": "姓名",
+    "forgotPassword": "忘记密码？",
+    "loginSuccess": "登录成功！",
+    "registerSuccess": "注册成功！",
+    "invalidCredentials": "邮箱或密码错误",
+    "userExists": "用户已存在",
+    "passwordsNotMatch": "密码不匹配"
+  },
+  "parent": {
+    "dashboard": "家长控制台",
+    "addChild": "添加孩子",
+    "childName": "孩子姓名",
+    "ageGroup": "年龄段",
+    "ageGroups": {
+      "preschool": "学前儿童 (2-4岁)",
+      "young": "小童 (4-6岁)",
+      "older": "大童 (6-12岁)"
+    },
+    "settings": "设置",
+    "timeLimit": "时间限制",
+    "questionCount": "问题数量",
+    "subjects": "学科",
+    "allowedUrls": "允许的网址",
+    "addUrl": "添加网址",
+    "urlPlaceholder": "输入视频平台网址",
+    "dailyReport": "每日报告",
+    "usageStats": "使用统计",
+    "learningProgress": "学习进度"
+  },
+  "child": {
+    "viewer": "视频观看器",
+    "timeRemaining": "剩余时间",
+    "unlockToContinue": "回答问题继续观看",
+    "questionsRemaining": "剩余问题",
+    "correctAnswers": "正确答案",
+    "incorrectAnswers": "错误答案",
+    "accuracy": "准确率",
+    "level": "等级",
+    "score": "分数"
+  },
+  "questions": {
+    "math": "数学",
+    "chinese": "语文",
+    "english": "英语",
+    "difficulty": {
+      "easy": "简单",
+      "medium": "中等",
+      "hard": "困难"
+    },
+    "types": {
+      "multiple-choice": "选择题",
+      "true-false": "判断题",
+      "fill-blank": "填空题",
+      "calculation": "计算题"
+    },
+    "answer": "答案",
+    "correct": "正确！",
+    "incorrect": "错误，请重试！",
+    "explanation": "解释",
+    "nextQuestion": "下一题"
+  },
+  "navigation": {
+    "home": "首页",
+    "parent": "家长",
+    "child": "孩子",
+    "settings": "设置",
+    "profile": "个人资料"
+  },
+  "time": {
+    "minutes": "分钟",
+    "seconds": "秒",
+    "hours": "小时",
+    "timeUp": "时间到！",
+    "breakTime": "休息时间！",
+    "continueWatching": "继续观看"
+  },
+  "messages": {
+    "welcome": "欢迎使用儿童视界！",
+    "setupComplete": "设置完成！",
+    "childAdded": "孩子添加成功！",
+    "settingsSaved": "设置保存成功！",
+    "sessionStarted": "视频会话开始",
+    "sessionEnded": "视频会话结束",
+    "questionsCompleted": "所有问题完成！",
+    "unlockSuccess": "解锁成功！",
+    "goodJob": "做得好！继续学习！"
+  },
+  "errors": {
+    "networkError": "网络错误，请重试。",
+    "invalidInput": "请检查输入内容。",
+    "sessionExpired": "会话过期，请重新登录。",
+    "permissionDenied": "权限被拒绝。",
+    "fileNotFound": "文件未找到。",
+    "unknownError": "发生未知错误。"
+  }
+} 
