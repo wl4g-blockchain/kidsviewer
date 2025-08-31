@@ -1,53 +1,53 @@
-import React, { useState, useEffect } from 'react'
-import { useAuthStore } from '@stores/authStore'
-import { useTranslation } from '@i18n/I18nProvider'
-import { Settings, Save, RefreshCw, Trash2, Globe, Bell, Shield, User } from 'lucide-react'
+import React, { useState, useEffect } from 'react';
+import { useAuthStore } from '../stores/authStore';
+import { useTranslation } from '../i18n/I18nProvider';
+import { Settings, Save, RefreshCw, Trash2, Shield, User } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
-  const { currentUser, apiHandler } = useAuthStore()
-  const [isLoading, setIsLoading] = useState(false)
+  const { currentUser, apiHandler } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState({
     language: 'en',
     notifications: true,
     autoLock: true,
     dataSync: false,
-    theme: 'light'
-  })
-  const t = useTranslation()
+    theme: 'light',
+  });
+  const t = useTranslation();
 
   useEffect(() => {
-    loadSettings()
-  }, [])
+    loadSettings();
+  }, []);
 
   const loadSettings = async () => {
     try {
-      const response = await apiHandler.getAppSettings()
+      const response = await apiHandler.getAppSettings();
       if (response.success && response.data) {
-        setSettings(prev => ({ ...prev, ...response.data }))
+        setSettings(prev => ({ ...prev, ...response.data }));
       }
     } catch (error) {
-      console.error('Failed to load settings:', error)
+      console.error('Failed to load settings:', error);
     }
-  }
+  };
 
   const handleSettingChange = (key: string, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }))
-  }
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
 
   const saveSettings = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await apiHandler.updateAppSettings(settings)
+      const response = await apiHandler.updateAppSettings(settings);
       if (response.success) {
         // Show success message
-        console.log('Settings saved successfully')
+        console.log('Settings saved successfully');
       }
     } catch (error) {
-      console.error('Failed to save settings:', error)
+      console.error('Failed to save settings:', error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const resetSettings = async () => {
     if (window.confirm('Are you sure you want to reset all settings to default?')) {
@@ -56,42 +56,38 @@ export const SettingsPage: React.FC = () => {
         notifications: true,
         autoLock: true,
         dataSync: false,
-        theme: 'light'
-      })
-      await saveSettings()
+        theme: 'light',
+      });
+      await saveSettings();
     }
-  }
+  };
 
   const clearData = async () => {
     if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
       try {
-        await apiHandler.clearData()
+        await apiHandler.clearData();
         // Redirect to auth page
-        window.location.reload()
+        window.location.reload();
       } catch (error) {
-        console.error('Failed to clear data:', error)
+        console.error('Failed to clear data:', error);
       }
     }
-  }
+  };
 
   if (!currentUser) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-600">Please login to access settings.</p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {t('navigation.settings')}
-        </h1>
-        <p className="text-gray-600">
-          Customize your KidsViewer experience
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('navigation.settings')}</h1>
+        <p className="text-gray-600">Customize your KidsViewer experience</p>
       </div>
 
       {/* Settings Sections */}
@@ -106,12 +102,10 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-6">
             {/* Language Setting */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Language
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
               <select
                 value={settings.language}
-                onChange={(e) => handleSettingChange('language', e.target.value)}
+                onChange={e => handleSettingChange('language', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="en">English</option>
@@ -121,12 +115,10 @@ export const SettingsPage: React.FC = () => {
 
             {/* Theme Setting */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Theme
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
               <select
                 value={settings.theme}
-                onChange={(e) => handleSettingChange('theme', e.target.value)}
+                onChange={e => handleSettingChange('theme', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="light">Light</option>
@@ -138,12 +130,8 @@ export const SettingsPage: React.FC = () => {
             {/* Notifications */}
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Enable Notifications
-                </label>
-                <p className="text-sm text-gray-500">
-                  Get notified about important events
-                </p>
+                <label className="text-sm font-medium text-gray-700">Enable Notifications</label>
+                <p className="text-sm text-gray-500">Get notified about important events</p>
               </div>
               <button
                 onClick={() => handleSettingChange('notifications', !settings.notifications)}
@@ -172,12 +160,8 @@ export const SettingsPage: React.FC = () => {
             {/* Auto Lock */}
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Auto Lock
-                </label>
-                <p className="text-sm text-gray-500">
-                  Automatically lock after inactivity
-                </p>
+                <label className="text-sm font-medium text-gray-700">Auto Lock</label>
+                <p className="text-sm text-gray-500">Automatically lock after inactivity</p>
               </div>
               <button
                 onClick={() => handleSettingChange('autoLock', !settings.autoLock)}
@@ -196,12 +180,8 @@ export const SettingsPage: React.FC = () => {
             {/* Data Sync */}
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-gray-700">
-                  Data Synchronization
-                </label>
-                <p className="text-sm text-gray-500">
-                  Sync data across devices
-                </p>
+                <label className="text-sm font-medium text-gray-700">Data Synchronization</label>
+                <p className="text-sm text-gray-500">Sync data across devices</p>
               </div>
               <button
                 onClick={() => handleSettingChange('dataSync', !settings.dataSync)}
@@ -228,9 +208,7 @@ export const SettingsPage: React.FC = () => {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Name
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
               <input
                 type="text"
                 value={currentUser.name}
@@ -240,9 +218,7 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input
                 type="email"
                 value={currentUser.email}
@@ -252,12 +228,10 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                User Type
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">User Type</label>
               <input
                 type="text"
-                value={currentUser.userType === 'parent' ? 'Parent' : 'Child'}
+                value={currentUser.userType === 'PARENTAL' ? 'Parental' : 'Kids'}
                 disabled
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500"
               />
@@ -317,5 +291,5 @@ export const SettingsPage: React.FC = () => {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+};

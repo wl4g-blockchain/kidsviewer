@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
-import { useAuthStore } from '@stores/authStore'
-import { useTranslation } from '@i18n/I18nProvider'
+import { useAuthStore } from '../stores/authStore'
+import { useTranslation } from '../i18n/I18nProvider'
 import { X, Plus, User, Calendar, Settings, BookOpen } from 'lucide-react'
-import { Child } from '@types'
+import { Person } from '../types'
 
-interface AddChildModalProps {
+interface AddPersonModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: (child: Child) => void
+  onSuccess: (person: Person) => void
 }
 
-export const AddChildModal: React.FC<AddChildModalProps> = ({
+export const AddPersonModal: React.FC<AddPersonModalProps> = ({
   isOpen,
   onClose,
   onSuccess
@@ -23,9 +23,9 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
     timeLimit: 15,
     questionCount: 3,
     subjects: [
-      { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
-      { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
-      { id: 'english', name: 'English', enabled: true, difficulty: 'easy' }
+      { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' as const },
+      { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' as const },
+      { id: 'english', name: 'English', enabled: true, difficulty: 'easy' as const }
     ],
     allowedUrls: ['']
   })
@@ -47,12 +47,12 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
     }))
   }
 
-  const handleSubjectDifficultyChange = (subjectId: string, difficulty: string) => {
+  const handleSubjectDifficultyChange = (subjectId: string, difficulty: 'easy' | 'medium' | 'hard') => {
     setFormData(prev => ({
       ...prev,
       subjects: prev.subjects.map(subject =>
         subject.id === subjectId
-          ? { ...subject, difficulty: difficulty as 'easy' | 'medium' | 'hard' }
+          ? { ...subject, difficulty }
           : subject
       )
     }))
@@ -85,7 +85,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
       // Filter out empty URLs
       const filteredUrls = formData.allowedUrls.filter(url => url.trim() !== '')
       
-      const response = await apiHandler.createChild(currentUser.id, {
+      const response = await apiHandler.createPerson(currentUser.id, {
         alias: formData.alias,
         ageGroup: formData.ageGroup,
         settings: {
@@ -114,7 +114,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
         })
       }
     } catch (error) {
-      console.error('Failed to create child:', error)
+      console.error('Failed to create person:', error)
     } finally {
       setIsLoading(false)
     }
@@ -127,8 +127,8 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            {t('parent.addChild')}
+          <h2 className="text-xl font-semibold text-sm font-medium text-gray-900">
+            {t('parental.addPerson')}
           </h2>
           <button
             onClick={onClose}
@@ -149,7 +149,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
             
             <div>
               <label htmlFor="alias" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('parent.childName')}
+                {t('parental.personName')}
               </label>
               <input
                 type="text"
@@ -165,7 +165,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
 
             <div>
               <label htmlFor="ageGroup" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('parent.ageGroup')}
+                {t('parental.ageGroup')}
               </label>
               <select
                 id="ageGroup"
@@ -175,9 +175,9 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="preschool">{t('parent.ageGroups.preschool')}</option>
-                <option value="young">{t('parent.ageGroups.young')}</option>
-                <option value="older">{t('parent.ageGroups.older')}</option>
+                <option value="preschool">{t('parental.ageGroups.preschool')}</option>
+                <option value="young">{t('parental.ageGroups.young')}</option>
+                <option value="older">{t('parental.ageGroups.older')}</option>
               </select>
             </div>
           </div>
@@ -191,7 +191,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
             
             <div>
               <label htmlFor="timeLimit" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('parent.timeLimit')} ({t('time.minutes')})
+                {t('parental.timeLimit')} ({t('time.minutes')})
               </label>
               <select
                 id="timeLimit"
@@ -211,7 +211,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
 
             <div>
               <label htmlFor="questionCount" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('parent.questionCount')}
+                {t('parental.questionCount')}
               </label>
               <select
                 id="questionCount"
@@ -255,7 +255,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
                   {subject.enabled && (
                     <select
                       value={subject.difficulty}
-                      onChange={(e) => handleSubjectDifficultyChange(subject.id, e.target.value)}
+                      onChange={(e) => handleSubjectDifficultyChange(subject.id, e.target.value as 'easy' | 'medium' | 'hard')}
                       className="px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                     >
                       <option value="easy">{t('questions.difficulty.easy')}</option>
@@ -272,7 +272,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900 flex items-center">
               <Settings className="w-5 h-5 mr-2 text-orange-600" />
-              {t('parent.allowedUrls')}
+                              {t('parental.allowedUrls')}
             </h3>
             
             <div className="space-y-3">
@@ -282,7 +282,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
                     type="url"
                     value={url}
                     onChange={(e) => handleUrlChange(index, e.target.value)}
-                    placeholder={t('parent.urlPlaceholder')}
+                    placeholder={t('parental.urlPlaceholder')}
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   {formData.allowedUrls.length > 1 && (
@@ -303,7 +303,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
                 className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {t('parent.addUrl')}
+                {t('parental.addUrl')}
               </button>
             </div>
           </div>
@@ -330,7 +330,7 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
               ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
-                  {t('parent.addChild')}
+                  {t('parental.addPerson')}
                 </>
               )}
             </button>

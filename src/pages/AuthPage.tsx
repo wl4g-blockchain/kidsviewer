@@ -1,53 +1,53 @@
-import React, { useState } from 'react'
-import { useAuthStore } from '@stores/authStore'
-import { useTranslation } from '@i18n/I18nProvider'
-import { Eye, EyeOff, Mail, Phone, Lock, User } from 'lucide-react'
+import React, { useState } from 'react';
+import { useAuthStore } from '../stores/authStore';
+import { useTranslation } from '../i18n/I18nProvider';
+import { Eye, EyeOff, Mail, Phone, Lock, User } from 'lucide-react';
 
 export const AuthPage: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
     password: '',
     confirmPassword: '',
-    name: ''
-  })
+    name: '',
+  });
 
-  const { login, register, isLoading, error, clearError } = useAuthStore()
-  const t = useTranslation()
+  const { login, register, isLoading, error, clearError } = useAuthStore();
+  const t = useTranslation();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-    if (error) clearError()
-  }
+    const { name, value } = e.target;
+    setFormData((prev: typeof formData) => ({ ...prev, [name]: value }));
+    if (error) clearError();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (isLogin) {
-      await login(formData.email, formData.password)
+      await login(formData.email, formData.password);
     } else {
       if (formData.password !== formData.confirmPassword) {
-        return
+        return;
       }
-      await register(formData.email, formData.phone, formData.password, formData.name)
+      await register(formData.email, formData.phone, formData.password, formData.name);
     }
-  }
+  };
 
   const toggleMode = () => {
-    setIsLogin(!isLogin)
+    setIsLogin(!isLogin);
     setFormData({
       email: '',
       phone: '',
       password: '',
       confirmPassword: '',
-      name: ''
-    })
-    clearError()
-  }
+      name: '',
+    });
+    clearError();
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -57,9 +57,7 @@ export const AuthPage: React.FC = () => {
           <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
             {t('common.appName')}
           </h1>
-          <p className="text-gray-600">
-            {isLogin ? t('auth.login') : t('auth.register')}
-          </p>
+          <p className="text-gray-600">{isLogin ? t('auth.login') : t('auth.register')}</p>
         </div>
 
         {/* Form */}
@@ -182,11 +180,7 @@ export const AuthPage: React.FC = () => {
           </div>
 
           {/* Error message */}
-          {error && (
-            <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-md">
-              {error}
-            </div>
-          )}
+          {error && <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-md">{error}</div>}
 
           {/* Submit button */}
           <button
@@ -199,8 +193,10 @@ export const AuthPage: React.FC = () => {
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 {t('common.loading')}
               </div>
+            ) : isLogin ? (
+              t('auth.login')
             ) : (
-              isLogin ? t('auth.login') : t('auth.register')
+              t('auth.register')
             )}
           </button>
 
@@ -211,14 +207,11 @@ export const AuthPage: React.FC = () => {
               onClick={toggleMode}
               className="text-blue-600 hover:text-blue-500 text-sm font-medium transition-colors duration-200"
             >
-              {isLogin 
-                ? t('auth.register') 
-                : t('auth.login')
-              }
+              {isLogin ? t('auth.register') : t('auth.login')}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
-} 
+  );
+};

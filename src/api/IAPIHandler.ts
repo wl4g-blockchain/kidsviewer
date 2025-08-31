@@ -1,4 +1,4 @@
-import { User, Parent, Child, Question, ApiResponse } from '@types'
+import { User, Parental, Person, Question, ApiResponse } from '../types'
 
 // Base API handler interface
 export interface IAPIHandler {
@@ -11,22 +11,22 @@ export interface IAPIHandler {
   getCurrentUser(): Promise<ApiResponse<User>>
   updateUser(userId: string, updates: Partial<User>): Promise<ApiResponse<User>>
   
-  // Parent operations
-  createChild(parentId: string, childData: Partial<Child>): Promise<ApiResponse<Child>>
-  getChildren(parentId: string): Promise<ApiResponse<Child[]>>
-  updateChildSettings(childId: string, settings: Partial<Child['settings']>): Promise<ApiResponse<Child>>
+  // Parental operations
+  createPerson(parentalId: string, personData: Partial<Person>): Promise<ApiResponse<Person>>
+  getPersons(parentalId: string): Promise<ApiResponse<Person[]>>
+  updatePersonSettings(personId: string, settings: Partial<Person['settings']>): Promise<ApiResponse<Person>>
   
-  // Child operations
-  getChild(childId: string): Promise<ApiResponse<Child>>
-  updateChildStatistics(childId: string, statistics: Partial<Child['statistics']>): Promise<ApiResponse<Child>>
+  // Person operations
+  getPerson(personId: string): Promise<ApiResponse<Person>>
+  updatePersonStatistics(personId: string, statistics: Partial<Person['statistics']>): Promise<ApiResponse<Person>>
   
   // Questions
   getQuestions(subjects: string[], difficulty: string, count: number): Promise<ApiResponse<Question[]>>
   submitAnswer(questionId: string, answer: string | number, isCorrect: boolean): Promise<ApiResponse<void>>
   
   // Statistics
-  getDailyReport(childId: string, date: string): Promise<ApiResponse<Child['statistics']>>
-  getLearningProgress(childId: string): Promise<ApiResponse<Child['statistics']['learningProgress']>>
+  getDailyReport(personId: string, date: string): Promise<ApiResponse<Person['statistics']>>
+  getLearningProgress(personId: string): Promise<ApiResponse<Person['statistics']['learningProgress']>>
   
   // Settings
   getAppSettings(): Promise<ApiResponse<any>>

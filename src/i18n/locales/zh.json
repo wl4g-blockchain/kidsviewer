@@ -33,10 +33,10 @@
     "userExists": "用户已存在",
     "passwordsNotMatch": "密码不匹配"
   },
-  "parent": {
+  "parental": {
     "dashboard": "家长控制台",
-    "addChild": "添加孩子",
-    "childName": "孩子姓名",
+    "addPerson": "添加人员",
+    "personName": "人员姓名",
     "ageGroup": "年龄段",
     "ageGroups": {
       "preschool": "学前儿童 (2-4岁)",
@@ -54,7 +54,7 @@
     "usageStats": "使用统计",
     "learningProgress": "学习进度"
   },
-  "child": {
+  "person": {
     "viewer": "视频观看器",
     "timeRemaining": "剩余时间",
     "unlockToContinue": "回答问题继续观看",
@@ -88,8 +88,8 @@
   },
   "navigation": {
     "home": "首页",
-    "parent": "家长",
-    "child": "孩子",
+    "parental": "家长",
+    "person": "人员",
     "settings": "设置",
     "profile": "个人资料"
   },

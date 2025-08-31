@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuthStore } from '@stores/authStore'
-import { useTranslation } from '@i18n/I18nProvider'
+import { useAuthStore } from '../stores/authStore'
+import { useTranslation } from '../i18n/I18nProvider'
 import { Home, Users, Video, Settings, User } from 'lucide-react'
 
 export const Navigation: React.FC = () => {
@@ -19,18 +19,18 @@ export const Navigation: React.FC = () => {
       current: location.pathname === '/'
     },
     {
-      name: t('navigation.parent'),
-      href: '/parent',
+      name: t('navigation.parental'),
+      href: '/parental',
       icon: Users,
-      current: location.pathname === '/parent',
-      showFor: 'parent'
+      current: location.pathname === '/parental',
+      showFor: 'parental'
     },
     {
-      name: t('navigation.child'),
-      href: '/child',
+      name: t('navigation.person'),
+      href: '/person',
       icon: Video,
-      current: location.pathname === '/child',
-      showFor: 'child'
+      current: location.pathname === '/person',
+      showFor: 'person'
     },
     {
       name: t('navigation.settings'),

@@ -33,15 +33,15 @@
     "userExists": "User already exists",
     "passwordsNotMatch": "Passwords do not match"
   },
-  "parent": {
-    "dashboard": "Parent Dashboard",
-    "addChild": "Add Child",
-    "childName": "Child Name",
+  "parental": {
+    "dashboard": "Parental Dashboard",
+    "addPerson": "Add Person",
+    "personName": "Person Name",
     "ageGroup": "Age Group",
     "ageGroups": {
       "preschool": "Preschool (2-4 years)",
-      "young": "Young Child (4-6 years)",
-      "older": "Older Child (6-12 years)"
+      "young": "Young Person (4-6 years)",
+      "older": "Older Person (6-12 years)"
     },
     "settings": "Settings",
     "timeLimit": "Time Limit",
@@ -54,7 +54,7 @@
     "usageStats": "Usage Statistics",
     "learningProgress": "Learning Progress"
   },
-  "child": {
+  "person": {
     "viewer": "Video Viewer",
     "timeRemaining": "Time Remaining",
     "unlockToContinue": "Answer questions to continue watching",
@@ -88,8 +88,8 @@
   },
   "navigation": {
     "home": "Home",
-    "parent": "Parent",
-    "child": "Child",
+    "parental": "Parental",
+    "person": "Person",
     "settings": "Settings",
     "profile": "Profile"
   },

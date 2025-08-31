@@ -1,154 +1,158 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { useAuthStore } from '@stores/authStore'
-import { useTranslation } from '@i18n/I18nProvider'
-import { Play, Pause, Lock, Unlock, Clock, BookOpen, Trophy } from 'lucide-react'
-import { Question } from '@types'
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuthStore } from '../stores/authStore';
+import { useTranslation } from '../i18n/I18nProvider';
+import { Play, Pause, Lock, Unlock, Clock, BookOpen, Trophy } from 'lucide-react';
+import { Question, Person } from '../types';
 
-export const ChildViewer: React.FC = () => {
-  const { currentUser, apiHandler } = useAuthStore()
-  const [isLocked, setIsLocked] = useState(false)
-  const [remainingTime, setRemainingTime] = useState(0)
-  const [currentQuestions, setCurrentQuestions] = useState<Question[]>([])
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [userAnswer, setUserAnswer] = useState('')
-  const [showResult, setShowResult] = useState(false)
-  const [isCorrect, setIsCorrect] = useState(false)
-  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
-  
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
-  const t = useTranslation()
+export const PersonViewer: React.FC = () => {
+  const { currentUser, apiHandler } = useAuthStore();
+  const [isLocked, setIsLocked] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(0);
+  const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const t = useTranslation();
+
+  // Type guard to ensure currentUser is Person
+  const isPerson = (user: any): user is Person => {
+    return user && user.userType === 'PERSON';
+  };
 
   useEffect(() => {
-    if (currentUser?.userType === 'child') {
-      initializeSession()
+    if (currentUser && isPerson(currentUser)) {
+      initializeSession();
     }
 
     return () => {
       if (timerRef.current) {
-        clearInterval(timerRef.current)
+        clearInterval(timerRef.current);
       }
-    }
-  }, [currentUser])
+    };
+  }, [currentUser]);
 
   const initializeSession = async () => {
-    if (!currentUser) return
+    if (!currentUser || !isPerson(currentUser)) return;
 
-    const child = currentUser
-    const timeLimit = child.settings.timeLimit * 60 // Convert to seconds
-    setRemainingTime(timeLimit)
-    setSessionStartTime(new Date())
+    const person = currentUser;
+    const timeLimit = person.settings.timeLimit * 60; // Convert to seconds
+    setRemainingTime(timeLimit);
+    setSessionStartTime(new Date());
 
     // Start timer
     timerRef.current = setInterval(() => {
       setRemainingTime(prev => {
         if (prev <= 1) {
-          lockSession()
-          return 0
+          lockSession();
+          return 0;
         }
-        return prev - 1
-      })
-    }, 1000)
-  }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const lockSession = async () => {
-    setIsLocked(true)
+    if (!currentUser || !isPerson(currentUser)) return;
+
+    setIsLocked(true);
     if (timerRef.current) {
-      clearInterval(timerRef.current)
+      clearInterval(timerRef.current);
     }
 
     // Generate questions for unlock
     try {
-      const enabledSubjects = currentUser.settings.subjects
-        .filter(subject => subject.enabled)
-        .map(subject => subject.id)
-      
+      const enabledSubjects = currentUser.settings.subjects.filter((subject: any) => subject.enabled).map((subject: any) => subject.id);
+
       const response = await apiHandler.getQuestions(
         enabledSubjects,
         'easy', // Start with easy questions
         currentUser.settings.questionCount
-      )
+      );
 
       if (response.success && response.data) {
-        setCurrentQuestions(response.data)
-        setCurrentQuestionIndex(0)
+        setCurrentQuestions(response.data);
+        setCurrentQuestionIndex(0);
       }
     } catch (error) {
-      console.error('Failed to generate questions:', error)
+      console.error('Failed to generate questions:', error);
     }
-  }
+  };
 
   const handleAnswerSubmit = async () => {
-    if (!currentQuestions[currentQuestionIndex]) return
+    if (!currentQuestions[currentQuestionIndex]) return;
 
-    const question = currentQuestions[currentQuestionIndex]
-    const correct = userAnswer.toString() === question.correctAnswer.toString()
-    
-    setIsCorrect(correct)
-    setShowResult(true)
+    const question = currentQuestions[currentQuestionIndex];
+    const correct = userAnswer.toString() === question.correctAnswer.toString();
+
+    setIsCorrect(correct);
+    setShowResult(true);
 
     // Submit answer to API
     try {
-      await apiHandler.submitAnswer(question.id, userAnswer, correct)
+      await apiHandler.submitAnswer(question.id, userAnswer, correct);
     } catch (error) {
-      console.error('Failed to submit answer:', error)
+      console.error('Failed to submit answer:', error);
     }
 
     // Wait a moment then move to next question or unlock
     setTimeout(() => {
       if (correct) {
         if (currentQuestionIndex < currentQuestions.length - 1) {
-          setCurrentQuestionIndex(prev => prev + 1)
-          setUserAnswer('')
-          setShowResult(false)
+          setCurrentQuestionIndex(prev => prev + 1);
+          setUserAnswer('');
+          setShowResult(false);
         } else {
-          unlockSession()
+          unlockSession();
         }
       } else {
-        setUserAnswer('')
-        setShowResult(false)
+        setUserAnswer('');
+        setShowResult(false);
       }
-    }, 2000)
-  }
+    }, 2000);
+  };
 
   const unlockSession = () => {
-    setIsLocked(false)
-    setCurrentQuestions([])
-    setCurrentQuestionIndex(0)
-    setUserAnswer('')
-    setShowResult(false)
-    
+    setIsLocked(false);
+    setCurrentQuestions([]);
+    setCurrentQuestionIndex(0);
+    setUserAnswer('');
+    setShowResult(false);
+
     // Restart session
-    initializeSession()
-  }
+    initializeSession();
+  };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const getCurrentQuestion = () => {
-    return currentQuestions[currentQuestionIndex]
-  }
+    return currentQuestions[currentQuestionIndex];
+  };
 
-  if (!currentUser || currentUser.userType !== 'child') {
+  if (!currentUser || !isPerson(currentUser)) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-600">Access denied. This page is for children only.</p>
       </div>
-    )
+    );
   }
+
+  // Now currentUser is guaranteed to be Person type
+  const person = currentUser;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {t('child.viewer')}
-        </h1>
-        <p className="text-gray-600">
-          Welcome back, {currentUser.alias}! Ready to learn and have fun?
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('person.viewer')}</h1>
+        <p className="text-gray-600">Welcome back, {person.alias}! Ready to learn and have fun?</p>
       </div>
 
       {/* Time Display */}
@@ -156,13 +160,9 @@ export const ChildViewer: React.FC = () => {
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Clock className="w-6 h-6 text-blue-600" />
-            <span className="text-lg font-medium text-gray-700">
-              {t('child.timeRemaining')}
-            </span>
+            <span className="text-lg font-medium text-gray-700">{t('person.timeRemaining')}</span>
           </div>
-          <div className="text-4xl font-bold text-blue-600">
-            {formatTime(remainingTime)}
-          </div>
+          <div className="text-4xl font-bold text-blue-600">{formatTime(remainingTime)}</div>
           <div className="mt-2 text-sm text-gray-500">
             {Math.ceil(remainingTime / 60)} {t('time.minutes')} remaining
           </div>
@@ -179,7 +179,7 @@ export const ChildViewer: React.FC = () => {
               </div>
               <p className="text-gray-600">Video content will appear here</p>
               <p className="text-sm text-gray-500 mt-2">
-                You can watch videos for {currentUser.settings.timeLimit} {t('time.minutes')}
+                You can watch videos for {person.settings.timeLimit} {t('time.minutes')}
               </p>
             </div>
           </div>
@@ -191,12 +191,8 @@ export const ChildViewer: React.FC = () => {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="w-8 h-8 text-red-600" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              {t('child.unlockToContinue')}
-            </h2>
-            <p className="text-gray-600">
-              Answer {currentQuestions.length - currentQuestionIndex} more questions to continue watching
-            </p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('person.unlockToContinue')}</h2>
+            <p className="text-gray-600">Answer {currentQuestions.length - currentQuestionIndex} more questions to continue watching</p>
           </div>
 
           {currentQuestions.length > 0 && (
@@ -207,11 +203,7 @@ export const ChildViewer: React.FC = () => {
                   <div
                     key={index}
                     className={`w-3 h-3 rounded-full ${
-                      index < currentQuestionIndex
-                        ? 'bg-green-500'
-                        : index === currentQuestionIndex
-                        ? 'bg-blue-500'
-                        : 'bg-gray-300'
+                      index < currentQuestionIndex ? 'bg-green-500' : index === currentQuestionIndex ? 'bg-blue-500' : 'bg-gray-300'
                     }`}
                   />
                 ))}
@@ -228,21 +220,17 @@ export const ChildViewer: React.FC = () => {
                   </span>
                 </div>
 
-                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">
-                  {getCurrentQuestion()?.content}
-                </h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">{getCurrentQuestion()?.content}</h3>
 
                 {/* Answer Input */}
                 {getCurrentQuestion()?.type === 'multiple-choice' && getCurrentQuestion()?.options ? (
                   <div className="space-y-3">
-                    {getCurrentQuestion()?.options.map((option, index) => (
+                    {getCurrentQuestion()?.options!.map((option, index) => (
                       <button
                         key={index}
                         onClick={() => setUserAnswer(option)}
                         className={`w-full p-3 text-left rounded-lg border transition-colors duration-200 ${
-                          userAnswer === option
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-300 hover:border-gray-400'
+                          userAnswer === option ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
                         }`}
                       >
                         {option}
@@ -253,7 +241,7 @@ export const ChildViewer: React.FC = () => {
                   <input
                     type="text"
                     value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
+                    onChange={e => setUserAnswer(e.target.value)}
                     placeholder={t('questions.answer')}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
@@ -274,12 +262,8 @@ export const ChildViewer: React.FC = () => {
 
               {/* Result Display */}
               {showResult && (
-                <div className={`text-center p-4 rounded-lg ${
-                  isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-                }`}>
-                  <div className="text-lg font-medium mb-2">
-                    {isCorrect ? t('questions.correct') : t('questions.incorrect')}
-                  </div>
+                <div className={`text-center p-4 rounded-lg ${isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                  <div className="text-lg font-medium mb-2">{isCorrect ? t('questions.correct') : t('questions.incorrect')}</div>
                   {getCurrentQuestion()?.explanation && (
                     <div className="text-sm">
                       <strong>{t('questions.explanation')}:</strong> {getCurrentQuestion()?.explanation}
@@ -294,30 +278,22 @@ export const ChildViewer: React.FC = () => {
 
       {/* Stats Summary */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">
-          Your Learning Progress
-        </h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">Your Learning Progress</h3>
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {currentUser.statistics.questionStats.totalAnswered}
-            </div>
-            <div className="text-sm text-gray-600">{t('child.questionsRemaining')}</div>
+            <div className="text-2xl font-bold text-blue-600">{person.statistics.questionStats.totalAnswered}</div>
+            <div className="text-sm text-gray-600">{t('person.questionsRemaining')}</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {currentUser.statistics.questionStats.accuracyRate}%
-            </div>
-            <div className="text-sm text-gray-600">{t('child.accuracy')}</div>
+            <div className="text-2xl font-bold text-green-600">{person.statistics.questionStats.accuracyRate}%</div>
+            <div className="text-sm text-gray-600">{t('person.accuracy')}</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {currentUser.statistics.learningProgress.level}
-            </div>
-            <div className="text-sm text-gray-600">{t('child.level')}</div>
+            <div className="text-2xl font-bold text-purple-600">{person.statistics.learningProgress.level}</div>
+            <div className="text-sm text-gray-600">{t('person.level')}</div>
           </div>
         </div>
       </div>
     </div>
-  )
-} 
+  );
+};

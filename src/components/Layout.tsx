@@ -1,6 +1,6 @@
 import React from 'react'
-import { useAuthStore } from '@stores/authStore'
-import { useTranslation } from '@i18n/I18nProvider'
+import { useAuthStore } from '../stores/authStore'
+import { useTranslation } from '../i18n/I18nProvider'
 import { Navigation } from './Navigation'
 import { LanguageSwitcher } from './LanguageSwitcher'
 
@@ -42,7 +42,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <div className="flex items-center space-x-3">
                   <div className="text-sm text-gray-700">
                     <span className="font-medium">{currentUser.name}</span>
-                    <span className="ml-2 text-gray-500">({t(`parent.${currentUser.userType}`)})</span>
+                    <span className="ml-2 text-gray-500">({t(`user.${currentUser.userType}`)})</span>
                   </div>
                   
                   <button
