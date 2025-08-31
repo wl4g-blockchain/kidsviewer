@@ -29,6 +29,21 @@
   .input-field {
     @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
   }
+
+  /* 简洁的卡片样式 */
+  .card-modern {
+    @apply bg-white rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-200;
+  }
+
+  /* 渐变按钮 */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium rounded-xl px-4 py-2 transition-all duration-200 shadow-lg transform hover:scale-105;
+  }
+
+  /* 统计卡片 */
+  .stat-card {
+    @apply text-center rounded-xl p-4 border transition-all duration-200 hover:shadow-lg;
+  }
 }
 
 @layer utilities {
@@ -42,6 +57,15 @@
   
   .shadow-soft {
     box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+  }
+
+  /* 简洁的渐变背景 */
+  .bg-gradient-clean {
+    @apply bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50;
+  }
+
+  .bg-gradient-child {
+    @apply bg-gradient-to-br from-green-50 via-emerald-50 to-cyan-50;
   }
 }
 
@@ -81,6 +105,44 @@
   }
 }
 
+@keyframes kidsBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes kidsPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+@keyframes kidsSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out;
 }
@@ -91,6 +153,70 @@
 
 .animate-bounce {
   animation: bounce 1s;
+}
+
+.kids-floating-element {
+  animation: float 3s ease-in-out infinite;
+}
+
+.kids-bounce-element {
+  animation: kidsBounce 2s ease-in-out infinite;
+}
+
+.kids-pulse-element {
+  animation: kidsPulse 2s ease-in-out infinite;
+}
+
+.kids-spin-element {
+  animation: kidsSpin 3s linear infinite;
+}
+
+/* 彩虹渐变文字 */
+.kids-text-rainbow {
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbow 3s ease infinite;
+}
+
+@keyframes rainbow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* 儿童友好的彩虹背景样式 */
+.kids-bg-rainbow {
+  background: linear-gradient(135deg, 
+    #e0f2fe 0%,   /* light cyan */
+    #f0f9ff 25%,  /* sky */
+    #faf5ff 50%,  /* purple */
+    #fdf2f8 75%,  /* pink */
+    #fef7ed 100%  /* orange */
+  );
+}
+
+.kids-bg-gradient-cyan {
+  background: linear-gradient(to bottom right, #a5f3fc, #e0f2fe, #ddd6fe);
+}
+
+/* 彩色边框 */
+.kids-border-rainbow {
+  border: 3px solid;
+  border-image: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3) 1;
+  border-radius: 20px;
+}
+
+/* 彩色阴影 */
+.kids-shadow-colorful {
+  box-shadow: 0 8px 32px rgba(255, 107, 107, 0.2), 
+              0 8px 32px rgba(78, 205, 196, 0.2),
+              0 8px 32px rgba(69, 183, 209, 0.2);
 }
 
 /* Custom scrollbar */

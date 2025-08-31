@@ -1,68 +1,85 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../stores/authStore'
+import { useAuthStore } from '../stores/AuthStore'
 import { useTranslation } from '../i18n/I18nProvider'
-import { Home, Users, Video, Settings, User } from 'lucide-react'
+import { Users, Video, Settings, Crown, Baby } from 'lucide-react'
 
 export const Navigation: React.FC = () => {
-  const { currentUser } = useAuthStore()
+  const { currentUser, viewMode, activePerson } = useAuthStore()
   const location = useLocation()
   const t = useTranslation()
 
   if (!currentUser) return null
 
-  const navigationItems = [
-    {
-      name: t('navigation.home'),
-      href: '/',
-      icon: Home,
-      current: location.pathname === '/'
-    },
-    {
-      name: t('navigation.parental'),
-      href: '/parental',
-      icon: Users,
-      current: location.pathname === '/parental',
-      showFor: 'parental'
-    },
-    {
-      name: t('navigation.person'),
-      href: '/person',
-      icon: Video,
-      current: location.pathname === '/person',
-      showFor: 'person'
-    },
-    {
-      name: t('navigation.settings'),
-      href: '/settings',
-      icon: Settings,
-      current: location.pathname === '/settings'
+  // Define navigation items based on view mode
+  const getNavigationItems = () => {
+    if (viewMode === 'parent') {
+      return [
+        {
+          name: t('navigation.parental'),
+          href: '/parental-page',
+          icon: Users,
+          current: location.pathname === '/parental-page' || location.pathname === '/',
+          showFor: 'parent'
+        },
+        {
+          name: t('navigation.settings'),
+          href: '/settings',
+          icon: Settings,
+          current: location.pathname === '/settings',
+          showFor: 'parent'
+        }
+      ];
+    } else {
+      // Child view mode
+      return [
+        {
+          name: t('navigation.person'),
+          href: '/person-page',
+          icon: Video,
+          current: location.pathname === '/person-page' || location.pathname === '/',
+          showFor: 'child'
+        }
+      ];
     }
-  ]
+  };
 
-  const filteredItems = navigationItems.filter(item => 
-    !item.showFor || item.showFor === currentUser.userType
-  )
+  const navigationItems = getNavigationItems();
 
   return (
-    <nav className="flex space-x-8">
-      {filteredItems.map((item) => {
+    <nav className="flex flex-wrap justify-center lg:justify-center space-x-3 sm:space-x-6 lg:space-x-8">
+      {navigationItems.map((item) => {
         const Icon = item.icon
         return (
           <Link
             key={item.name}
             to={item.href}
-            className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200 ${
+            className={`inline-flex items-center px-3 sm:px-4 lg:px-6 py-2 border-b-2 text-xs sm:text-sm lg:text-base font-medium transition-colors duration-200 whitespace-nowrap ${
               item.current
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <Icon className="w-4 h-4 mr-2" />
-            {item.name}
+            <Icon className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">{item.name}</span>
           </Link>
         )
       })}
+      
+      {/* View mode indicator in navigation - mobile only */}
+      <div className="flex items-center px-2 py-2 text-xs text-gray-500 lg:hidden">
+        {viewMode === 'parent' ? (
+          <div className="flex items-center space-x-1">
+            <Crown className="w-3 h-3 text-yellow-500" />
+            <span>家长</span>
+          </div>
+        ) : (
+          <div className="flex items-center space-x-1">
+            <Baby className="w-3 h-3 text-green-500" />
+            <span>{activePerson?.alias || '儿童'}</span>
+          </div>
+        )}
+      </div>
     </nav>
   )
 } 

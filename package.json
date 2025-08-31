@@ -1,6 +1,7 @@
 {
   "name": "kidsviewer",
   "version": "1.0.0",
+  "type": "module",
   "description": "A parental control app that limits children's screen time and promotes learning through educational challenges",
   "main": "dist-electron/main.js",
   "homepage": "./",
@@ -13,7 +14,7 @@
     "electron-build": "npm run build && electron-builder",
     "build-electron": "tsc -p electron/tsconfig.json && electron-builder",
     "dist": "npm run build && electron-builder --publish=never",
-    "postinstall": "electron-builder install-app-deps"
+    "start-electron": "electron ."
   },
   "keywords": [
     "parental-control",
@@ -22,7 +23,7 @@
     "learning",
     "children"
   ],
-  "author": "KidsViewer Team",
+  "author": "James Wong",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.10.0",
@@ -31,28 +32,32 @@
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.21",
     "concurrently": "^8.2.2",
     "electron": "^28.0.0",
     "electron-builder": "^24.9.1",
+    "@electron-toolkit/utils": "^2.0.0",
     "eslint": "^8.55.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5.3.3",
     "vite": "^5.0.8",
     "wait-on": "^7.2.0"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
-    "react-i18next": "^13.5.0",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
     "i18next": "^23.7.6",
     "i18next-browser-languagedetector": "^7.2.0",
-    "zustand": "^4.4.7",
-    "date-fns": "^2.30.0",
     "lucide-react": "^0.294.0",
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.2.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^13.5.0",
+    "react-router-dom": "^6.20.1",
+    "tailwind-merge": "^2.2.0",
+    "zustand": "^4.4.7"
   },
   "build": {
     "appId": "com.kidsviewer.app",
@@ -76,4 +81,4 @@
       "target": "AppImage"
     }
   }
-} 
+}

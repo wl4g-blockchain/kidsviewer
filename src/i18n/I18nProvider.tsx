@@ -33,7 +33,7 @@ i18n
 interface LanguageContextType {
   currentLanguage: string
   changeLanguage: (lng: string) => void
-  t: (key: string, options?: any) => string
+  t: (key: string, options?: any) => any
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)

@@ -15,7 +15,14 @@
     "submit": "Submit",
     "close": "Close",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "switchUser": "Switch User",
+    "parentMode": "Parental Mode",
+    "childMode": "Child Mode",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "reload": "Reload",
+    "savingToServer": "Saving to server..."
   },
   "auth": {
     "login": "Login",
@@ -31,7 +38,8 @@
     "registerSuccess": "Registration successful!",
     "invalidCredentials": "Invalid email or password",
     "userExists": "User already exists",
-    "passwordsNotMatch": "Passwords do not match"
+    "passwordsNotMatch": "Passwords do not match",
+    "parentAccountOnly": "This app is designed for parent accounts only"
   },
   "parental": {
     "dashboard": "Parental Dashboard",
@@ -52,7 +60,22 @@
     "urlPlaceholder": "Enter video platform URL",
     "dailyReport": "Daily Report",
     "usageStats": "Usage Statistics",
-    "learningProgress": "Learning Progress"
+    "learningProgress": "Learning Progress",
+    "switchToPerson": "Switch to {name}",
+    "backToParent": "Back to Parental Mode",
+    "noPersonsAdded": "No child accounts added yet",
+    "addPersonInDashboard": "Add child profiles in the parent dashboard",
+    "parentalPassword": "Parental Control Password",
+    "enterParentalPassword": "Please enter parental control password",
+    "invalidParentalPassword": "Invalid parental password",
+    "passwordRequired": "Password is required",
+    "enterMinorProtectionView": "Enter Minor Protection View",
+    "onlyParentCanAdd": "Only parent accounts can add child profiles",
+    "pleaseEnterPersonName": "Please enter person name",
+    "creatingPerson": "Creating person profile...",
+    "createPersonSuccess": "Person profile created successfully",
+    "createPersonFailed": "Failed to create person profile, please retry",
+    "createPersonError": "Unknown error occurred while creating person profile"
   },
   "person": {
     "viewer": "Video Viewer",
@@ -63,7 +86,16 @@
     "incorrectAnswers": "Incorrect answers",
     "accuracy": "Accuracy",
     "level": "Level",
-    "score": "Score"
+    "score": "Score",
+    "watchingAs": "Watching as {name}",
+    "personalizedExperience": "Personalized learning experience",
+    "noPersonFound": "No person profile found",
+    "selectPersonFromParent": "Please select a person profile from parent view first",
+    "backToParentView": "Back to Parent View",
+    "noActivePersonFound": "No active person profile found",
+    "loadingAccessiblePlatforms": "Loading accessible content platforms...",
+    "loadAccessibleUrlsFailed": "Failed to load accessible content",
+    "loadContentError": "Unknown error occurred while loading content"
   },
   "questions": {
     "math": "Math",
@@ -110,7 +142,24 @@
     "sessionEnded": "Video session ended",
     "questionsCompleted": "All questions completed!",
     "unlockSuccess": "Unlocked successfully!",
-    "goodJob": "Good job! Keep learning!"
+    "goodJob": "Good job! Keep learning!",
+    "switchedToParentMode": "Switched to parent mode",
+    "switchedToChildMode": "Switched to child mode"
+  },
+  "userSwitcher": {
+    "currentUser": "Current User",
+    "parentDashboard": "Parent Dashboard",
+    "childAccounts": "Child Accounts",
+    "switchToParent": "Switch to Parental Mode",
+    "switchToChild": "Switch to Child Mode",
+    "addChild": "Add Child",
+    "manageChildren": "Manage Child Accounts"
+  },
+  "viewMode": {
+    "parent": "Parent Control Mode",
+    "child": "Child Viewing Mode",
+    "currentMode": "Current Mode",
+    "switchMode": "Switch Mode"
   },
   "errors": {
     "networkError": "Network error. Please try again.",
@@ -118,6 +167,76 @@
     "sessionExpired": "Session expired. Please login again.",
     "permissionDenied": "Permission denied.",
     "fileNotFound": "File not found.",
-    "unknownError": "An unknown error occurred."
+    "unknownError": "An unknown error occurred.",
+    "switchUserFailed": "Failed to switch user.",
+    "loadPersonsFailed": "Failed to load child accounts."
+  },
+  "home": {
+    "parent": {
+      "title": "Parent Dashboard",
+      "subtitle": "Intelligently manage children's viewing time and cultivate learning interest through fun Q&A challenges",
+      "overview": "Family Learning Overview",
+      "stats": {
+        "children": "Children",
+        "todayStudy": "Today's Study",
+        "completedQuestions": "Completed Questions",
+        "accuracy": "Accuracy"
+      },
+      "childrenManagement": "Children Management",
+      "addChild": "Add Child",
+      "noChildren": "No children added yet",
+      "noChildrenDesc": "Click the button above to start creating profiles for your children",
+      "addChildNow": "Add Child Now",
+      "viewStats": "View Statistics",
+      "settings": "Settings",
+      "manageChildren": "Manage Children",
+      "manageChildrenDesc": "Add and manage child profiles",
+      "systemSettings": "System Settings",
+      "systemSettingsDesc": "Personalized app settings",
+      "ageLabels": {
+        "preschool": "2-4 years",
+        "young": "4-6 years",
+        "older": "6-12 years"
+      },
+      "todayTime": "Today",
+      "questionsCount": "Questions"
+    },
+    "child": {
+      "title": "{name}'s World",
+      "subtitle": "Learn new knowledge by answering questions while watching exciting videos",
+      "todayAchievements": "Today's Achievements",
+      "challenge": "Question Challenge",
+      "challengeDesc": "Questions completed today",
+      "stars": "Stars Earned",
+      "starsDesc": "Total stars collected",
+      "studyTime": "Study Time",
+      "studyTimeUnit": "minutes",
+      "availablePlatforms": "Available Platforms",
+      "videoWorld": "Exciting Video World",
+      "videoWorldDesc": "Available video platforms",
+      "videoPlatform": "Video Platform",
+      "startWatching": "Start Watching",
+      "noVideos": "No videos available yet",
+      "noVideosDesc": "Please ask your parents to add watchable video platforms for you",
+      "learningChallenges": "Learning Challenges",
+      "mathPractice": "Math Practice",
+      "mathPracticeDesc": "Exercise thinking skills through fun math problems",
+      "languageLearning": "Language Learning",
+      "languageLearningDesc": "Learn Chinese and English, improve language expression skills",
+      "startChallenge": "Start Challenge",
+      "startLearning": "Start Learning",
+      "encouragement": "Keep it up, {name}!",
+      "encouragementDesc": "Every study session makes you stronger, and every question is the key to the treasure of knowledge! 🗝️"
+    }
+  },
+  "video": {
+    "loading": "Loading video...",
+    "loadError": "Video Load Failed",
+    "loadErrorDescription": "Unable to load video content, possibly due to network issues or platform restrictions",
+    "embedHint": "Some platforms may restrict embedding. Consider opening in a new window",
+    "openInNewWindow": "Open in New Window",
+    "openInBrowser": "Open in Browser",
+    "electronRequired": "Desktop App Required",
+    "electronRequiredDescription": "This feature requires the desktop application for the best experience"
   }
 } 

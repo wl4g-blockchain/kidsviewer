@@ -1,10 +1,13 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, BrowserView, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 
+let mainWindow: BrowserWindow | null = null
+let videoView: BrowserView | null = null
+
 // Create main window
 function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 800,
@@ -25,7 +28,7 @@ function createWindow(): void {
 
   // Show window when ready
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow!.show()
   })
 
   // Load app
@@ -41,23 +44,72 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
+  // Handle window close
+  mainWindow.on('closed', () => {
+    mainWindow = null
+    if (videoView) {
+      videoView.webContents.close()
+      videoView = null
+    }
+  })
+
   // Test IPC handler
   ipcMain.handle('ping', () => console.log('pong'))
+}
+
+// Create video BrowserView for embedded content
+function createVideoView(url: string, bounds: { x: number; y: number; width: number; height: number }) {
+  if (!mainWindow) return null
+
+  // Destroy existing view if any
+  if (videoView) {
+    mainWindow.removeBrowserView(videoView)
+    videoView.webContents.close()
+  }
+
+  videoView = new BrowserView({
+    webPreferences: {
+      webSecurity: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      allowRunningInsecureContent: true
+    }
+  })
+
+  mainWindow.addBrowserView(videoView)
+  videoView.setBounds(bounds)
+  videoView.setAutoResize({ width: true, height: true })
+
+  // Load the video URL
+  videoView.webContents.loadURL(url)
+
+  // Handle navigation events
+  videoView.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error(`Failed to load ${validatedURL}: ${errorDescription} (${errorCode})`)
+    mainWindow?.webContents.send('video-load-error', { url: validatedURL, error: errorDescription })
+  })
+
+  videoView.webContents.on('did-finish-load', () => {
+    console.log('Video content loaded successfully')
+    mainWindow?.webContents.send('video-load-success', { url })
+  })
+
+  // Prevent new window creation
+  videoView.webContents.setWindowOpenHandler(() => {
+    return { action: 'deny' }
+  })
+
+  return videoView
 }
 
 // App event handlers
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.kidsviewer.app')
   
-  // Default open DevTools in development
+  // Development mode setup
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    import('electron-devtools-installer')
-      .then(({ default: installExtension, REACT_DEVELOPER_TOOLS }) => {
-        installExtension(REACT_DEVELOPER_TOOLS)
-          .then((name) => console.log(`Added Extension: ${name}`))
-          .catch((err) => console.log('An error occurred: ', err))
-      })
-      .catch((err) => console.log('An error occurred: ', err))
+    console.log('Running in development mode')
   }
 
   createWindow()
@@ -69,6 +121,43 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
+})
+
+// IPC handlers for video functionality
+ipcMain.handle('create-video-view', async (_, { url, bounds }) => {
+  try {
+    const view = createVideoView(url, bounds)
+    return { success: !!view }
+  } catch (error) {
+    console.error('Error creating video view:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+})
+
+ipcMain.handle('destroy-video-view', async () => {
+  try {
+    if (videoView && mainWindow) {
+      mainWindow.removeBrowserView(videoView)
+      videoView.webContents.close()
+      videoView = null
+    }
+    return { success: true }
+  } catch (error) {
+    console.error('Error destroying video view:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
+})
+
+ipcMain.handle('update-video-bounds', async (_, bounds) => {
+  try {
+    if (videoView) {
+      videoView.setBounds(bounds)
+    }
+    return { success: true }
+  } catch (error) {
+    console.error('Error updating video bounds:', error)
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+  }
 })
 
 // IPC handlers for app functionality
@@ -86,7 +175,7 @@ ipcMain.handle('open-url', async (_, url: string) => {
     win.loadURL(url)
     return { success: true }
   } catch (error) {
-    return { success: false, error: error.message }
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
   }
 })
 

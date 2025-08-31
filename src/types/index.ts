@@ -4,22 +4,22 @@ export interface User {
   email: string;
   phone?: string;
   name: string;
-  userType: "PARENTAL" | "PERSON";
+  userType: 'PARENTAL' | 'PERSON';
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface Parental extends User {
-  userType: "PARENTAL";
+  userType: 'PARENTAL';
   controlPassword: string;
   persons: Person[];
 }
 
 export interface Person extends User {
-  userType: "PERSON";
+  userType: 'PERSON';
   parentalId: string;
   alias: string;
-  ageGroup: "preschool" | "young" | "older"; // 2-4, 4-6, 6-12
+  ageGroup: 'preschool' | 'young' | 'older'; // 2-4, 4-6, 6-12
   settings: PersonSettings;
   statistics: PersonStatistics;
 }
@@ -36,7 +36,7 @@ export interface Subject {
   id: string;
   name: string;
   enabled: boolean;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: 'easy' | 'medium' | 'hard';
 }
 
 // Question types
@@ -44,7 +44,7 @@ export interface Question {
   id: string;
   type: QuestionType;
   subject: string;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: 'easy' | 'medium' | 'hard';
   content: string;
   options?: string[];
   correctAnswer: string | number;
@@ -52,11 +52,7 @@ export interface Question {
   language: string;
 }
 
-export type QuestionType =
-  | "multiple-choice"
-  | "true-false"
-  | "fill-blank"
-  | "calculation";
+export type QuestionType = 'multiple-choice' | 'true-false' | 'fill-blank' | 'calculation';
 
 // Person statistics
 export interface PersonStatistics {
@@ -99,7 +95,7 @@ export interface RepeatedQuestion {
 export interface LearningProgress {
   subjects: Record<string, SubjectProgress>;
   overallScore: number;
-  level: "beginner" | "intermediate" | "advanced";
+  level: 'beginner' | 'intermediate' | 'advanced';
 }
 
 export interface SubjectProgress {
@@ -126,4 +122,29 @@ export interface AppState {
   remainingTime: number;
   currentQuestions: Question[];
   sessionStartTime: Date | null;
+}
+
+// App settings types
+export interface AppSettings {
+  language: 'en' | 'zh';
+  theme: 'light' | 'dark' | 'auto';
+  notifications: {
+    enabled: boolean;
+    sound: boolean;
+    vibration: boolean;
+  };
+  accessibility: {
+    fontSize: 'small' | 'medium' | 'large';
+    highContrast: boolean;
+    screenReader: boolean;
+  };
+  privacy: {
+    dataCollection: boolean;
+    analytics: boolean;
+    crashReporting: boolean;
+  };
+  updates: {
+    autoUpdate: boolean;
+    betaChannel: boolean;
+  };
 }

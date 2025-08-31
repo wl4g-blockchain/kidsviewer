@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { useAuthStore } from '../stores/authStore'
+import { useAuthStore } from '../stores/AuthStore'
 import { useTranslation } from '../i18n/I18nProvider'
-import { X, Plus, User, Calendar, Settings, BookOpen } from 'lucide-react'
+import { X, Plus, User, Calendar, Settings, BookOpen, AlertCircle } from 'lucide-react'
 import { Person } from '../types'
 
 interface AddPersonModalProps {
@@ -17,15 +17,16 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
 }) => {
   const { currentUser, apiHandler } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     alias: '',
     ageGroup: 'young' as 'preschool' | 'young' | 'older',
     timeLimit: 15,
     questionCount: 3,
     subjects: [
-      { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' as const },
-      { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' as const },
-      { id: 'english', name: 'English', enabled: true, difficulty: 'easy' as const }
+      { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+      { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+      { id: 'english', name: 'English', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' }
     ],
     allowedUrls: ['']
   })
@@ -34,6 +35,8 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error message
+    if (error) setError(null)
   }
 
   const handleSubjectToggle = (subjectId: string) => {
@@ -78,13 +81,37 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!currentUser || currentUser.userType !== 'parent') return
+    if (!currentUser || currentUser.userType !== 'PARENTAL') {
+      setError(t('parental.onlyParentCanAdd'))
+      return
+    }
+
+    if (!formData.alias.trim()) {
+      setError(t('parental.pleaseEnterPersonName'))
+      return
+    }
 
     setIsLoading(true)
+    setError(null)
+    
     try {
       // Filter out empty URLs
       const filteredUrls = formData.allowedUrls.filter(url => url.trim() !== '')
       
+      console.log('Creating person profile...', {
+        parentalId: currentUser.id,
+        personData: {
+          alias: formData.alias,
+          ageGroup: formData.ageGroup,
+          settings: {
+            timeLimit: formData.timeLimit,
+            questionCount: formData.questionCount,
+            subjects: formData.subjects.filter(subject => subject.enabled),
+            allowedUrls: filteredUrls
+          }
+        }
+      })
+
       const response = await apiHandler.createPerson(currentUser.id, {
         alias: formData.alias,
         ageGroup: formData.ageGroup,
@@ -96,7 +123,10 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
         }
       })
 
+      console.log('API response:', response)
+
       if (response.success && response.data) {
+        console.log('Person profile created successfully:', response.data)
         onSuccess(response.data)
         onClose()
         // Reset form
@@ -112,9 +142,14 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
           ],
           allowedUrls: ['']
         })
+        setError(null)
+      } else {
+        console.error('Failed to create person profile:', response.error)
+        setError(response.error || t('parental.createPersonFailed'))
       }
     } catch (error) {
-      console.error('Failed to create person:', error)
+      console.error('Error occurred while creating person profile:', error)
+      setError(error instanceof Error ? error.message : t('parental.createPersonError'))
     } finally {
       setIsLoading(false)
     }
@@ -127,7 +162,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-sm font-medium text-gray-900">
+          <h2 className="text-xl font-semibold text-gray-900">
             {t('parental.addPerson')}
           </h2>
           <button
@@ -137,6 +172,18 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
             <X className="w-6 h-6" />
           </button>
         </div>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="mx-6 mt-6 p-4 bg-red-50 border border-red-200 rounded-md">
+            <div className="flex">
+              <AlertCircle className="w-5 h-5 text-red-400" />
+              <div className="ml-3">
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
@@ -313,7 +360,8 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              disabled={isLoading}
+              className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               {t('common.cancel')}
             </button>
@@ -325,7 +373,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {t('common.loading')}
+                  {t('common.savingToServer')}
                 </>
               ) : (
                 <>

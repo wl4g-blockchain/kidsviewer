@@ -15,7 +15,14 @@
     "submit": "提交",
     "close": "关闭",
     "yes": "是",
-    "no": "否"
+    "no": "否",
+    "switchUser": "切换用户",
+    "parentMode": "家长模式",
+    "childMode": "儿童模式",
+    "refresh": "刷新",
+    "retry": "重试",
+    "reload": "重新加载",
+    "savingToServer": "正在保存到服务器..."
   },
   "auth": {
     "login": "登录",
@@ -31,7 +38,8 @@
     "registerSuccess": "注册成功！",
     "invalidCredentials": "邮箱或密码错误",
     "userExists": "用户已存在",
-    "passwordsNotMatch": "密码不匹配"
+    "passwordsNotMatch": "密码不匹配",
+    "parentAccountOnly": "此应用仅限家长账户使用"
   },
   "parental": {
     "dashboard": "家长控制台",
@@ -52,7 +60,22 @@
     "urlPlaceholder": "输入视频平台网址",
     "dailyReport": "每日报告",
     "usageStats": "使用统计",
-    "learningProgress": "学习进度"
+    "learningProgress": "学习进度",
+    "switchToPerson": "切换到 {name}",
+    "backToParent": "返回家长模式",
+    "noPersonsAdded": "还没有添加孩子账户",
+    "addPersonInDashboard": "在家长控制台中添加孩子档案",
+    "parentalPassword": "家长控制密码",
+    "enterParentalPassword": "请输入家长控制密码",
+    "invalidParentalPassword": "家长密码错误",
+    "passwordRequired": "密码不能为空",
+    "enterMinorProtectionView": "进入未成年保护视图",
+    "onlyParentCanAdd": "只有家长账户可以添加子女档案",
+    "pleaseEnterPersonName": "请输入子女姓名",
+    "creatingPerson": "正在创建子女档案...",
+    "createPersonSuccess": "子女档案创建成功",
+    "createPersonFailed": "创建子女档案失败，请重试",
+    "createPersonError": "创建子女档案时发生未知错误"
   },
   "person": {
     "viewer": "视频观看器",
@@ -63,7 +86,16 @@
     "incorrectAnswers": "错误答案",
     "accuracy": "准确率",
     "level": "等级",
-    "score": "分数"
+    "score": "分数",
+    "watchingAs": "正在以 {name} 身份观看",
+    "personalizedExperience": "个性化学习体验",
+    "noPersonFound": "未找到子女档案",
+    "selectPersonFromParent": "请先从家长视图选择一个子女档案",
+    "backToParentView": "返回家长视图",
+    "noActivePersonFound": "未找到活跃的子女档案",
+    "loadingAccessiblePlatforms": "正在加载可访问的内容平台...",
+    "loadAccessibleUrlsFailed": "加载可访问内容失败",
+    "loadContentError": "加载内容时发生未知错误"
   },
   "questions": {
     "math": "数学",
@@ -110,7 +142,24 @@
     "sessionEnded": "视频会话结束",
     "questionsCompleted": "所有问题完成！",
     "unlockSuccess": "解锁成功！",
-    "goodJob": "做得好！继续学习！"
+    "goodJob": "做得好！继续学习！",
+    "switchedToParentMode": "已切换到家长模式",
+    "switchedToChildMode": "已切换到儿童模式"
+  },
+  "userSwitcher": {
+    "currentUser": "当前用户",
+    "parentDashboard": "家长控制台",
+    "childAccounts": "孩子账户",
+    "switchToParent": "切换到家长模式",
+    "switchToChild": "切换到儿童模式",
+    "addChild": "添加孩子",
+    "manageChildren": "管理孩子账户"
+  },
+  "viewMode": {
+    "parent": "家长控制模式",
+    "child": "儿童观看模式",
+    "currentMode": "当前模式",
+    "switchMode": "切换模式"
   },
   "errors": {
     "networkError": "网络错误，请重试。",
@@ -118,6 +167,76 @@
     "sessionExpired": "会话过期，请重新登录。",
     "permissionDenied": "权限被拒绝。",
     "fileNotFound": "文件未找到。",
-    "unknownError": "发生未知错误。"
+    "unknownError": "发生未知错误。",
+    "switchUserFailed": "切换用户失败。",
+    "loadPersonsFailed": "加载孩子账户失败。"
+  },
+  "home": {
+    "parent": {
+      "title": "家长控制台",
+      "subtitle": "智能管理孩子的观看时间，通过有趣的问答挑战培养学习兴趣",
+      "overview": "家庭学习概览",
+      "stats": {
+        "children": "孩子数量",
+        "todayStudy": "今日学习",
+        "completedQuestions": "完成题目",
+        "accuracy": "正确率"
+      },
+      "childrenManagement": "孩子管理",
+      "addChild": "添加孩子",
+      "noChildren": "还没有添加孩子",
+      "noChildrenDesc": "点击上方按钮开始为您的孩子创建档案",
+      "addChildNow": "立即添加孩子",
+      "viewStats": "查看统计",
+      "settings": "设置",
+      "manageChildren": "管理孩子",
+      "manageChildrenDesc": "添加和管理孩子档案",
+      "systemSettings": "系统设置",
+      "systemSettingsDesc": "个性化应用设置",
+      "ageLabels": {
+        "preschool": "2-4岁",
+        "young": "4-6岁",
+        "older": "6-12岁"
+      },
+      "todayTime": "今日",
+      "questionsCount": "题目"
+    },
+    "child": {
+      "title": "{name}的世界",
+      "subtitle": "在观看精彩视频的同时，通过回答问题来学习新知识",
+      "todayAchievements": "今日成就",
+      "challenge": "答题挑战",
+      "challengeDesc": "今天完成的题目",
+      "stars": "获得星星",
+      "starsDesc": "累计收集星星",
+      "studyTime": "学习时间",
+      "studyTimeUnit": "分钟",
+      "availablePlatforms": "可访问平台",
+      "videoWorld": "精彩视频世界",
+      "videoWorldDesc": "可观看的视频平台",
+      "videoPlatform": "视频平台",
+      "startWatching": "开始观看",
+      "noVideos": "还没有可观看的视频",
+      "noVideosDesc": "请让家长为您添加可观看的视频平台",
+      "learningChallenges": "学习挑战",
+      "mathPractice": "数学练习",
+      "mathPracticeDesc": "通过有趣的数学题目锻炼思维能力",
+      "languageLearning": "语言学习",
+      "languageLearningDesc": "学习中文和英文，提高语言表达能力",
+      "startChallenge": "开始挑战",
+      "startLearning": "开始学习",
+      "encouragement": "继续加油，{name}！",
+      "encouragementDesc": "每一次学习都让你变得更强大，每一个问题都是通向知识宝藏的钥匙！🗝️"
+    }
+  },
+  "video": {
+    "loading": "正在加载视频...",
+    "loadError": "视频加载失败",
+    "loadErrorDescription": "无法加载视频内容，可能是网络问题或平台限制",
+    "embedHint": "某些平台可能限制嵌入显示，建议在新窗口中打开",
+    "openInNewWindow": "在新窗口中打开",
+    "openInBrowser": "在浏览器中打开",
+    "electronRequired": "需要桌面应用",
+    "electronRequiredDescription": "此功能需要在桌面应用中使用以获得最佳体验"
   }
 } 
