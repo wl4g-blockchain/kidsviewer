@@ -112,25 +112,53 @@ npm run dist
 
 ### 方案1: Capacitor (推荐)
 
-#### 1. 安装Capacitor
+#### 1. 安装 Capacitor
+
 ```bash
 npm install @capacitor/core @capacitor/cli @capacitor/ios
 npx cap init
 ```
 
-#### 2. 添加iOS平台
+#### 2. 添加 iOS 平台
+
 ```bash
 npx cap add ios
 ```
 
 #### 3. 构建并同步
+
 ```bash
 npm run build
 npx cap sync
 npx cap open ios
+
+open ios/App/App.xcworkspace
+
+# Start the Apple Simulator.
+open -a Simulator
+
+# Show the All simulation devices.
+xcrun simctl list devices
+# == Devices ==
+# -- iOS 18.6 --
+#    iPhone 16 Pro (2E44C96B-66F9-451D-8439-1B5670DCD583) (Shutdown) 
+#    iPhone 16 Pro Max (F5C0C199-8170-4D96-9102-4FFB7EEE8784) (Shutdown) 
+#    iPhone 16e (26992A73-3E64-46D6-8342-E964978A0660) (Shutdown) 
+#    iPhone 16 (9C58C2CD-05E3-406E-A0FF-3ED004A4D057) (Shutdown) 
+#    iPhone 16 Plus (C52892AE-4C32-46A1-8DD2-39D33082A0FD) (Shutdown) 
+#    iPad Pro 11-inch (M4) (A8163E8A-711F-478B-9FD8-86CD74230039) (Shutdown) 
+#    iPad Pro 13-inch (M4) (45C94D7B-D6D0-4342-A01C-C886DD93DCE5) (Shutdown) 
+#    iPad mini (A17 Pro) (4A67F379-7F01-4EB2-97A7-8B60905857CA) (Shutdown) 
+#    iPad (A16) (419808B3-8D84-4836-8024-2422D2B66D09) (Shutdown) 
+#    iPad Air 13-inch (M3) (77D47C11-1848-4DEE-A7EA-0884BBC2BA91) (Shutdown) 
+#    iPad Air 11-inch (M3) (B259CACC-A8E5-48F2-A761-128EE8719BBF) (Shutdown) 
+
+# Deploy APP in the simulation Device.
+npx cap run ios --target "A8163E8A-711F-478B-9FD8-86CD74230039"
 ```
 
 #### 4. 在Xcode中配置
+
 - 打开 `ios/App/App.xcworkspace`
 - 配置Bundle Identifier
 - 设置签名证书
@@ -139,38 +167,24 @@ npx cap open ios
 ### 方案2: React Native (高级)
 
 #### 1. 创建React Native项目
+
 ```bash
 npx react-native init KidsViewerRN
 ```
 
 #### 2. 迁移核心逻辑
+
 - 复制状态管理逻辑
 - 迁移API处理
 - 适配React Native组件
 
 #### 3. 构建iOS应用
+
 ```bash
 cd ios
 pod install
 cd ..
 npx react-native run-ios
-```
-
-### 方案3: PWA + TWA (渐进式Web应用)
-
-#### 1. 配置PWA
-```bash
-npm install vite-plugin-pwa
-```
-
-#### 2. 添加TWA配置
-```bash
-npm install @vite-pwa/assets-generator
-```
-
-#### 3. 构建PWA
-```bash
-npm run build
 ```
 
 ## 🔧 开发指南
