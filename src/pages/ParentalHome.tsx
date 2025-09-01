@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuthStore } from "../stores/AuthStore";
+import { useAuthStore } from "../stores/authStore";
 import { useTranslation } from "../i18n/I18nProvider";
 import {
   Plus,

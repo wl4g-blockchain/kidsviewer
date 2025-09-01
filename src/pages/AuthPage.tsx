@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/AuthStore';
+import { useAuthStore } from '../stores/authStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { AuthUtil } from '../utils/authUtil';
@@ -247,23 +247,29 @@ export const AuthPage: React.FC = () => {
               textAlign: 'center',
             }}
           >
-            <p style={{ 
-              fontSize: '0.875rem', 
-              color: '#92400e', 
-              fontWeight: '600',
-              margin: '0 0 0.5rem 0'
-            }}>
+            <p
+              style={{
+                fontSize: '0.875rem',
+                color: '#92400e',
+                fontWeight: '600',
+                margin: '0 0 0.5rem 0',
+              }}
+            >
               🎯 演示账户凭据
             </p>
-            <p style={{ 
-              fontSize: '0.75rem', 
-              color: '#b45309', 
-              margin: '0'
-            }}>
-              邮箱: <code style={{ backgroundColor: '#fde68a', padding: '0.125rem 0.25rem', borderRadius: '0.25rem' }}>
+            <p
+              style={{
+                fontSize: '0.75rem',
+                color: '#b45309',
+                margin: '0',
+              }}
+            >
+              邮箱:{' '}
+              <code style={{ backgroundColor: '#fde68a', padding: '0.125rem 0.25rem', borderRadius: '0.25rem' }}>
                 {DEFAULT_CREDENTIALS.email}
-              </code> | 
-              密码: <code style={{ backgroundColor: '#fde68a', padding: '0.125rem 0.25rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>
+              </code>{' '}
+              | 密码:{' '}
+              <code style={{ backgroundColor: '#fde68a', padding: '0.125rem 0.25rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>
                 {DEFAULT_CREDENTIALS.password}
               </code>
             </p>

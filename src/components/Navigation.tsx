@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../stores/AuthStore'
+import { useAuthStore } from '../stores/authStore'
 import { useTranslation } from '../i18n/I18nProvider'
 import { Users, Video, Settings, Crown, Baby } from 'lucide-react'
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuthStore } from '../stores/AuthStore';
+import { useAuthStore } from '../stores/authStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Navigation } from './Navigation';
 import { LanguageSwitcher } from './LanguageSwitcher';

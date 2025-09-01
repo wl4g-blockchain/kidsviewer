@@ -61,89 +61,182 @@ kidviewer/
 ### 安装依赖
 ```bash
 npm install
+# 或者
+yarn install
 ```
 
 ### 开发模式
-```bash
-# 启动 Vite 开发服务器
-npm run dev
 
-# 启动 Electron 开发模式
-npm run electron-dev
+#### 1. Web开发模式
+```bash
+npm run dev
 ```
 
-### 构建应用
+#### 2. Electron开发模式（推荐）
 ```bash
-# 构建 Web 版本
-npm run build
+npm run electron-dev
+```
+这将同时启动Vite开发服务器和Electron应用。
 
-# 构建 Electron 应用
+#### 3. 仅运行Electron（需要先构建）
+```bash
+npm run build
+npm run electron
+```
+
+### 构建和打包
+
+#### 1. 构建Web版本
+```bash
+npm run build
+```
+
+#### 2. 构建Electron应用
+```bash
+# 构建并打包为桌面应用
 npm run electron-build
 
-# 构建并打包分发版本
+# 或者分步执行
+npm run build
 npm run dist
 ```
 
-## 📖 使用说明
+#### 3. 构建产物位置
+- Web版本: `dist/` 目录
+- Electron应用: `release/` 目录
 
-### 家长设置流程
-1. 注册/登录家长账号
-2. 添加孩子信息（姓名、年龄段）
-3. 配置时间限制和问题设置
-4. 设置允许访问的视频平台 URL
-5. 监控使用报告和学习进度
+## 📱 iOS/iPad 打包方案
 
-### 儿童使用流程
-1. 选择孩子账号登录
-2. 观看家长设置的视频内容
-3. 时间到后自动锁定
-4. 回答教育问题解锁继续观看
-5. 查看学习进度和成就
+### 方案1: Capacitor (推荐)
 
-## 🌍 国际化支持
+#### 1. 安装Capacitor
+```bash
+npm install @capacitor/core @capacitor/cli @capacitor/ios
+npx cap init
+```
 
-- **中文**: 简体中文界面，支持繁体字识别题目
-- **English**: 英文界面，适合双语学习
+#### 2. 添加iOS平台
+```bash
+npx cap add ios
+```
 
-## 🔧 配置说明
+#### 3. 构建并同步
+```bash
+npm run build
+npx cap sync
+npx cap open ios
+```
 
-### 时间限制选项
-- 学前儿童 (2-4岁): 10-15分钟
-- 小童 (4-6岁): 15-20分钟  
-- 大童 (6-12岁): 20-40分钟
+#### 4. 在Xcode中配置
+- 打开 `ios/App/App.xcworkspace`
+- 配置Bundle Identifier
+- 设置签名证书
+- 配置权限（网络、存储等）
 
-### 问题类型
-- **数学**: 基础计算、数字识别
-- **语文**: 繁体字识别、词语理解
-- **英语**: 基础词汇、简单语法
+### 方案2: React Native (高级)
 
-## 📊 数据存储
+#### 1. 创建React Native项目
+```bash
+npx react-native init KidsViewerRN
+```
 
-- **本地存储**: LocalStorage (离线使用)
-- **云端存储**: 标准 API 接口 (可选)
-- **数据同步**: 支持多设备数据同步
+#### 2. 迁移核心逻辑
+- 复制状态管理逻辑
+- 迁移API处理
+- 适配React Native组件
 
-## 🤝 贡献指南
+#### 3. 构建iOS应用
+```bash
+cd ios
+pod install
+cd ..
+npx react-native run-ios
+```
 
-欢迎提交 Issue 和 Pull Request！
+### 方案3: PWA + TWA (渐进式Web应用)
 
-### 开发规范
-- 使用 TypeScript 严格模式
-- 遵循 ESLint 规则
-- 组件使用函数式组件 + Hooks
-- 所有注释使用英文
-- 支持国际化
+#### 1. 配置PWA
+```bash
+npm install vite-plugin-pwa
+```
+
+#### 2. 添加TWA配置
+```bash
+npm install @vite-pwa/assets-generator
+```
+
+#### 3. 构建PWA
+```bash
+npm run build
+```
+
+## 🔧 开发指南
+
+### 添加新的视频平台
+
+1. 在 `src/api/` 中添加平台API
+2. 在 `src/types/` 中定义类型
+3. 在 `src/pages/PersonViewer.tsx` 中集成
+
+### 添加新的问题类型
+
+1. 在 `src/types/index.ts` 中定义问题类型
+2. 在 `src/api/` 中添加问题生成逻辑
+3. 在UI中实现问题展示
+
+### 国际化
+
+1. 在 `src/i18n/locales/` 中添加翻译
+2. 使用 `useTranslation()` Hook
+3. 支持动态语言切换
+
+## 🐛 常见问题
+
+### Electron相关问题
+
+#### Q: Electron应用无法启动
+A: 检查依赖是否正确安装：
+```bash
+npm install electron electron-builder @electron-toolkit/utils --save-dev
+```
+
+#### Q: BrowserView无法加载外部网站
+A: 确保在 `electron/main.ts` 中设置了：
+```typescript
+webSecurity: false
+```
+
+#### Q: 视频平台无法嵌入
+A: 使用BrowserView方案，可以绕过CSP限制。
+
+### iOS打包相关问题
+
+#### Q: Capacitor构建失败
+A: 检查iOS开发环境：
+- 安装Xcode
+- 配置开发者证书
+- 安装CocoaPods
+
+#### Q: 应用无法访问网络
+A: 在 `ios/App/App/Info.plist` 中添加：
+```xml
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+</dict>
+```
 
 ## 📄 许可证
 
 MIT License
 
+## 🤝 贡献
+
+欢迎提交Issue和Pull Request！
+
 ## 📞 联系我们
 
-- 项目主页: [GitHub Repository]
-- 问题反馈: [Issues]
-- 功能建议: [Discussions]
-
----
-
-**KidsViewer** - 让学习变得有趣，让时间管理变得智能！ 🎓✨ 
+如有问题，请通过以下方式联系：
+- 邮箱: support@kidsviewer.com
+- GitHub Issues: [项目地址] 

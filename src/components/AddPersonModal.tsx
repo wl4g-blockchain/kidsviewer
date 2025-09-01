@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useAuthStore } from '../stores/AuthStore'
+import { useAuthStore } from '../stores/authStore'
 import { useTranslation } from '../i18n/I18nProvider'
 import { X, Plus, User, Calendar, Settings, BookOpen, AlertCircle } from 'lucide-react'
 import { Person } from '../types'

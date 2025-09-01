@@ -6,7 +6,7 @@ import { ParentalHome } from './pages/ParentalHome';
 import { PersonViewer } from './pages/PersonViewer';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthPage } from './pages/AuthPage';
-import { useAuthStore } from './stores/AuthStore';
+import { useAuthStore } from './stores/authStore';
 import { useEffect } from 'react';
 
 function App() {
