@@ -37,6 +37,17 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../dist/index.html'))
   }
+  
+  // In development mode, handle navigation to prevent file:/// errors
+  if (is.dev) {
+    mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+      // Only allow navigation to localhost URLs in dev mode
+      if (!navigationUrl.includes('localhost:5173')) {
+        event.preventDefault()
+        console.log('Prevented navigation to:', navigationUrl)
+      }
+    })
+  }
 
   // Open external links in default browser
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -53,8 +64,10 @@ function createWindow(): void {
     }
   })
 
-  // Test IPC handler
-  ipcMain.handle('ping', () => console.log('pong'))
+  // Test IPC handler - only register if not already registered
+  if (!ipcMain.listenerCount('ping')) {
+    ipcMain.handle('ping', () => console.log('pong'))
+  }
 }
 
 // Create video BrowserView for embedded content
@@ -123,62 +136,72 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-// IPC handlers for video functionality
-ipcMain.handle('create-video-view', async (_, { url, bounds }) => {
-  try {
-    const view = createVideoView(url, bounds)
-    return { success: !!view }
-  } catch (error) {
-    console.error('Error creating video view:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
-})
-
-ipcMain.handle('destroy-video-view', async () => {
-  try {
-    if (videoView && mainWindow) {
-      mainWindow.removeBrowserView(videoView)
-      videoView.webContents.close()
-      videoView = null
+// IPC handlers for video functionality - only register if not already registered
+if (!ipcMain.listenerCount('create-video-view')) {
+  ipcMain.handle('create-video-view', async (_, { url, bounds }) => {
+    try {
+      const view = createVideoView(url, bounds)
+      return { success: !!view }
+    } catch (error) {
+      console.error('Error creating video view:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
-    return { success: true }
-  } catch (error) {
-    console.error('Error destroying video view:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
-})
+  })
+}
 
-ipcMain.handle('update-video-bounds', async (_, bounds) => {
-  try {
-    if (videoView) {
-      videoView.setBounds(bounds)
+if (!ipcMain.listenerCount('destroy-video-view')) {
+  ipcMain.handle('destroy-video-view', async () => {
+    try {
+      if (videoView && mainWindow) {
+        mainWindow.removeBrowserView(videoView)
+        videoView.webContents.close()
+        videoView = null
+      }
+      return { success: true }
+    } catch (error) {
+      console.error('Error destroying video view:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
     }
-    return { success: true }
-  } catch (error) {
-    console.error('Error updating video bounds:', error)
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
-})
+  })
+}
+
+if (!ipcMain.listenerCount('update-video-bounds')) {
+  ipcMain.handle('update-video-bounds', async (_, bounds) => {
+    try {
+      if (videoView) {
+        videoView.setBounds(bounds)
+      }
+      return { success: true }
+    } catch (error) {
+      console.error('Error updating video bounds:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  })
+}
 
 // IPC handlers for app functionality
-ipcMain.handle('open-url', async (_, url: string) => {
-  try {
-    const win = new BrowserWindow({
-      width: 1000,
-      height: 800,
-      webPreferences: {
-        webSecurity: false,
-        nodeIntegration: false,
-        contextIsolation: true
-      }
-    })
-    win.loadURL(url)
-    return { success: true }
-  } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
-  }
-})
+if (!ipcMain.listenerCount('open-url')) {
+  ipcMain.handle('open-url', async (_, url: string) => {
+    try {
+      const win = new BrowserWindow({
+        width: 1000,
+        height: 800,
+        webPreferences: {
+          webSecurity: false,
+          nodeIntegration: false,
+          contextIsolation: true
+        }
+      })
+      win.loadURL(url)
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  })
+}
 
-ipcMain.handle('get-app-version', () => {
-  return app.getVersion()
-}) 
+if (!ipcMain.listenerCount('get-app-version')) {
+  ipcMain.handle('get-app-version', () => {
+    return app.getVersion()
+  })
+} 
