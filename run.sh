@@ -130,6 +130,7 @@ electron_dev() {
     print_warning "Press Ctrl+C to stop the application"
     echo ""
     
+    npm run preelectron-dev &
     npm run electron-dev &
     PIDS+=($!)
     

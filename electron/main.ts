@@ -1,7 +1,8 @@
-import { app, BrowserWindow, BrowserView, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, BrowserView, ipcMain, shell, session } from 'electron'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import * as fs from 'fs'
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url)
@@ -9,9 +10,41 @@ const __dirname = dirname(__filename)
 
 let mainWindow: BrowserWindow | null = null
 let videoView: BrowserView | null = null
+// Keep track of child windows for parental control
+let videoWindows: BrowserWindow[] = []
 
-// Create main window
+// 查找预加载脚本的实际路径
+function findPreloadPath() {
+  // 开发环境路径
+  const devPath = join(__dirname, '../preload/index.js')
+  // 生产环境可能的路径
+  const prodPath1 = join(__dirname, 'preload/index.js') 
+  const prodPath2 = join(__dirname, 'preload.js')
+  const prodPath3 = join(app.getAppPath(), 'dist-electron/preload/index.js')
+  const prodPath4 = join(app.getAppPath(), 'dist-electron', 'preload.js')
+
+  // 检查哪个路径存在
+  const paths = [devPath, prodPath1, prodPath2, prodPath3, prodPath4]
+  for (const path of paths) {
+    if (fs.existsSync(path)) {
+      console.log('找到预加载脚本:', path)
+      return path
+    }
+  }
+  
+  // 如果找不到，返回默认路径并记录警告
+  console.warn('⚠️ 找不到预加载脚本，将使用默认路径')
+  console.log('当前目录:', __dirname)
+  console.log('应用路径:', app.getAppPath())
+  return devPath
+}
+
+// 更新BrowserWindow配置，修复preload脚本路径问题
 function createWindow(): void {
+  // 使用绝对路径确保preload脚本能被正确找到
+  const preloadPath = findPreloadPath()
+  console.log('预加载脚本路径:', preloadPath)
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -20,16 +53,34 @@ function createWindow(): void {
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: preloadPath,
       sandbox: false,
       webSecurity: false, // Allow loading external content
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      allowRunningInsecureContent: true,
     },
     titleBarStyle: 'hiddenInset',
     vibrancy: 'under-window',
     visualEffectState: 'active'
   })
+  
+  // 调试预加载脚本
+  mainWindow.webContents.on('did-finish-load', () => {
+    console.log('主窗口加载完成 - 检查预加载状态');
+    mainWindow?.webContents.executeJavaScript(`
+      console.log("Electron API 检查:", {
+        hasElectronAPI: !!window.electronAPI, 
+        apiKeys: window.electronAPI ? Object.keys(window.electronAPI) : [],
+        windowProps: Object.keys(window).filter(k => k.includes('electron'))
+      });
+    `);
+  });
+
+  // 启用调试
+  if (is.dev) {
+    mainWindow.webContents.openDevTools();
+  }
 
   // Show window when ready
   mainWindow.on('ready-to-show', () => {
@@ -67,6 +118,14 @@ function createWindow(): void {
       videoView.webContents.close()
       videoView = null
     }
+    
+    // Close all child video windows
+    videoWindows.forEach(window => {
+      if (!window.isDestroyed()) {
+        window.close()
+      }
+    })
+    videoWindows = []
   })
 
   // Test IPC handler - only register if not already registered
@@ -84,6 +143,23 @@ function createVideoView(url: string, bounds: { x: number; y: number; width: num
     mainWindow.removeBrowserView(videoView)
     videoView.webContents.close()
   }
+
+  // Configure CSP bypassing for all sessions
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    if (details.responseHeaders) {
+      // Remove Content-Security-Policy related headers
+      delete details.responseHeaders['content-security-policy'];
+      delete details.responseHeaders['content-security-policy-report-only'];
+      delete details.responseHeaders['x-content-security-policy'];
+      delete details.responseHeaders['x-webkit-csp'];
+    }
+    callback({ 
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Access-Control-Allow-Origin': ['*']
+      } 
+    });
+  });
 
   videoView = new BrowserView({
     webPreferences: {
@@ -108,6 +184,23 @@ function createVideoView(url: string, bounds: { x: number; y: number; width: num
       ]
     }
   })
+
+  // Modify CSP headers for this view
+  videoView.webContents.session.webRequest.onHeadersReceived({ urls: ['*://*/*'] }, 
+    (details, callback) => {
+      if (details.responseHeaders) {
+        // Remove all CSP headers
+        delete details.responseHeaders['content-security-policy'];
+        delete details.responseHeaders['content-security-policy-report-only'];
+      }
+      callback({ 
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Access-Control-Allow-Origin': ['*']
+        } 
+      });
+    }
+  );
 
   mainWindow.addBrowserView(videoView)
   videoView.setBounds(bounds)
@@ -161,9 +254,109 @@ function createVideoView(url: string, bounds: { x: number; y: number; width: num
   return videoView
 }
 
+// Create a separate window for video with enhanced CSP bypassing
+function createVideoWindow(url: string, title: string = 'Video Player'): BrowserWindow {
+  // Configure CSP bypassing for the session
+  const videoWindowSession = session.fromPartition('video-window-session');
+  
+  videoWindowSession.webRequest.onHeadersReceived((details, callback) => {
+    if (details.responseHeaders) {
+      // Remove Content-Security-Policy related headers
+      delete details.responseHeaders['content-security-policy'];
+      delete details.responseHeaders['content-security-policy-report-only'];
+      delete details.responseHeaders['x-content-security-policy'];
+      delete details.responseHeaders['x-webkit-csp'];
+    }
+    callback({ 
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Access-Control-Allow-Origin': ['*']
+      } 
+    });
+  });
+
+  const videoWindow = new BrowserWindow({
+    width: 1000,
+    height: 800,
+    title: title,
+    autoHideMenuBar: true,
+    webPreferences: {
+      webSecurity: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      session: videoWindowSession,
+      sandbox: false,
+      allowRunningInsecureContent: true,
+      experimentalFeatures: true,
+      additionalArguments: [
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--disable-site-isolation-trials',
+        '--allow-running-insecure-content',
+        '--disable-xss-auditor'
+      ]
+    }
+  })
+
+  // Set user agent to mimic a regular browser
+  videoWindow.webContents.setUserAgent(
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  )
+
+  try {
+    videoWindow.loadURL(url)
+    
+    // Track this window for parental control
+    videoWindows.push(videoWindow)
+    
+    // When window is closed, remove from tracking array
+    videoWindow.on('closed', () => {
+      const index = videoWindows.indexOf(videoWindow)
+      if (index > -1) {
+        videoWindows.splice(index, 1)
+      }
+    })
+    
+    return videoWindow
+  } catch (error) {
+    console.error('Error loading video URL in window:', error)
+    videoWindow.close()
+    throw error
+  }
+}
+
+// Close all video windows - useful for parental control timeouts
+function closeAllVideoWindows() {
+  videoWindows.forEach(window => {
+    if (!window.isDestroyed()) {
+      window.close()
+    }
+  })
+  videoWindows = []
+}
+
 // App event handlers
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.kidsviewer.app')
+  
+  // 全局配置：禁用CSP和其他安全策略，以允许第三方内容嵌入
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    if (details.responseHeaders) {
+      // 移除所有CSP相关头部
+      delete details.responseHeaders['content-security-policy'];
+      delete details.responseHeaders['content-security-policy-report-only'];
+      delete details.responseHeaders['x-content-security-policy'];
+      delete details.responseHeaders['x-webkit-csp'];
+    }
+    callback({ 
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Access-Control-Allow-Origin': ['*']
+      } 
+    });
+  });
+  
+  console.log('Electron app ready, configured global CSP bypass');
   
   // Development mode setup
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -224,23 +417,68 @@ if (!ipcMain.listenerCount('update-video-bounds')) {
   })
 }
 
-// IPC handlers for app functionality
+// Enhanced IPC handlers for app functionality
+// 修改open-url处理程序，使用和视频窗口相同的方法
 if (!ipcMain.listenerCount('open-url')) {
   ipcMain.handle('open-url', async (_, url: string) => {
     try {
-      const win = new BrowserWindow({
-        width: 1000,
-        height: 800,
-        webPreferences: {
-          webSecurity: false,
-          nodeIntegration: false,
-          contextIsolation: true
-        }
-      })
-      win.loadURL(url)
+      // 使用与视频窗口相同的配置和CSP处理，确保安全策略一致
+      const window = createVideoWindow(url, 'Web Content');
+      return { success: true, windowId: window.id }
+    } catch (error) {
+      console.error('Error opening URL in window:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  })
+}
+
+// New IPC handler for separate video window with parental control capability
+if (!ipcMain.listenerCount('open-video-window')) {
+  ipcMain.handle('open-video-window', async (_, { url, title }) => {
+    try {
+      const window = createVideoWindow(url, title)
+      return { 
+        success: true, 
+        windowId: window.id 
+      }
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }
+    }
+  })
+}
+
+// New IPC handler to close a specific video window
+if (!ipcMain.listenerCount('close-video-window')) {
+  ipcMain.handle('close-video-window', async (_, windowId) => {
+    try {
+      const window = BrowserWindow.fromId(windowId)
+      if (window && !window.isDestroyed()) {
+        window.close()
+      }
       return { success: true }
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }
+    }
+  })
+}
+
+// New IPC handler to close all video windows (for parental control)
+if (!ipcMain.listenerCount('close-all-video-windows')) {
+  ipcMain.handle('close-all-video-windows', async () => {
+    try {
+      closeAllVideoWindows()
+      return { success: true }
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      }
     }
   })
 }

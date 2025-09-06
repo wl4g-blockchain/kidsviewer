@@ -235,8 +235,16 @@
     "loadErrorDescription": "无法加载视频内容，可能是网络问题或平台限制",
     "embedHint": "某些平台可能限制嵌入显示，建议在新窗口中打开",
     "openInNewWindow": "在新窗口中打开",
-    "openInBrowser": "在浏览器中打开",
     "electronRequired": "需要桌面应用",
-    "electronRequiredDescription": "此功能需要在桌面应用中使用以获得最佳体验"
+    "electronRequiredDescription": "此功能需要在桌面应用中使用以获得最佳体验",
+    "runningInWindow": "正在独立窗口中运行",
+    "windowModeDescription": "视频正在单独的窗口中播放。如果需要，您可以切换回嵌入模式。",
+    "switchToEmbedded": "切换到嵌入视图",
+    "openInSeparateWindow": "在独立窗口中打开",
+    "playerWindowTitle": "视频播放器",
+    "cspErrorDetected": "检测到内容安全策略限制，尝试绕过中...",
+    "bypassingRestrictions": "正在绕过安全限制...",
+    "browserSecurityRestrictions": "浏览器安全限制阻止显示此内容，正在使用替代方法...",
+    "openInBrowser": "在浏览器中打开"
   }
 } 

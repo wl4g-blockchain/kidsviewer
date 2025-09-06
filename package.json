@@ -10,10 +10,11 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron": "electron .",
-    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && ELECTRON_RENDERER_URL=http://localhost:5173 npx electron .\"",
-    "electron-build": "npm run build && electron-builder",
+    "preelectron-dev": "tsc -p electron/tsconfig.json",
+    "electron-dev": "ELECTRON=true concurrently \"npm run dev\" \"wait-on http://localhost:5173 && ELECTRON_RENDERER_URL=http://localhost:5173 npx electron .\"",
+    "electron-build": "npm run build && npm run build-electron",
     "build-electron": "tsc -p electron/tsconfig.json && electron-builder",
-    "dist": "npm run build && electron-builder --publish=never"
+    "dist": "npm run build && npm run build-electron && electron-builder --publish=never"
   },
   "keywords": [
     "parental-control",
@@ -71,6 +72,13 @@
       "dist/**/*",
       "dist-electron/**/*",
       "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "dist-electron",
+        "to": "dist-electron",
+        "filter": ["**/*"]
+      }
     ],
     "mac": {
       "category": "public.app-category.education",

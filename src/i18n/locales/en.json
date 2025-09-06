@@ -235,8 +235,16 @@
     "loadErrorDescription": "Unable to load video content, possibly due to network issues or platform restrictions",
     "embedHint": "Some platforms may restrict embedding. Consider opening in a new window",
     "openInNewWindow": "Open in New Window",
-    "openInBrowser": "Open in Browser",
     "electronRequired": "Desktop App Required",
-    "electronRequiredDescription": "This feature requires the desktop application for the best experience"
+    "electronRequiredDescription": "This feature requires the desktop application for the best experience",
+    "runningInWindow": "Running in Separate Window",
+    "windowModeDescription": "Video is now playing in a separate window. You can switch back to embedded mode if preferred.",
+    "switchToEmbedded": "Switch to Embedded View",
+    "openInSeparateWindow": "Open in Separate Window",
+    "playerWindowTitle": "Video Player",
+    "cspErrorDetected": "Content Security Policy restrictions detected. Trying to bypass...",
+    "bypassingRestrictions": "Bypassing security restrictions...",
+    "browserSecurityRestrictions": "Browser security restrictions prevent showing this content. Using alternative method...",
+    "openInBrowser": "Open in Browser"
   }
 } 
