@@ -42,6 +42,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
+capacitor.config.json.bak
 
 # Coverage directory used by tools like istanbul
 coverage/

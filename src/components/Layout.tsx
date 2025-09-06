@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Navigation } from './Navigation';
@@ -12,9 +12,28 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { currentUser, viewMode } = useAuthStore();
   const t = useTranslation();
+  const [isIOS, setIsIOS] = useState(false);
+
+  // 检测是否在iOS环境中运行
+  useEffect(() => {
+    const checkPlatform = () => {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const isIPad = /ipad/.test(userAgent);
+      const isIPhone = /iphone/.test(userAgent);
+      const isIPod = /ipod/.test(userAgent);
+      const isMacIntel = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+      
+      setIsIOS(isIPad || isIPhone || isIPod || isMacIntel);
+    };
+    
+    checkPlatform();
+  }, []);
+
+  // 为iOS设备添加安全区域类名
+  const safeAreaClass = isIOS ? 'ios-safe-area' : '';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative">
+    <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative ${safeAreaClass}`}>
       {/* Soft decorative background - responsive positioning */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 sm:top-20 right-10 sm:right-20 w-20 h-20 sm:w-40 sm:h-40 bg-blue-100 rounded-full opacity-10 animate-pulse"></div>
@@ -28,8 +47,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         ></div>
       </div>
 
-      {/* Header - responsive design */}
-      <header className="bg-white/90 backdrop-blur-sm shadow-md border-b border-gray-100 relative z-10">
+      {/* Header - responsive design with iOS safe area support */}
+      <header className={`bg-white/90 backdrop-blur-sm shadow-md border-b border-gray-100 relative z-10 ${isIOS ? 'pt-10' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
             {/* Logo - responsive sizing */}
@@ -98,7 +117,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center mr-2">
                 <span className="text-xs">💖</span>
               </div>
-              <p className="text-gray-600 text-xs sm:text-sm">&copy; 2024 KidsViewer - {t('common.appName')}</p>
+              <p className="text-gray-600 text-xs sm:text-sm">&copy; 2025 KidsViewer - {t('common.appName')}</p>
             </div>
           </div>
         </div>

@@ -3,7 +3,12 @@
   "appName": "KidsViewer",
   "webDir": "dist",
   "server": {
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "iosScheme": "http",
+    "allowNavigation": ["*"],
+    "hostname": "10.0.0.102",
+    "cleartext": true,
+    "url": "http://10.0.0.102:5173"
   },
   "plugins": {
     "SplashScreen": {
@@ -17,7 +22,15 @@
       "splashImmersive": true
     },
     "StatusBar": {
-      "style": "dark"
+      "style": "dark",
+      "backgroundColor": "#4F46E5",
+      "overlaysWebView": true,
+      "backgroundColorByHexString": "#4F46E5"
     }
+  },
+  "ios": {
+    "contentInset": "always",
+    "scheme": "kidsviewer",
+    "backgroundColor": "#ffffff"
   }
 }
