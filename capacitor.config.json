@@ -26,14 +26,6 @@
       "backgroundColor": "#4F46E5",
       "overlaysWebView": true,
       "backgroundColorByHexString": "#4F46E5"
-    },
-    "Browser": {
-      "toolbarColor": "#000000",
-      "presentationStyle": "fullscreen",
-      "basicAuthCredential": {
-        "username": "",
-        "password": ""
-      }
     }
   },
   "ios": {

@@ -131,7 +131,8 @@
     "hours": "hours",
     "timeUp": "Time's up!",
     "breakTime": "Break time!",
-    "continueWatching": "Continue watching"
+    "continueWatching": "Continue watching",
+    "timeRemaining": "Time Remaining"
   },
   "messages": {
     "welcome": "Welcome to KidsViewer!",
@@ -270,6 +271,27 @@
     "browserMode": "Browser Mode",
     "browserModeDesc": "Open in a full-screen browser",
     "tryEmbeddedMode": "Try Embedded Mode",
-    "tryBrowserMode": "Try Browser Mode"
+    "tryBrowserMode": "Try Browser Mode",
+    
+    "popupMode": "Popup Mode",
+    "popupModeDesc": "Watch in a popup with hidden address bar",
+    "popupTitle": "Video Player",
+    "popupDescription": "Video is playing in a popup with hidden address bar and bottom area",
+    "popupTimeLimit": "Viewing time limit: {{minutes}} minutes",
+    "popupTimeRemaining": "Time remaining: {{time}}",
+    "popupCloseHint": "Please close the popup and return to the app when finished watching",
+    "popupCloseButton": "Close Popup",
+    "popupMinimizeButton": "Minimize",
+    "popupMaximizeButton": "Maximize",
+    "popupFullscreenButton": "Fullscreen",
+    "popupExitFullscreenButton": "Exit Fullscreen",
+    "popupControls": "Popup Controls",
+    "popupStatus": "Popup Status",
+    "popupActive": "Active",
+    "popupInactive": "Inactive",
+    "popupError": "Popup Error",
+    "popupErrorDescription": "Popup cannot be displayed properly, please retry",
+    "popupRetry": "Retry Popup",
+    "popupFallback": "Using popup mode as fallback solution"
   }
 } 

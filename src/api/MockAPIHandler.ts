@@ -628,7 +628,7 @@ export class MockAPIHandler implements IAPIHandler {
 
       // Find the demo user or use hardcoded demo user
       let user = mockData.users.find((u: any) => u.email === email && u.userType === 'PARENTAL');
-      
+
       if (!user) {
         // Create demo user if not exists
         const demoUser: Parental = {
@@ -642,7 +642,7 @@ export class MockAPIHandler implements IAPIHandler {
           createdAt: new Date(),
           updatedAt: new Date(),
         };
-        
+
         // Add demo child
         const demoChild: Person = {
           id: 'demo_child_001',
@@ -691,7 +691,7 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       this.currentUser = user;
-      
+
       // Generate JWT token with 3 hours expiration
       const token = generateMockJWT(user, 3);
 
@@ -962,6 +962,14 @@ export class MockAPIHandler implements IAPIHandler {
             difficulty: 'easy',
             maxDailyTime: 30,
             description: 'Educational games and videos for young learners',
+          },
+          {
+            platformName: 'My Media Fun',
+            url: 'https://slinker.wl4g.com/',
+            // url: 'http://localhost:8000/',
+            difficulty: 'medium',
+            maxDailyTime: 5,
+            description: 'Customize own media site',
           },
           {
             platformName: 'National Geographic Kids',

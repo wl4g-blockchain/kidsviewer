@@ -131,7 +131,8 @@
     "hours": "小时",
     "timeUp": "时间到！",
     "breakTime": "休息时间！",
-    "continueWatching": "继续观看"
+    "continueWatching": "继续观看",
+    "timeRemaining": "剩余时间"
   },
   "messages": {
     "welcome": "欢迎使用儿童视界！",
@@ -270,6 +271,27 @@
     "browserMode": "浏览器模式",
     "browserModeDesc": "在全屏浏览器中打开",
     "tryEmbeddedMode": "尝试嵌入模式",
-    "tryBrowserMode": "尝试浏览器模式"
+    "tryBrowserMode": "尝试浏览器模式",
+    
+    "popupMode": "弹窗模式",
+    "popupModeDesc": "在隐藏地址栏的弹窗中观看",
+    "popupTitle": "视频观看器",
+    "popupDescription": "视频正在弹窗中播放，地址栏和底部区域已隐藏",
+    "popupTimeLimit": "观看时间限制：{{minutes}}分钟",
+    "popupTimeRemaining": "剩余时间：{{time}}",
+    "popupCloseHint": "观看结束后请关闭弹窗返回应用",
+    "popupCloseButton": "关闭弹窗",
+    "popupMinimizeButton": "最小化",
+    "popupMaximizeButton": "最大化",
+    "popupFullscreenButton": "全屏",
+    "popupExitFullscreenButton": "退出全屏",
+    "popupControls": "弹窗控制",
+    "popupStatus": "弹窗状态",
+    "popupActive": "活跃",
+    "popupInactive": "非活跃",
+    "popupError": "弹窗错误",
+    "popupErrorDescription": "弹窗无法正常显示，请重试",
+    "popupRetry": "重试弹窗",
+    "popupFallback": "使用弹窗模式作为备选方案"
   }
 } 
