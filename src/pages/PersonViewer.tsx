@@ -292,6 +292,7 @@ export const PersonViewer: React.FC = () => {
             onLoadError={handleVideoLoadError}
             onLoadSuccess={handleVideoLoadSuccess}
             className="aspect-video"
+            timeLimit={remainingTime} // 传递剩余时间（分钟）作为时间限制
           />
           
           {/* Video info bar */}

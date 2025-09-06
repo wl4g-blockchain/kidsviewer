@@ -1,13 +1,14 @@
 {
   "appId": "com.kidsviewer.app",
-  "appName": "KidsViewer",
+  "appName": "App",
   "webDir": "dist",
   "server": {
     "androidScheme": "https",
-    "iosScheme": "https",
+    "iosScheme": "http",
     "allowNavigation": ["*"],
-    "hostname": "localhost",
-    "cleartext": true
+    "hostname": "10.0.0.102",
+    "cleartext": true,
+    "url": "http://10.0.0.102:5173"
   },
   "plugins": {
     "SplashScreen": {
@@ -25,11 +26,19 @@
       "backgroundColor": "#4F46E5",
       "overlaysWebView": true,
       "backgroundColorByHexString": "#4F46E5"
+    },
+    "Browser": {
+      "toolbarColor": "#000000",
+      "presentationStyle": "fullscreen",
+      "basicAuthCredential": {
+        "username": "",
+        "password": ""
+      }
     }
   },
   "ios": {
     "contentInset": "always",
-    "scheme": "kidsviewer",
+    "scheme": "App",
     "backgroundColor": "#ffffff"
   }
 }

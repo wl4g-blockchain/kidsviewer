@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../i18n/I18nProvider';
 import { AlertCircle, ExternalLink, Loader2, RefreshCw, Maximize2 } from 'lucide-react';
+import { isIOS, isElectron as checkIsElectron } from '../utils/platformUtil';
+import { IOSVideoPlayer } from './IOSVideoPlayer';
 
 interface VideoPlayerProps {
   url: string;
@@ -8,9 +10,32 @@ interface VideoPlayerProps {
   onLoadError?: (error: string) => void;
   onLoadSuccess?: () => void;
   className?: string;
+  timeLimit?: number; // 添加时间限制参数（分钟）
 }
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, platformName, onLoadError, onLoadSuccess, className = '' }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = (props) => {
+  const { url, platformName, onLoadError, onLoadSuccess, className = '', timeLimit } = props;
+  
+  // 根据平台选择合适的播放器实现
+  if (isIOS()) {
+    return (
+      <IOSVideoPlayer 
+        url={url} 
+        platformName={platformName}
+        onLoadError={onLoadError}
+        onLoadSuccess={onLoadSuccess}
+        className={className}
+        timeLimit={timeLimit}
+      />
+    );
+  } else {
+    // 使用Electron或网页实现
+    return <ElectronVideoPlayer {...props} />;
+  }
+};
+
+// Electron版播放器实现
+const ElectronVideoPlayer: React.FC<VideoPlayerProps> = ({ url, platformName, onLoadError, onLoadSuccess, className = '' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -27,10 +52,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ url, platformName, onL
     const checkElectron = () => {
       // 检测多种可能的Electron特征
       const win = window as any;
-      const isElectronEnv = 
-        (window.navigator && window.navigator.userAgent && window.navigator.userAgent.indexOf('Electron') >= 0) ||
-        (typeof window !== 'undefined' && window.electronAPI !== undefined) ||
-        (typeof window !== 'undefined' && win.process && win.process.type === 'renderer');
+      const isElectronEnv = checkIsElectron();
       
       // 检查预加载脚本是否执行
       const isPreloadExecuted = win.__ELECTRON_PRELOAD_EXECUTED__ === true;

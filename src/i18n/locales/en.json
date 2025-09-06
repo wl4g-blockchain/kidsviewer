@@ -245,6 +245,31 @@
     "cspErrorDetected": "Content Security Policy restrictions detected. Trying to bypass...",
     "bypassingRestrictions": "Bypassing security restrictions...",
     "browserSecurityRestrictions": "Browser security restrictions prevent showing this content. Using alternative method...",
-    "openInBrowser": "Open in Browser"
+    "openInBrowser": "Open in Browser",
+    
+    "iosNotice": "iOS App Notice",
+    "iosNoticeDescription": "Due to iOS security restrictions, videos must be opened in Safari.",
+    "ipadNoticeDescription": "Due to iPad security restrictions, videos must be opened in Safari.",
+    "openInSafari": "Open in Safari",
+    "iosParentalControlHint": "To maintain parental controls, please close Safari and return to this app when the allowed time ends.",
+    "returnToAppWhenDone": "Please return to this app when you've finished watching.",
+    "returnToSafari": "Return to Safari",
+    "iosTimerHint": "This timer will help you track your allowed viewing time. Please close Safari when the time is up.",
+    
+    "iosControlledNotice": "iOS Controlled Viewing",
+    "iosControlledDescription": "This app will monitor and control your viewing time. When time runs out, you'll need to answer questions to continue.",
+    "ipadControlledDescription": "This app will monitor and control your viewing time. When time runs out, you'll need to answer questions to continue.",
+    "startWatching": "Start Watching",
+    "iosTimeLimit": "You have {{minutes}} minutes of viewing time",
+    "videoIsPlaying": "Video is currently playing",
+    "iosWebViewHint": "The built-in browser is used to enforce viewing limits and parental controls",
+    
+    "chooseViewMode": "Choose your preferred viewing mode",
+    "embeddedMode": "Embedded Mode",
+    "embeddedModeDesc": "Watch videos directly in the app",
+    "browserMode": "Browser Mode",
+    "browserModeDesc": "Open in a full-screen browser",
+    "tryEmbeddedMode": "Try Embedded Mode",
+    "tryBrowserMode": "Try Browser Mode"
   }
 } 

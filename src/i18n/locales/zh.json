@@ -245,6 +245,31 @@
     "cspErrorDetected": "检测到内容安全策略限制，尝试绕过中...",
     "bypassingRestrictions": "正在绕过安全限制...",
     "browserSecurityRestrictions": "浏览器安全限制阻止显示此内容，正在使用替代方法...",
-    "openInBrowser": "在浏览器中打开"
+    "openInBrowser": "在浏览器中打开",
+    
+    "iosNotice": "iOS应用提示",
+    "iosNoticeDescription": "由于iOS安全限制，视频必须在Safari浏览器中打开。",
+    "ipadNoticeDescription": "由于iPad安全限制，视频必须在Safari浏览器中打开。",
+    "openInSafari": "在Safari中打开",
+    "iosParentalControlHint": "为了维持家长控制，请在允许观看时间结束后关闭Safari并返回本应用。",
+    "returnToAppWhenDone": "观看结束后请返回此应用。",
+    "returnToSafari": "返回Safari",
+    "iosTimerHint": "此计时器将帮助您跟踪允许的观看时间。时间结束时请关闭Safari。",
+    
+    "iosControlledNotice": "iOS受控观看",
+    "iosControlledDescription": "本应用将监控和控制您的观看时间。当时间用完时，您需要回答问题才能继续观看。",
+    "ipadControlledDescription": "本应用将监控和控制您的观看时间。当时间用完时，您需要回答问题才能继续观看。",
+    "startWatching": "开始观看",
+    "iosTimeLimit": "您有{{minutes}}分钟的观看时间",
+    "videoIsPlaying": "视频正在播放中",
+    "iosWebViewHint": "使用内置浏览器来强制执行观看限制和家长控制",
+    
+    "chooseViewMode": "选择您偏好的观看模式",
+    "embeddedMode": "嵌入模式",
+    "embeddedModeDesc": "直接在应用内观看视频",
+    "browserMode": "浏览器模式",
+    "browserModeDesc": "在全屏浏览器中打开",
+    "tryEmbeddedMode": "尝试嵌入模式",
+    "tryBrowserMode": "尝试浏览器模式"
   }
 } 
