@@ -1,7 +1,7 @@
 {
   "name": "kidsviewer",
   "version": "1.0.0",
-  "type": "commonjs",
+  "type": "module",
   "description": "A parental control app that limits children's screen time and promotes learning through educational challenges",
   "main": "dist-electron/main.js",
   "homepage": "./",
@@ -10,11 +10,10 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "electron": "electron .",
-    "electron-dev": "concurrently \"npm run dev\" \"wait-on tcp:5173/5174 && ELECTRON_RENDERER_URL=http://localhost:5173 electron .\"",
+    "electron-dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && ELECTRON_RENDERER_URL=http://localhost:5173 npx electron .\"",
     "electron-build": "npm run build && electron-builder",
     "build-electron": "tsc -p electron/tsconfig.json && electron-builder",
-    "dist": "npm run build && electron-builder --publish=never",
-    "start-electron": "electron ."
+    "dist": "npm run build && electron-builder --publish=never"
   },
   "keywords": [
     "parental-control",
@@ -44,7 +43,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.3.3",
     "vite": "^5.0.8",
-    "wait-on": "^7.2.0"
+    "wait-on": "^8.0.0"
   },
   "dependencies": {
     "@capacitor/cli": "^7.4.3",

@@ -1,6 +1,11 @@
 import { app, BrowserWindow, BrowserView, ipcMain, shell } from 'electron'
-import { join } from 'path'
+import { join, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 let mainWindow: BrowserWindow | null = null
 let videoView: BrowserView | null = null
@@ -70,7 +75,7 @@ function createWindow(): void {
   }
 }
 
-// Create video BrowserView for embedded content
+// Create video BrowserView for embedded content - Enhanced for third-party video support
 function createVideoView(url: string, bounds: { x: number; y: number; width: number; height: number }) {
   if (!mainWindow) return null
 
@@ -82,11 +87,25 @@ function createVideoView(url: string, bounds: { x: number; y: number; width: num
 
   videoView = new BrowserView({
     webPreferences: {
-      webSecurity: false,
+      webSecurity: false, // Disable web security to bypass CSP
       nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      allowRunningInsecureContent: true
+      contextIsolation: false, // Allow access to window object for video scripts
+      sandbox: false, // Disable sandbox for better video compatibility
+      allowRunningInsecureContent: true, // Allow HTTP content on HTTPS sites
+      experimentalFeatures: true, // Enable experimental features for better video support
+      // Additional options for video website compatibility
+      backgroundThrottling: false, // Prevent throttling during video playback
+      offscreen: false, // Ensure proper rendering
+      additionalArguments: [
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--disable-site-isolation-trials',
+        '--allow-running-insecure-content',
+        '--disable-xss-auditor',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding'
+      ]
     }
   })
 
@@ -94,10 +113,17 @@ function createVideoView(url: string, bounds: { x: number; y: number; width: num
   videoView.setBounds(bounds)
   videoView.setAutoResize({ width: true, height: true })
 
-  // Load the video URL
-  videoView.webContents.loadURL(url)
+  // Set user agent to mimic a regular browser for better compatibility
+  videoView.webContents.setUserAgent(
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  )
 
-  // Handle navigation events
+  // Handle console messages for debugging
+  videoView.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log(`Video console [${level}]:`, message)
+  })
+
+  // Handle navigation events with more detailed error handling
   videoView.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
     console.error(`Failed to load ${validatedURL}: ${errorDescription} (${errorCode})`)
     mainWindow?.webContents.send('video-load-error', { url: validatedURL, error: errorDescription })
@@ -108,10 +134,29 @@ function createVideoView(url: string, bounds: { x: number; y: number; width: num
     mainWindow?.webContents.send('video-load-success', { url })
   })
 
-  // Prevent new window creation
-  videoView.webContents.setWindowOpenHandler(() => {
+  // Handle certificate errors
+  videoView.webContents.on('certificate-error', (event, url, error, certificate, callback) => {
+    // Accept all certificates for testing purposes
+    event.preventDefault()
+    callback(true)
+  })
+
+  // Prevent new window creation but allow navigation
+  videoView.webContents.setWindowOpenHandler((details) => {
+    console.log('Prevented new window creation:', details.url)
     return { action: 'deny' }
   })
+
+  // Load the video URL
+  try {
+    videoView.webContents.loadURL(url, {
+      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      httpReferrer: url
+    })
+  } catch (error) {
+    console.error('Error loading video URL:', error)
+    mainWindow?.webContents.send('video-load-error', { url, error: error instanceof Error ? error.message : 'Unknown error' })
+  }
 
   return videoView
 }
@@ -204,4 +249,4 @@ if (!ipcMain.listenerCount('get-app-version')) {
   ipcMain.handle('get-app-version', () => {
     return app.getVersion()
   })
-} 
+}

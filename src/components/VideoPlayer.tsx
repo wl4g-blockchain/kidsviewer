@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../i18n/I18nProvider';
-import { AlertCircle, ExternalLink, Loader2 } from 'lucide-react';
+import { AlertCircle, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 
 interface VideoPlayerProps {
   url: string;
@@ -22,6 +22,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isElectron, setIsElectron] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
   const t = useTranslation();
 
   // Check if running in Electron
@@ -35,6 +37,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
     const initializeVideoView = async () => {
       try {
+        setIsLoading(true);
+        setHasError(false);
+        setErrorMessage('');
+        setIsRetrying(true);
+
         // Get container bounds
         const rect = containerRef.current!.getBoundingClientRect();
         const bounds = {
@@ -44,11 +51,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           height: Math.round(rect.height)
         };
 
+        console.log('Creating video view with bounds:', bounds);
+        console.log('Loading URL:', url);
+
         // Create BrowserView
         const result = await window.electronAPI.createVideoView({ url, bounds });
         
         if (result.success) {
           console.log('Video view created successfully');
+          setIsRetrying(false);
         } else {
           throw new Error(result.error || 'Failed to create video view');
         }
@@ -57,6 +68,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         setHasError(true);
         setErrorMessage(error instanceof Error ? error.message : 'Unknown error');
         setIsLoading(false);
+        setIsRetrying(false);
         onLoadError?.(error instanceof Error ? error.message : 'Unknown error');
       }
     };
@@ -67,6 +79,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setHasError(true);
       setErrorMessage(data.error);
       setIsLoading(false);
+      setIsRetrying(false);
       onLoadError?.(data.error);
     };
 
@@ -74,6 +87,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       console.log('Video loaded successfully:', data.url);
       setIsLoading(false);
       setHasError(false);
+      setErrorMessage('');
+      setIsRetrying(false);
       onLoadSuccess?.();
     };
 
@@ -104,6 +119,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         height: Math.round(rect.height)
       };
 
+      console.log('Updating video bounds:', bounds);
       window.electronAPI.updateVideoBounds(bounds);
     };
 
@@ -143,9 +159,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const retryLoad = async () => {
     if (!isElectron || !containerRef.current) return;
 
+    setRetryCount(prev => prev + 1);
     setIsLoading(true);
     setHasError(false);
     setErrorMessage('');
+    setIsRetrying(true);
 
     try {
       const rect = containerRef.current.getBoundingClientRect();
@@ -155,6 +173,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         width: Math.round(rect.width),
         height: Math.round(rect.height)
       };
+
+      console.log(`Retry ${retryCount + 1}: Creating video view with bounds:`, bounds);
 
       const result = await window.electronAPI.createVideoView({ url, bounds });
       
@@ -166,6 +186,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setHasError(true);
       setErrorMessage(error instanceof Error ? error.message : 'Unknown error');
       setIsLoading(false);
+      setIsRetrying(false);
       onLoadError?.(error instanceof Error ? error.message : 'Unknown error');
     }
   };
@@ -180,8 +201,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         {isLoading && !hasError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white">
             <Loader2 className="w-12 h-12 animate-spin mb-4" />
-            <p className="text-lg font-medium mb-2">{t('video.loading')}</p>
+            <p className="text-lg font-medium mb-2">
+              {isRetrying ? '重新加载中...' : t('video.loading')}
+            </p>
             <p className="text-sm text-gray-400">{platformName}</p>
+            {isRetrying && (
+              <p className="text-xs text-gray-500 mt-2">第 {retryCount + 1} 次尝试</p>
+            )}
           </div>
         )}
 
@@ -198,10 +224,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={retryLoad}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center"
+                disabled={isRetrying}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center"
               >
-                <Loader2 className="w-4 h-4 mr-2" />
-                {t('common.retry')}
+                {isRetrying ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                {isRetrying ? '重试中...' : t('common.retry')}
               </button>
               
               <button
@@ -218,6 +249,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 {t('video.embedHint')}
               </p>
             </div>
+            
+            {retryCount > 0 && (
+              <div className="mt-3 text-xs text-gray-500">
+                已尝试 {retryCount} 次
+              </div>
+            )}
           </div>
         )}
 
