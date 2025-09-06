@@ -389,13 +389,14 @@ EOF
     mv capacitor.config.json.bak capacitor.config.json
 }
 
-# iOS setup and preparation
-ios() {
-    print_header "Starting iOS Development Environment"
+# iOS build for personal device without Apple Developer account
+ios_build() {
+    print_header "Building iOS Package for Personal Device"
     
     check_dependencies
     install_npm_deps
     
+    # Build project
     build_project
     
     # Sync Capacitor resources
@@ -419,20 +420,29 @@ ios() {
     print_info "Installing iOS dependencies..."
     cd ios/App && pod install && cd ../..
     
-    print_success "iOS environment setup completed!"
+    # Open Xcode project
+    print_info "Opening Xcode project..."
+    print_info "Please follow these steps in Xcode:"
     echo ""
-    print_info "To open Xcode project, run:"
-    echo "   npx cap open ios"
+    print_info "1. Select your personal device as the build target"
+    print_info "2. Go to Signing & Capabilities tab"
+    print_info "3. Check 'Automatically manage signing'"
+    print_info "4. Select your personal Apple ID"
+    print_info "5. Click 'Build and Run' (Play button)"
     echo ""
-    print_info "To run on simulator:"
-    echo "   npx cap run ios"
+    print_warning "After installation, go to Settings > General > Device Management on your iOS device"
+    print_warning "Find your Apple ID and trust the developer"
     echo ""
-    print_info "For development with live reload, run:"
-    echo "   ./run.sh ios-dev"
+    
+    # Open Xcode project
+    npx cap open ios
+    
+    print_success "Xcode project opened for building to personal device!"
+    print_info "Follow the on-screen instructions to complete the build process"
 }
 
-# Web development mode
-web() {
+# Start for web development
+web_dev() {
     print_header "Starting Web Development Mode"
     
     check_dependencies
@@ -451,8 +461,8 @@ web() {
     wait
 }
 
-# Build for production
-build() {
+# Build for web production
+web_build() {
     print_header "Building for Production"
     
     check_dependencies
@@ -471,17 +481,18 @@ show_help() {
     echo "Commands:"
     echo "  electron-dev    Start Electron development mode (with hot reload)"
     echo "  electron-prod   Start Electron production mode"
-    echo "  ios            Setup and prepare iOS development environment"
     echo "  ios-dev        Start iOS development with live reload in simulator"
-    echo "  web            Start web development server"
-    echo "  build          Build project for production"
+    echo "  ios-build      Build iOS package for personal device (no Apple Developer account needed)"
+    echo "  web-dev        Start web development server"
+    echo "  web-build      Build project for production"
     echo "  help           Show this help message"
     echo ""
     echo "Examples:"
     echo "  $0 electron-dev    # Start development with hot reload"
-    echo "  $0 ios            # Setup iOS environment"
     echo "  $0 ios-dev        # Start iOS development with live reload"
-    echo "  $0 web            # Start web development server"
+    echo "  $0 ios-build      # Build for personal iOS device"
+    echo "  $0 web-dev        # Start web development server"
+    echo "  $0 web-build      # Build project for production"
     echo ""
 }
 
@@ -493,17 +504,17 @@ case "${1:-help}" in
     "electron-prod")
         electron_prod
         ;;
-    "ios")
-        ios
-        ;;
     "ios-dev")
         ios_dev
         ;;
-    "web")
-        web
+    "ios-build")
+        ios_build
         ;;
-    "build")
-        build
+    "web-dev")
+        web_dev
+        ;;
+    "web-build")
+        web_build
         ;;
     "help"|"-h"|"--help")
         show_help

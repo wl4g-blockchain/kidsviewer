@@ -42,6 +42,8 @@ pids
 *.pid
 *.seed
 *.pid.lock
+.vite-cache/
+.vite-port-output
 capacitor.config.json.bak
 
 # Coverage directory used by tools like istanbul
