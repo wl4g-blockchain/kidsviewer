@@ -1,9 +1,9 @@
 import { IAPIHandler } from './IAPIHandler';
-import { User, Parental, Person, Question, ApiResponse, AppSettings } from '../types';
+import { User, Parental, Person, Question, ApiResponse, AppSettings, WatchingSessionResponse, WatchingStatusResponse } from '../types';
 
 // Default hardcoded credentials for demo
-const DEFAULT_CREDENTIALS = {
-  email: 'demo@parent.com',
+const DEMO_CREDENTIALS = {
+  email: 'lyra@kidsviewer.local',
   password: '123456',
 } as const;
 
@@ -29,7 +29,7 @@ function generateMockJWT(user: User, expirationHours: number = 3): string {
 
 // Validate credentials against default hardcoded values
 function validateCredentials(email: string, password: string): boolean {
-  return email === DEFAULT_CREDENTIALS.email && password === DEFAULT_CREDENTIALS.password;
+  return email === DEMO_CREDENTIALS.email && password === DEMO_CREDENTIALS.password;
 }
 
 // Helper functions for dynamic questions
@@ -75,7 +75,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 // Mock data structure
-const mockData = {
+const mockDataDB = {
   users: [] as User[],
   settings: {
     language: 'en',
@@ -108,7 +108,7 @@ const mockData = {
       platformUrl: string;
       createdAt: number;
       expiresAt: number;
-      sessionStartTime: number;
+      startTime: number;
       dailyWatchedTime: number; // in minutes
       questionsAsked: number;
     }
@@ -450,11 +450,11 @@ function generateQuestions(subjects: string[], difficulty: string, count: number
   // Collect all available questions from specified subjects and difficulty
   subjects.forEach(subject => {
     if (
-      mockData.questionBank[subject as keyof typeof mockData.questionBank] &&
-      mockData.questionBank[subject as keyof typeof mockData.questionBank][difficulty as keyof typeof mockData.questionBank.math]
+      mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank] &&
+      mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank][difficulty as keyof typeof mockDataDB.questionBank.math]
     ) {
       availableQuestions.push(
-        ...mockData.questionBank[subject as keyof typeof mockData.questionBank][difficulty as keyof typeof mockData.questionBank.math]
+        ...mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank][difficulty as keyof typeof mockDataDB.questionBank.math]
       );
     }
   });
@@ -482,6 +482,15 @@ function generateQuestions(subjects: string[], difficulty: string, count: number
   return questions;
 }
 
+// Helper function to create standard API response
+function createApiResponse<T>(errcode: string = '200', errmsg: string = 'ok', data?: T): ApiResponse<T> {
+  return {
+    errcode,
+    errmsg,
+    data,
+  };
+}
+
 // In-memory API handler for demo purposes
 export class MockAPIHandler implements IAPIHandler {
   private currentUser: User | null = null;
@@ -492,9 +501,9 @@ export class MockAPIHandler implements IAPIHandler {
 
   private initializeMockData() {
     // Initialize with some demo data
-    const demoParent: Parental = {
+    const parent_0: Parental = {
       id: 'parent_demo_001',
-      email: 'demo@parent.com',
+      email: 'lyra@kidsviewer.local',
       phone: '+1234567890',
       name: 'Demo Parent',
       userType: 'PARENTAL',
@@ -504,23 +513,50 @@ export class MockAPIHandler implements IAPIHandler {
       updatedAt: new Date(),
     };
 
-    const demoPerson: Person = {
-      id: 'person_demo_001',
+    // Update mock person settings
+    const defaultAllowedUrls = [
+      {
+        platformName: 'Khan Academy Kids',
+        url: 'https://www.khanacademy.org/kids',
+        difficulty: 'easy' as const,
+        maxDailyTime: 30,
+        description: 'Educational games and videos for young learners',
+      },
+      {
+        platformName: 'National Geographic Kids',
+        url: 'https://kids.nationalgeographic.com/',
+        difficulty: 'medium' as const,
+        maxDailyTime: 45,
+        description: 'Explore nature, science, and world cultures',
+      },
+      {
+        platformName: 'YouTube Kids',
+        url: 'https://www.youtubekids.com/',
+        difficulty: 'medium' as const,
+        maxDailyTime: 35,
+        description: 'Safe, educational videos curated for children',
+      },
+    ];
+
+    const person_0: Person = {
+      id: 'person_01',
       parentalId: 'parent_demo_001',
       userType: 'PERSON',
-      email: 'demo.child@kidsviewer.local',
-      name: 'Demo Child',
-      alias: 'Demo Child',
+      email: 'barry.james@kidsviewer.local',
+      name: 'Barry',
+      alias: 'Barry',
       ageGroup: 'young',
       settings: {
-        timeLimit: 20,
+        sessionTimeLimit: 20,
+        dailyTimeLimit: 120,
         questionCount: 3,
+        questionsPerDay: 15,
         subjects: [
           { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
           { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
           { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
         ],
-        allowedUrls: ['https://www.khanacademy.org/kids', 'https://kids.nationalgeographic.com/', 'https://www.youtubekids.com/'],
+        allowedUrls: defaultAllowedUrls,
       },
       statistics: {
         dailyUsage: [],
@@ -541,17 +577,17 @@ export class MockAPIHandler implements IAPIHandler {
       updatedAt: new Date(),
     };
 
-    demoParent.persons.push(demoPerson);
-    mockData.users.push(demoParent, demoPerson);
+    parent_0.persons.push(person_0);
+    mockDataDB.users.push(parent_0, person_0);
   }
 
   // Authentication
   async register(email: string, phone: string, password: string, name: string): Promise<ApiResponse<{ user: User; token: string }>> {
     try {
-      const existingUser = mockData.users.find((u: any) => u.email === email);
+      const existingUser = mockDataDB.users.find((u: any) => u.email === email);
 
       if (existingUser) {
-        return { success: false, error: 'User already exists' };
+        return createApiResponse('4001', 'User already exists');
       }
 
       const newUser: Parental = {
@@ -566,7 +602,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       };
 
-      mockData.users.push(newUser);
+      mockDataDB.users.push(newUser);
       this.currentUser = newUser;
 
       // Create a default mock person for demo purposes
@@ -575,18 +611,42 @@ export class MockAPIHandler implements IAPIHandler {
         parentalId: newUser.id,
         userType: 'PERSON',
         email: `demo@kidsviewer.local`,
-        name: 'Demo Child',
-        alias: 'Demo Child',
+        name: 'Barry',
+        alias: 'Barry',
         ageGroup: 'young',
         settings: {
-          timeLimit: 20,
+          sessionTimeLimit: 20,
+          dailyTimeLimit: 120,
           questionCount: 3,
+          questionsPerDay: 15,
           subjects: [
             { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
             { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
             { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
           ],
-          allowedUrls: ['https://www.khanacademy.org/kids', 'https://kids.nationalgeographic.com/', 'https://www.youtubekids.com/'],
+          allowedUrls: [
+            {
+              platformName: 'Khan Academy Kids',
+              url: 'https://www.khanacademy.org/kids',
+              difficulty: 'easy' as const,
+              maxDailyTime: 30,
+              description: 'Educational games and videos for young learners',
+            },
+            {
+              platformName: 'National Geographic Kids',
+              url: 'https://kids.nationalgeographic.com/',
+              difficulty: 'medium' as const,
+              maxDailyTime: 45,
+              description: 'Explore nature, science, and world cultures',
+            },
+            {
+              platformName: 'YouTube Kids',
+              url: 'https://www.youtubekids.com/',
+              difficulty: 'medium' as const,
+              maxDailyTime: 35,
+              description: 'Safe, educational videos curated for children',
+            },
+          ],
         },
         statistics: {
           dailyUsage: [],
@@ -607,15 +667,15 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       };
 
-      mockData.users.push(defaultPerson);
+      mockDataDB.users.push(defaultPerson);
       newUser.persons.push(defaultPerson);
 
       // Generate JWT token with 3 hours expiration
       const token = generateMockJWT(newUser, 3);
 
-      return { success: true, data: { user: newUser, token } };
+      return createApiResponse('200', 'ok', { user: newUser, token });
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -623,44 +683,68 @@ export class MockAPIHandler implements IAPIHandler {
     try {
       // Use hardcoded credentials for demo
       if (!validateCredentials(email, password)) {
-        return { success: false, error: 'Invalid credentials. Use demo@parent.com / 123456' };
+        return createApiResponse('4002', 'Invalid credentials. Use lyra@kidsviewer.local / 123456');
       }
 
       // Find the demo user or use hardcoded demo user
-      let user = mockData.users.find((u: any) => u.email === email && u.userType === 'PARENTAL');
+      let user = mockDataDB.users.find((u: any) => u.email === email && u.userType === 'PARENTAL');
 
       if (!user) {
         // Create demo user if not exists
-        const demoUser: Parental = {
+        const parental_0: Parental = {
           id: 'demo_parent_001',
-          email: DEFAULT_CREDENTIALS.email,
+          email: DEMO_CREDENTIALS.email,
           phone: '+1234567890',
-          name: 'Demo Parent',
+          name: 'Lyra Parent',
           userType: 'PARENTAL',
-          controlPassword: DEFAULT_CREDENTIALS.password,
+          controlPassword: DEMO_CREDENTIALS.password,
           persons: [],
           createdAt: new Date(),
           updatedAt: new Date(),
         };
 
-        // Add demo child
-        const demoChild: Person = {
+        // Add mock child person 0
+        const person_0: Person = {
           id: 'demo_child_001',
-          parentalId: demoUser.id,
+          parentalId: parental_0.id,
           userType: 'PERSON',
-          email: 'demo.child@kidsviewer.local',
-          name: 'Demo Child',
-          alias: 'Demo Child',
+          email: 'barry.james@kidsviewer.local',
+          name: 'Barry',
+          alias: 'Barry',
           ageGroup: 'young',
           settings: {
-            timeLimit: 20,
+            sessionTimeLimit: 20,
+            dailyTimeLimit: 120,
             questionCount: 3,
+            questionsPerDay: 15,
             subjects: [
               { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
               { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
               { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
             ],
-            allowedUrls: ['https://www.khanacademy.org/kids', 'https://kids.nationalgeographic.com/', 'https://www.youtubekids.com/'],
+            allowedUrls: [
+              {
+                platformName: 'Khan Academy Kids',
+                url: 'https://www.khanacademy.org/kids',
+                difficulty: 'easy' as const,
+                maxDailyTime: 30,
+                description: 'Educational games and videos for young learners',
+              },
+              {
+                platformName: 'National Geographic Kids',
+                url: 'https://kids.nationalgeographic.com/',
+                difficulty: 'medium' as const,
+                maxDailyTime: 45,
+                description: 'Explore nature, science, and world cultures',
+              },
+              {
+                platformName: 'YouTube Kids',
+                url: 'https://www.youtubekids.com/',
+                difficulty: 'medium' as const,
+                maxDailyTime: 35,
+                description: 'Safe, educational videos curated for children',
+              },
+            ],
           },
           statistics: {
             dailyUsage: [],
@@ -681,13 +765,13 @@ export class MockAPIHandler implements IAPIHandler {
           updatedAt: new Date(),
         };
 
-        demoUser.persons.push(demoChild);
-        mockData.users.push(demoUser, demoChild);
-        user = demoUser;
+        parental_0.persons.push(person_0);
+        mockDataDB.users.push(parental_0, person_0);
+        user = parental_0;
       }
 
       if (user.userType !== 'PARENTAL') {
-        return { success: false, error: 'Only parental accounts can login' };
+        return createApiResponse('4003', 'Only parental accounts can login');
       }
 
       this.currentUser = user;
@@ -695,57 +779,82 @@ export class MockAPIHandler implements IAPIHandler {
       // Generate JWT token with 3 hours expiration
       const token = generateMockJWT(user, 3);
 
-      return { success: true, data: { user, token } };
+      return createApiResponse('200', 'ok', { user, token });
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   async logout(): Promise<ApiResponse<void>> {
     this.currentUser = null;
-    return { success: true };
+    return createApiResponse('200', 'ok');
   }
 
   // User management
   async getCurrentUser(): Promise<ApiResponse<User>> {
     if (!this.currentUser) {
-      return { success: false, error: 'No user logged in' };
+      return createApiResponse('4004', 'No user logged in');
     }
-    return { success: true, data: this.currentUser };
+    return createApiResponse('200', 'ok', this.currentUser);
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<ApiResponse<User>> {
     try {
-      const userIndex = mockData.users.findIndex((u: any) => u.id === userId);
+      const userIndex = mockDataDB.users.findIndex((u: any) => u.id === userId);
 
       if (userIndex === -1) {
-        return { success: false, error: 'User not found' };
+        return createApiResponse('4001', 'User not found');
       }
 
-      mockData.users[userIndex] = {
-        ...mockData.users[userIndex],
+      mockDataDB.users[userIndex] = {
+        ...mockDataDB.users[userIndex],
         ...updates,
         updatedAt: new Date(),
       };
 
       if (this.currentUser?.id === userId) {
-        this.currentUser = mockData.users[userIndex];
+        this.currentUser = mockDataDB.users[userIndex];
       }
 
-      return { success: true, data: mockData.users[userIndex] };
+      return createApiResponse('200', 'ok', mockDataDB.users[userIndex]);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   // Parental operations
   async createPerson(parentalId: string, personData: Partial<Person>): Promise<ApiResponse<Person>> {
     try {
-      const parental = mockData.users.find((u: any) => u.id === parentalId && u.userType === 'PARENTAL') as Parental;
+      const parental = mockDataDB.users.find((u: any) => u.id === parentalId && u.userType === 'PARENTAL') as Parental;
 
       if (!parental) {
-        return { success: false, error: 'Parental not found' };
+        return createApiResponse('4001', 'Parental not found');
       }
+
+      // Update mock person settings
+      const defaultAllowedUrls = [
+        {
+          platformName: 'Khan Academy Kids',
+          url: 'https://www.khanacademy.org/kids',
+          difficulty: 'easy' as const,
+          maxDailyTime: 30,
+          description: 'Educational games and videos for young learners',
+        },
+        {
+          platformName: 'National Geographic Kids',
+          url: 'https://kids.nationalgeographic.com/',
+          difficulty: 'medium' as const,
+          maxDailyTime: 45,
+          description: 'Explore nature, science, and world cultures',
+        },
+        {
+          platformName: 'YouTube Kids',
+          url: 'https://www.youtubekids.com/',
+          difficulty: 'medium' as const,
+          maxDailyTime: 35,
+          description: 'Safe, educational videos curated for children',
+        },
+      ];
 
       const newPerson: Person = {
         id: this.generateId(),
@@ -756,14 +865,16 @@ export class MockAPIHandler implements IAPIHandler {
         alias: personData.alias || 'Person',
         ageGroup: personData.ageGroup || 'young',
         settings: {
-          timeLimit: personData.settings?.timeLimit || 15,
+          sessionTimeLimit: personData.settings?.sessionTimeLimit || 15,
+          dailyTimeLimit: personData.settings?.dailyTimeLimit || 120,
           questionCount: personData.settings?.questionCount || 3,
+          questionsPerDay: personData.settings?.questionsPerDay || 15,
           subjects: personData.settings?.subjects || [
             { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
             { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
             { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
           ],
-          allowedUrls: personData.settings?.allowedUrls || [],
+          allowedUrls: personData.settings?.allowedUrls || defaultAllowedUrls,
         },
         statistics: {
           dailyUsage: [],
@@ -784,72 +895,72 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       };
 
-      mockData.users.push(newPerson);
+      mockDataDB.users.push(newPerson);
       parental.persons.push(newPerson);
 
-      return { success: true, data: newPerson };
+      return createApiResponse('200', 'ok', newPerson);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   async getPersons(parentalId: string): Promise<ApiResponse<Person[]>> {
     try {
-      const persons = mockData.users.filter((u: any) => u.parentalId === parentalId && u.userType === 'PERSON') as Person[];
-      return { success: true, data: persons || [] };
+      const persons = mockDataDB.users.filter((u: any) => u.parentalId === parentalId && u.userType === 'PERSON') as Person[];
+      return createApiResponse('200', 'ok', persons || []);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   async updatePersonSettings(personId: string, settings: Partial<Person['settings']>): Promise<ApiResponse<Person>> {
     try {
-      const personIndex = mockData.users.findIndex((u: any) => u.id === personId && u.userType === 'PERSON');
+      const personIndex = mockDataDB.users.findIndex((u: any) => u.id === personId && u.userType === 'PERSON');
 
       if (personIndex === -1) {
-        return { success: false, error: 'Person not found' };
+        return createApiResponse('4001', 'Person not found');
       }
 
-      const person = mockData.users[personIndex] as Person;
+      const person = mockDataDB.users[personIndex] as Person;
       person.settings = { ...person.settings, ...settings };
       person.updatedAt = new Date();
 
-      return { success: true, data: person };
+      return createApiResponse('200', 'ok', person);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   // Person operations
   async getPerson(personId: string): Promise<ApiResponse<Person>> {
     try {
-      const person = mockData.users.find((u: any) => u.id === personId && u.userType === 'PERSON') as Person;
+      const person = mockDataDB.users.find((u: any) => u.id === personId && u.userType === 'PERSON') as Person;
 
       if (!person) {
-        return { success: false, error: 'Person not found' };
+        return createApiResponse('4001', 'Person not found');
       }
 
-      return { success: true, data: person };
+      return createApiResponse('200', 'ok', person);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   async updatePersonStatistics(personId: string, statistics: Partial<Person['statistics']>): Promise<ApiResponse<Person>> {
     try {
-      const personIndex = mockData.users.findIndex((u: any) => u.id === personId && u.userType === 'PERSON');
+      const personIndex = mockDataDB.users.findIndex((u: any) => u.id === personId && u.userType === 'PERSON');
 
       if (personIndex === -1) {
-        return { success: false, error: 'Person not found' };
+        return createApiResponse('4001', 'Person not found');
       }
 
-      const person = mockData.users[personIndex] as Person;
+      const person = mockDataDB.users[personIndex] as Person;
       person.statistics = { ...person.statistics, ...statistics };
       person.updatedAt = new Date();
 
-      return { success: true, data: person };
+      return createApiResponse('200', 'ok', person);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -857,57 +968,57 @@ export class MockAPIHandler implements IAPIHandler {
   async getQuestions(subjects: string[], difficulty: string, count: number): Promise<ApiResponse<Question[]>> {
     try {
       const questions = generateQuestions(subjects, difficulty, count);
-      return { success: true, data: questions };
+      return createApiResponse('200', 'ok', questions);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   async submitAnswer(_questionId: string, _answer: string | number, _isCorrect: boolean): Promise<ApiResponse<void>> {
     // This would typically update statistics, but for now just return success
-    return { success: true };
+    return createApiResponse('200', 'ok');
   }
 
   // Statistics
   async getDailyReport(personId: string, _date: string): Promise<ApiResponse<Person['statistics']>> {
     try {
       const person = await this.getPerson(personId);
-      if (!person.success || !person.data) {
-        return { success: false, error: 'Person not found' };
+      if (person.errcode !== '200' || !person.data) {
+        return createApiResponse('4001', 'Person not found');
       }
-      return { success: true, data: person.data.statistics };
+      return createApiResponse('200', 'ok', person.data.statistics);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   async getLearningProgress(personId: string): Promise<ApiResponse<Person['statistics']['learningProgress']>> {
     try {
       const person = await this.getPerson(personId);
-      if (!person.success || !person.data) {
-        return { success: false, error: 'Person not found' };
+      if (person.errcode !== '200' || !person.data) {
+        return createApiResponse('4001', 'Person not found');
       }
-      return { success: true, data: person.data.statistics.learningProgress };
+      return createApiResponse('200', 'ok', person.data.statistics.learningProgress);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   // Settings
   async getAppSettings(): Promise<ApiResponse<AppSettings>> {
     try {
-      return { success: true, data: mockData.settings };
+      return createApiResponse('200', 'ok', mockDataDB.settings);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
   async updateAppSettings(settings: Partial<AppSettings>): Promise<ApiResponse<AppSettings>> {
     try {
-      mockData.settings = { ...mockData.settings, ...settings };
-      return { success: true, data: mockData.settings };
+      mockDataDB.settings = { ...mockDataDB.settings, ...settings };
+      return createApiResponse('200', 'ok', mockDataDB.settings);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -917,17 +1028,14 @@ export class MockAPIHandler implements IAPIHandler {
       setTimeout(() => {
         // Mock implementation - in real app this would check against encrypted password
         const isValid = password === '123456'; // Default parental password
-        resolve({
-          success: isValid,
-          data: isValid,
-          message: isValid ? 'Password verified' : 'Invalid parental password',
-        });
+        resolve(createApiResponse('200', 'ok', isValid));
       }, 500);
     });
   }
 
   // Child accessible URLs - get platform name, difficulty, max daily time etc.
-  async getPersonAccessibleUrls(_personId: string): Promise<
+  // Child accessible URLs - get platform name, difficulty, max daily time etc.
+  async getPersonAccessibleUrls(personId: string): Promise<
     ApiResponse<
       {
         platformName: string;
@@ -938,178 +1046,126 @@ export class MockAPIHandler implements IAPIHandler {
       }[]
     >
   > {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        // Mock data for child accessible URLs - mix of educational and entertainment platforms
-        const mockUrls = [
-          {
-            platformName: '抖音短视频 (儿童版)',
-            url: 'https://www.douyin.com/channel/300207',
-            difficulty: 'easy',
-            maxDailyTime: 15,
-            description: '精选适合儿童的教育类短视频内容，寓教于乐',
-          },
-          {
-            platformName: '小红书 Kids',
-            url: 'https://www.xiaohongshu.com/explore',
-            difficulty: 'medium',
-            maxDailyTime: 20,
-            description: '儿童手工制作、科学实验和创意绘画视频',
-          },
-          {
-            platformName: 'Khan Academy Kids',
-            url: 'https://www.khanacademy.org/kids',
-            difficulty: 'easy',
-            maxDailyTime: 30,
-            description: 'Educational games and videos for young learners',
-          },
-          {
-            platformName: 'My Media Fun',
-            url: 'https://slinker.wl4g.com/',
-            // url: 'http://localhost:8000/',
-            difficulty: 'medium',
-            maxDailyTime: 5,
-            description: 'Customize own media site',
-          },
-          {
-            platformName: 'National Geographic Kids',
-            url: 'https://kids.nationalgeographic.com/',
-            difficulty: 'medium',
-            maxDailyTime: 45,
-            description: 'Explore nature, science, and world cultures',
-          },
-          {
-            platformName: 'Scratch Jr',
-            url: 'https://scratchjr.org/',
-            difficulty: 'hard',
-            maxDailyTime: 60,
-            description: 'Learn programming through creative coding',
-          },
-          {
-            platformName: '腾讯视频 - 儿童频道',
-            url: 'https://v.qq.com/channel/kids',
-            difficulty: 'easy',
-            maxDailyTime: 25,
-            description: '精选儿童动画片、教育节目和科普内容',
-          },
-          {
-            platformName: 'YouTube Kids',
-            url: 'https://www.youtubekids.com/',
-            difficulty: 'medium',
-            maxDailyTime: 35,
-            description: 'Safe, educational videos curated for children',
-          },
-          {
-            platformName: 'BBC iPlayer Kids',
-            url: 'https://www.bbc.co.uk/iplayer/categories/childrens',
-            difficulty: 'medium',
-            maxDailyTime: 40,
-            description: 'Quality educational content from BBC',
-          },
-        ];
+    try {
+      const person = await this.getPerson(personId);
 
-        // Simulate personalized content based on person settings
-        // In a real app, this would filter based on the child's age group, preferences, etc.
-        const personalizedUrls = mockUrls.slice(0, Math.floor(Math.random() * 5) + 3); // Return 3-7 platforms
+      if (person.errcode !== '200' || !person.data) {
+        return createApiResponse('4001', 'Person not found');
+      }
 
-        resolve({
-          success: true,
-          data: personalizedUrls,
-          message: 'URLs retrieved successfully',
-        });
-      }, 300);
-    });
+      // Return only the platforms that are allowed for this person
+      const allowedPlatforms = person.data.settings.allowedUrls.map(platform => ({
+        platformName: platform.platformName,
+        url: platform.url,
+        difficulty: platform.difficulty,
+        maxDailyTime: platform.maxDailyTime,
+        description: platform.description,
+      }));
+
+      return createApiResponse('200', 'ok', allowedPlatforms);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
   }
-
   // Watching control APIs
-  async startWatching(personId: string, platformUrl: string): Promise<ApiResponse<{ watchingToken: string }>> {
+  async startWatching(personId: string, platformUrl: string): Promise<ApiResponse<WatchingSessionResponse>> {
     try {
       const token = this.generateId();
       const person = await this.getPerson(personId);
-      if (!person.success || !person.data) {
-        return { success: false, error: 'Person not found' };
+
+      if (person.errcode !== '200' || !person.data) {
+        return createApiResponse('4001', 'Person not found');
       }
 
-      const timeLimit = person.data.settings.timeLimit * 60 * 1000; // Convert to milliseconds
-      const expiresAt = Date.now() + timeLimit;
+      // Get platform specific settings
+      const platform = person.data.settings.allowedUrls.find(p => p.url === platformUrl);
+      if (!platform) {
+        return createApiResponse('4002', 'Platform not allowed for this person');
+      }
 
-      mockData.watchingTokens.set(token, {
+      const sessionTimeLimit = person.data.settings.sessionTimeLimit * 60; // Convert to seconds
+      const expiresAt = Date.now() + sessionTimeLimit * 1000;
+
+      // Calculate remaining daily time
+      const today = new Date().toISOString().split('T')[0];
+      const todayHistory = mockDataDB.watchingHistory.filter(h => h.date === today && h.personId === personId);
+      const watchedToday = todayHistory.reduce((sum, h) => sum + h.watchedMinutes, 0);
+      const remainingDailyTime = Math.max(0, person.data.settings.dailyTimeLimit - watchedToday);
+
+      if (remainingDailyTime <= 0) {
+        return createApiResponse('4017', 'Daily time limit exceeded');
+      }
+
+      mockDataDB.watchingTokens.set(token, {
         personId,
         platformUrl,
         createdAt: Date.now(),
         expiresAt,
-        sessionStartTime: Date.now(),
-        dailyWatchedTime: 0,
+        startTime: Date.now(),
+        dailyWatchedTime: watchedToday,
         questionsAsked: 0,
       });
 
-      return { success: true, data: { watchingToken: token } };
+      return createApiResponse('200', 'ok', {
+        watchingToken: token,
+        sessionTimeLimit: person.data.settings.sessionTimeLimit,
+        remainingDailyTime,
+      });
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
-  async checkWatching(watchingToken: string): Promise<
-    ApiResponse<{
-      code: number;
-      data?: Question[];
-      remainingTime?: number;
-      dailyTimeExceeded?: boolean;
-    }>
-  > {
+  async checkWatching(watchingToken: string): Promise<ApiResponse<WatchingStatusResponse>> {
     try {
-      const tokenData = mockData.watchingTokens.get(watchingToken);
-      if (!tokenData) {
-        return { success: false, error: 'Invalid or expired token' };
+      const watchingInfo = mockDataDB.watchingTokens.get(watchingToken);
+      if (!watchingInfo) {
+        return createApiResponse('4003', 'Invalid or expired token');
+      }
+
+      const person = await this.getPerson(watchingInfo.personId);
+      if (person.errcode !== '200' || !person.data) {
+        return createApiResponse('4001', 'Person not found');
       }
 
       const currentTime = Date.now();
-      const sessionTime = Math.floor((currentTime - tokenData.sessionStartTime) / (1000 * 60)); // in minutes
-      const remainingTime = Math.max(0, Math.floor((tokenData.expiresAt - currentTime) / (1000 * 60)));
+      const watchedTime = Math.floor((currentTime - watchingInfo.startTime) / 60000); // Convert to minutes
+      const remainingTime = Math.max(0, Math.floor((watchingInfo.expiresAt - currentTime) / 60000));
 
-      // Check if session time exceeded
-      if (currentTime > tokenData.expiresAt) {
-        // Need to answer questions to continue
-        const person = await this.getPerson(tokenData.personId);
-        if (person.success && person.data) {
-          const enabledSubjects = person.data.settings.subjects.filter((subject: any) => subject.enabled).map((subject: any) => subject.id);
+      // Calculate remaining daily time
+      const today = new Date().toISOString().split('T')[0];
+      const todayHistory = mockDataDB.watchingHistory.filter(h => h.date === today && h.personId === watchingInfo.personId);
+      const watchedToday = todayHistory.reduce((sum, h) => sum + h.watchedMinutes, 0) + watchedTime;
+      const remainingDailyTime = Math.max(0, person.data.settings.dailyTimeLimit - watchedToday);
 
-          const questions = generateQuestions(enabledSubjects, 'easy', person.data.settings.questionCount);
-
-          return {
-            success: true,
-            data: {
-              code: 4017,
-              data: questions,
-              remainingTime: 0,
-            },
-          };
-        }
+      // Check if daily time exceeded
+      if (remainingDailyTime <= 0) {
+        return createApiResponse('4017', 'Daily time limit exceeded', {
+          remainingTime: 0,
+          remainingDailyTime: 0,
+          dailyTimeExceeded: true,
+        });
       }
 
-      // Check daily time limit (assume 2 hours max per day)
-      const maxDailyMinutes = 120;
-      if (sessionTime >= maxDailyMinutes) {
-        return {
-          success: true,
-          data: {
-            code: 4077,
-            dailyTimeExceeded: true,
-            remainingTime: 0,
-          },
-        };
+      // Check if session time exceeded
+      if (remainingTime <= 0) {
+        const enabledSubjects = person.data.settings.subjects.filter(subject => subject.enabled).map(subject => subject.id);
+        const questions = generateQuestions(enabledSubjects, 'easy', person.data.settings.questionCount);
+
+        return createApiResponse('4018', 'Session time limit exceeded', {
+          remainingTime: 0,
+          remainingDailyTime,
+          questions,
+        });
       }
 
       // Normal watching state
-      return {
-        success: true,
-        data: {
-          code: 200,
-          remainingTime,
-        },
-      };
+      return createApiResponse('200', 'ok', {
+        remainingTime,
+        remainingDailyTime,
+      });
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -1117,80 +1173,62 @@ export class MockAPIHandler implements IAPIHandler {
     watchingToken: string,
     questionId: string,
     answer: string
-  ): Promise<
-    ApiResponse<{
-      code: number;
-      correct: boolean;
-      newWatchingToken?: string;
-    }>
-  > {
+  ): Promise<ApiResponse<{ code: number; correct: boolean; newWatchingToken?: string }>> {
     try {
-      const tokenData = mockData.watchingTokens.get(watchingToken);
+      const tokenData = mockDataDB.watchingTokens.get(watchingToken);
       if (!tokenData) {
-        return { success: false, error: 'Invalid or expired token' };
+        return createApiResponse('4003', 'Invalid or expired token');
       }
 
-      // Find question in all subjects
-      let question: any = null;
-      let correct = false;
+      const person = await this.getPerson(tokenData.personId);
+      if (person.errcode !== '200' || !person.data) {
+        return createApiResponse('4001', 'Person not found');
+      }
 
-      for (const subject of Object.keys(mockData.questionBank)) {
-        for (const difficulty of Object.keys(mockData.questionBank[subject as keyof typeof mockData.questionBank])) {
+      // Find and verify question
+      let correct = false;
+      for (const subject of Object.keys(mockDataDB.questionBank)) {
+        for (const difficulty of Object.keys(mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank])) {
           const questions =
-            mockData.questionBank[subject as keyof typeof mockData.questionBank][difficulty as keyof typeof mockData.questionBank.math];
-          const foundQuestion = questions.find((q: any) => q.content === questionId); // Use content as ID for now
+            mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank][
+              difficulty as keyof typeof mockDataDB.questionBank.math
+            ];
+          const foundQuestion = questions.find(q => q.content === questionId);
           if (foundQuestion) {
-            question = foundQuestion;
             correct = answer.toString() === foundQuestion.correctAnswer.toString();
             break;
           }
         }
-        if (question) break;
+        if (correct) break;
       }
-
-      if (!question) {
-        return { success: false, error: 'Question not found' };
-      }
-
-      tokenData.questionsAsked++;
 
       if (correct) {
         // Generate new token with extended time
-        const person = await this.getPerson(tokenData.personId);
-        if (person.success && person.data) {
-          const newToken = this.generateId();
-          const timeLimit = person.data.settings.timeLimit * 60 * 1000;
-          const newExpiresAt = Date.now() + timeLimit;
+        const newToken = this.generateId();
+        const timeLimit = person.data.settings.sessionTimeLimit * 60 * 1000;
+        const newExpiresAt = Date.now() + timeLimit;
 
-          mockData.watchingTokens.set(newToken, {
-            ...tokenData,
-            expiresAt: newExpiresAt,
-            sessionStartTime: Date.now(),
-          });
+        mockDataDB.watchingTokens.set(newToken, {
+          ...tokenData,
+          expiresAt: newExpiresAt,
+          startTime: Date.now(),
+        });
 
-          // Remove old token
-          mockData.watchingTokens.delete(watchingToken);
+        mockDataDB.watchingTokens.delete(watchingToken);
 
-          return {
-            success: true,
-            data: {
-              code: 200,
-              correct: true,
-              newWatchingToken: newToken,
-            },
-          };
-        }
+        return createApiResponse('200', 'ok', {
+          code: 200,
+          correct: true,
+          newWatchingToken: newToken,
+        });
       }
 
-      return {
-        success: true,
-        data: {
-          code: 400,
-          correct: false,
-        },
-      };
+      return createApiResponse('200', 'ok', {
+        code: 400,
+        correct: false,
+      });
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -1229,9 +1267,9 @@ export class MockAPIHandler implements IAPIHandler {
         }
       }
 
-      return { success: true, data: history };
+      return createApiResponse('200', 'ok', history);
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
 

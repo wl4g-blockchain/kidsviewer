@@ -23,7 +23,7 @@ export const SettingsPage: React.FC = () => {
   const loadSettings = async () => {
     try {
       const response = await apiHandler.getAppSettings();
-      if (response.success && response.data) {
+      if (response.errcode === "200" && response.data) {
         setSettings(prev => ({ ...prev, ...response.data }));
       }
     } catch (error) {
@@ -39,7 +39,7 @@ export const SettingsPage: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await apiHandler.updateAppSettings(settings);
-      if (response.success) {
+      if (response.errcode === "200") {
         // Show success message
         console.log('Settings saved successfully');
       }

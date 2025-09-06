@@ -22,7 +22,9 @@
     "refresh": "刷新",
     "retry": "重试",
     "reload": "重新加载",
-    "savingToServer": "正在保存到服务器..."
+    "savingToServer": "正在保存到服务器...",
+    "attempt": "第 {count} 次尝试",
+    "attempts": "已尝试 {count} 次"
   },
   "auth": {
     "login": "登录",
@@ -57,7 +59,7 @@
     "subjects": "学科",
     "allowedUrls": "允许的网址",
     "addUrl": "添加网址",
-    "urlPlaceholder": "输入视频平台网址",
+    "urlPlaceholder": "输入内容平台网址",
     "dailyReport": "每日报告",
     "usageStats": "使用统计",
     "learningProgress": "学习进度",
@@ -78,7 +80,7 @@
     "createPersonError": "创建子女档案时发生未知错误"
   },
   "person": {
-    "viewer": "视频观看器",
+    "viewer": "内容观看器",
     "timeRemaining": "剩余时间",
     "unlockToContinue": "回答问题继续观看",
     "questionsRemaining": "剩余问题",
@@ -116,7 +118,9 @@
     "correct": "正确！",
     "incorrect": "错误，请重试！",
     "explanation": "解释",
-    "nextQuestion": "下一题"
+    "nextQuestion": "下一题",
+    "answerToResume": "回答问题以继续观看",
+    "correctAnswerNeeded": "需要正确答案才能继续"
   },
   "navigation": {
     "home": "首页",
@@ -132,15 +136,17 @@
     "timeUp": "时间到！",
     "breakTime": "休息时间！",
     "continueWatching": "继续观看",
-    "timeRemaining": "剩余时间"
+    "timeRemaining": "剩余时间",
+    "dailyLimitExceeded": "每日观看时间已达上限",
+    "sessionExpired": "观看会话已过期"
   },
   "messages": {
     "welcome": "欢迎使用儿童视界！",
     "setupComplete": "设置完成！",
     "childAdded": "孩子添加成功！",
     "settingsSaved": "设置保存成功！",
-    "sessionStarted": "视频会话开始",
-    "sessionEnded": "视频会话结束",
+    "sessionStarted": "内容会话开始",
+    "sessionEnded": "内容会话结束",
     "questionsCompleted": "所有问题完成！",
     "unlockSuccess": "解锁成功！",
     "goodJob": "做得好！继续学习！",
@@ -170,7 +176,12 @@
     "fileNotFound": "文件未找到。",
     "unknownError": "发生未知错误。",
     "switchUserFailed": "切换用户失败。",
-    "loadPersonsFailed": "加载孩子账户失败。"
+    "loadPersonsFailed": "加载孩子账户失败。",
+    "watchingSessionFailed": "启动观看会话失败。",
+    "verificationFailed": "验证答案失败。",
+    "dailyLimitExceeded": "已达到今日观看时间上限。",
+    "sessionLimitExceeded": "本次观看时间已到。",
+    "platformNotAllowed": "您的账户不允许访问此平台。"
   },
   "home": {
     "parent": {
@@ -204,7 +215,7 @@
     },
     "child": {
       "title": "{name}的世界",
-      "subtitle": "在观看精彩视频的同时，通过回答问题来学习新知识",
+      "subtitle": "在观看精彩内容的同时，通过回答问题来学习新知识",
       "todayAchievements": "今日成就",
       "challenge": "答题挑战",
       "challengeDesc": "今天完成的题目",
@@ -213,12 +224,12 @@
       "studyTime": "学习时间",
       "studyTimeUnit": "分钟",
       "availablePlatforms": "可访问平台",
-      "videoWorld": "精彩视频世界",
-      "videoWorldDesc": "可观看的视频平台",
-      "videoPlatform": "视频平台",
+      "videoWorld": "精彩内容世界",
+      "videoWorldDesc": "可观看的内容平台",
+      "videoPlatform": "内容平台",
       "startWatching": "开始观看",
-      "noVideos": "还没有可观看的视频",
-      "noVideosDesc": "请让家长为您添加可观看的视频平台",
+      "noVideos": "还没有可观看的内容",
+      "noVideosDesc": "请让家长为您添加可观看的内容平台",
       "learningChallenges": "学习挑战",
       "mathPractice": "数学练习",
       "mathPracticeDesc": "通过有趣的数学题目锻炼思维能力",
@@ -228,70 +239,119 @@
       "startLearning": "开始学习",
       "encouragement": "继续加油，{name}！",
       "encouragementDesc": "每一次学习都让你变得更强大，每一个问题都是通向知识宝藏的钥匙！🗝️"
+    ,
+  "personViewer": {
+    "cannotAccessViewingPage": "无法访问观看页面",
+    "returnToHome": "返回主页",
+    "dailyTimeLimitReached": "今日观看时间已达上限",
+    "dailyTimeLimitMessage": "为了您的健康，今天的观看时间已经用完了。明天再来继续学习吧！",
+    "back": "返回",
+    "watching": "正在观看",
+    "platform": "平台",
+    "remainingTime": "剩余时间",
+    "answerQuestionsToContinue": "回答问题继续观看",
+    "answerQuestionsRemaining": "请回答 {count} 个问题来继续观看",
+    "enjoyWatching": "享受您的观看时间！",
+    "questions": {
+      "math": "数学",
+      "chinese": "中文",
+      "english": "英语",
+      "difficulty": {
+        "easy": "简单",
+        "medium": "中等",
+        "hard": "困难"
+      },
+      "answer": "请输入答案",
+      "correct": "回答正确！",
+      "incorrect": "回答错误",
+      "explanation": "解释"
     }
+  }
+}
   },
-  "video": {
-    "loading": "正在加载视频...",
-    "loadError": "视频加载失败",
-    "loadErrorDescription": "无法加载视频内容，可能是网络问题或平台限制",
+  "webViewer": {
+    "loading": "正在加载内容...",
+    "loadError": "内容加载失败",
+    "loadErrorDescription": "无法加载内容，可能是网络问题或平台限制",
     "embedHint": "某些平台可能限制嵌入显示，建议在新窗口中打开",
     "openInNewWindow": "在新窗口中打开",
     "electronRequired": "需要桌面应用",
     "electronRequiredDescription": "此功能需要在桌面应用中使用以获得最佳体验",
     "runningInWindow": "正在独立窗口中运行",
-    "windowModeDescription": "视频正在单独的窗口中播放。如果需要，您可以切换回嵌入模式。",
+    "windowModeDescription": "内容正在单独的窗口中播放。如果需要，您可以切换回嵌入模式。",
     "switchToEmbedded": "切换到嵌入视图",
     "openInSeparateWindow": "在独立窗口中打开",
-    "playerWindowTitle": "视频播放器",
-    "cspErrorDetected": "检测到内容安全策略限制，尝试绕过中...",
-    "bypassingRestrictions": "正在绕过安全限制...",
-    "browserSecurityRestrictions": "浏览器安全限制阻止显示此内容，正在使用替代方法...",
+    "windowTitle": "内容观看器",
     "openInBrowser": "在浏览器中打开",
-    
-    "iosNotice": "iOS应用提示",
-    "iosNoticeDescription": "由于iOS安全限制，视频必须在Safari浏览器中打开。",
-    "ipadNoticeDescription": "由于iPad安全限制，视频必须在Safari浏览器中打开。",
-    "openInSafari": "在Safari中打开",
-    "iosParentalControlHint": "为了维持家长控制，请在允许观看时间结束后关闭Safari并返回本应用。",
-    "returnToAppWhenDone": "观看结束后请返回此应用。",
-    "returnToSafari": "返回Safari",
-    "iosTimerHint": "此计时器将帮助您跟踪允许的观看时间。时间结束时请关闭Safari。",
     
     "iosControlledNotice": "iOS受控观看",
     "iosControlledDescription": "本应用将监控和控制您的观看时间。当时间用完时，您需要回答问题才能继续观看。",
-    "ipadControlledDescription": "本应用将监控和控制您的观看时间。当时间用完时，您需要回答问题才能继续观看。",
-    "startWatching": "开始观看",
-    "iosTimeLimit": "您有{{minutes}}分钟的观看时间",
-    "videoIsPlaying": "视频正在播放中",
-    "iosWebViewHint": "使用内置浏览器来强制执行观看限制和家长控制",
-    
-    "chooseViewMode": "选择您偏好的观看模式",
-    "embeddedMode": "嵌入模式",
-    "embeddedModeDesc": "直接在应用内观看视频",
-    "browserMode": "浏览器模式",
-    "browserModeDesc": "在全屏浏览器中打开",
-    "tryEmbeddedMode": "尝试嵌入模式",
-    "tryBrowserMode": "尝试浏览器模式",
-    
-    "popupMode": "弹窗模式",
+    "startViewing": "开始观看",
+    "openContent": "打开内容",
+    "contentRunning": "内容运行中",
+    "contentIsRunning": "内容正在播放中",
     "popupModeDesc": "在隐藏地址栏的弹窗中观看",
-    "popupTitle": "视频观看器",
-    "popupDescription": "视频正在弹窗中播放，地址栏和底部区域已隐藏",
-    "popupTimeLimit": "观看时间限制：{{minutes}}分钟",
-    "popupTimeRemaining": "剩余时间：{{time}}",
-    "popupCloseHint": "观看结束后请关闭弹窗返回应用",
     "popupCloseButton": "关闭弹窗",
-    "popupMinimizeButton": "最小化",
-    "popupMaximizeButton": "最大化",
     "popupFullscreenButton": "全屏",
     "popupExitFullscreenButton": "退出全屏",
-    "popupControls": "弹窗控制",
-    "popupStatus": "弹窗状态",
-    "popupActive": "活跃",
-    "popupInactive": "非活跃",
-    "popupError": "弹窗错误",
-    "popupErrorDescription": "弹窗无法正常显示，请重试",
-    "popupRetry": "重试弹窗",
-    "popupFallback": "使用弹窗模式作为备选方案"
+    "popupCloseHint": "观看结束后请关闭弹窗返回应用",
+    "readyToStart": "准备开始",
+    "clickToStart": "点击下方按钮在新窗口中开始观看内容"
+  ,
+  "personViewer": {
+    "cannotAccessViewingPage": "无法访问观看页面",
+    "returnToHome": "返回主页",
+    "dailyTimeLimitReached": "今日观看时间已达上限",
+    "dailyTimeLimitMessage": "为了您的健康，今天的观看时间已经用完了。明天再来继续学习吧！",
+    "back": "返回",
+    "watching": "正在观看",
+    "platform": "平台",
+    "remainingTime": "剩余时间",
+    "answerQuestionsToContinue": "回答问题继续观看",
+    "answerQuestionsRemaining": "请回答 {count} 个问题来继续观看",
+    "enjoyWatching": "享受您的观看时间！",
+    "questions": {
+      "math": "数学",
+      "chinese": "中文",
+      "english": "英语",
+      "difficulty": {
+        "easy": "简单",
+        "medium": "中等",
+        "hard": "困难"
+      },
+      "answer": "请输入答案",
+      "correct": "回答正确！",
+      "incorrect": "回答错误",
+      "explanation": "解释"
+    }
   }
-} 
+}
+,
+  "personViewer": {
+    "cannotAccessViewingPage": "无法访问观看页面",
+    "returnToHome": "返回主页",
+    "dailyTimeLimitReached": "今日观看时间已达上限",
+    "dailyTimeLimitMessage": "为了您的健康，今天的观看时间已经用完了。明天再来继续学习吧！",
+    "back": "返回",
+    "watching": "正在观看",
+    "platform": "平台",
+    "remainingTime": "剩余时间",
+    "answerQuestionsToContinue": "回答问题继续观看",
+    "answerQuestionsRemaining": "请回答 {count} 个问题来继续观看",
+    "enjoyWatching": "享受您的观看时间！",
+    "questions": {
+      "math": "数学",
+      "chinese": "中文",
+      "english": "英语",
+      "difficulty": {
+        "easy": "简单",
+        "medium": "中等",
+        "hard": "困难"
+      },
+      "answer": "请输入答案",
+      "correct": "回答正确！",
+      "incorrect": "回答错误",
+      "explanation": "解释"
+    }
+  }
+}

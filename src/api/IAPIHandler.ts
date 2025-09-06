@@ -1,4 +1,4 @@
-import { User, Person, Question, ApiResponse, AppSettings } from '../types';
+import { User, Person, Question, ApiResponse, AppSettings, WatchingSessionResponse, WatchingStatusResponse } from '../types';
 
 // Base API handler interface
 export interface IAPIHandler {
@@ -37,26 +37,13 @@ export interface IAPIHandler {
   >;
 
   // Watching control APIs
-  startWatching(personId: string, platformUrl: string): Promise<ApiResponse<{ watchingToken: string }>>;
-  checkWatching(watchingToken: string): Promise<
-    ApiResponse<{
-      code: number;
-      data?: Question[];
-      remainingTime?: number;
-      dailyTimeExceeded?: boolean;
-    }>
-  >;
+  startWatching(personId: string, platformUrl: string): Promise<ApiResponse<WatchingSessionResponse>>;
+  checkWatching(watchingToken: string): Promise<ApiResponse<WatchingStatusResponse>>;
   verifyQuestion(
     watchingToken: string,
     questionId: string,
     answer: string
-  ): Promise<
-    ApiResponse<{
-      code: number;
-      correct: boolean;
-      newWatchingToken?: string;
-    }>
-  >;
+  ): Promise<ApiResponse<{ code: number; correct: boolean; newWatchingToken?: string }>>;
 
   // Questions
   getQuestions(subjects: string[], difficulty: string, count: number): Promise<ApiResponse<Question[]>>;

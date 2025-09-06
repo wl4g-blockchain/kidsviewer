@@ -28,7 +28,7 @@ export const UserSwitcher: React.FC = () => {
     setIsLoading(true);
     try {
       const response = await apiHandler.getPersons(currentUser.id);
-      if (response.success && response.data) {
+      if (response.errcode === "200" && response.data) {
         setPersons(response.data);
       }
     } catch (error) {
@@ -64,12 +64,12 @@ export const UserSwitcher: React.FC = () => {
 
     try {
       const response = await apiHandler.verifyParentalPassword(password);
-      if (response.success && response.data) {
+      if (response.errcode === "200" && response.data) {
         switchToParent();
         setShowPasswordModal(false);
         setPasswordError('');
       } else {
-        setPasswordError(response.message || t('errors.invalidInput'));
+        setPasswordError(response.errmsg || t('errors.invalidInput'));
       }
     } catch (error) {
       setPasswordError(t('errors.unknownError'));
@@ -226,7 +226,7 @@ export const UserSwitcher: React.FC = () => {
                         <div className="flex-1 text-left">
                           <div className="font-semibold text-gray-800 text-sm">{person.alias}</div>
                           <div className="text-xs text-gray-500">
-                            {t('parental.ageGroups.' + person.ageGroup)} • {person.settings.timeLimit}
+                            {t('parental.ageGroups.' + person.ageGroup)} • {person.settings.sessionTimeLimit}
                             {t('time.minutes')}
                           </div>
                         </div>

@@ -47,12 +47,12 @@ export const PersonHome: React.FC = () => {
 
       console.log('API response:', response);
 
-      if (response.success && response.data) {
+      if (response.errcode === "200" && response.data) {
         console.log(`Successfully loaded ${response.data.length} accessible platforms:`, response.data);
         setAccessibleUrls(response.data);
       } else {
-        console.error('Failed to load accessible URLs:', response.error);
-        setError(response.error || t('person.loadAccessibleUrlsFailed'));
+        console.error('Failed to load accessible URLs:', response.errmsg);
+        setError(response.errmsg || t('person.loadAccessibleUrlsFailed'));
       }
     } catch (error) {
       console.error('Error occurred while loading person accessible URLs:', error);
@@ -80,12 +80,12 @@ export const PersonHome: React.FC = () => {
 
     try {
       const response = await apiHandler.verifyParentalPassword(password);
-      if (response.success && response.data) {
+      if (response.errcode === "200" && response.data) {
         switchToParent();
         setShowPasswordModal(false);
             setPasswordError('');
       } else {
-        setPasswordError(response.message || t('errors.invalidInput'));
+        setPasswordError(response.errmsg || t('errors.invalidInput'));
       }
     } catch (error) {
       setPasswordError(t('errors.unknownError'));
@@ -102,7 +102,7 @@ export const PersonHome: React.FC = () => {
       // Start watching session and get token
       const response = await apiHandler.startWatching(activePerson.id, urlData.url);
 
-      if (response.success && response.data) {
+      if (response.errcode === "200" && response.data) {
         // Store the watching data in sessionStorage for PersonViewer to use
         sessionStorage.setItem(
           'currentWatchingSession',
@@ -117,8 +117,8 @@ export const PersonHome: React.FC = () => {
         // Navigate to PersonViewer
         navigate('/person-viewer');
       } else {
-        console.error('Failed to start watching session:', response.error);
-        setError(response.error || '启动观看会话失败');
+        console.error('Failed to start watching session:', response.errmsg);
+        setError(response.errmsg || '启动观看会话失败');
       }
     } catch (error) {
       console.error('Error starting watching session:', error);

@@ -43,7 +43,7 @@ export const ParentalHome: React.FC = () => {
   const loadPersons = async () => {
     try {
       const response = await apiHandler.getPersons(currentUser!.id);
-      if (response.success && response.data) {
+      if (response.errcode === "200" && response.data) {
         setPersons(response.data);
       }
     } catch (error) {
@@ -93,7 +93,7 @@ export const ParentalHome: React.FC = () => {
     
     try {
       const response = await apiHandler.getWatchingHistory(person.id, 7);
-      if (response.success && response.data) {
+      if (response.errcode === "200" && response.data) {
         setWatchingHistory(response.data);
       } else {
         setWatchingHistory([]);
@@ -119,7 +119,7 @@ export const ParentalHome: React.FC = () => {
 
     try {
       const response = await apiHandler.updatePersonSettings(selectedPerson.id, settings);
-      if (response.success && response.data) {
+      if (response.errcode === "200" && response.data) {
         // Update local state
         setPersons(prev => prev.map(p => 
           p.id === selectedPerson.id ? response.data! : p
@@ -127,7 +127,7 @@ export const ParentalHome: React.FC = () => {
         setShowSettingsModal(false);
         setSelectedPerson(null);
       } else {
-        throw new Error(response.error || '更新设置失败');
+        throw new Error(response.errmsg || '更新设置失败');
       }
     } catch (error) {
       console.error('Failed to update settings:', error);
@@ -253,7 +253,7 @@ export const ParentalHome: React.FC = () => {
                       </h3>
                       <p className="text-sm text-gray-500">
                         {t(`parental.ageGroups.${person.ageGroup}`)} •{" "}
-                        {person.settings.timeLimit} {t("time.minutes")}
+                        {person.settings.sessionTimeLimit} {t("time.minutes")}
                       </p>
                     </div>
                   </div>
@@ -459,7 +459,7 @@ export const ParentalHome: React.FC = () => {
                 <input
                   type="number"
                   name="timeLimit"
-                  defaultValue={selectedPerson.settings.timeLimit}
+                  defaultValue={selectedPerson.settings.sessionTimeLimit}
                   min="5"
                   max="120"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

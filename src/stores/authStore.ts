@@ -79,7 +79,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await get().apiHandler.login(email, password);
 
-      if (response.success && response.data) {
+      if (response.errcode === '200' && response.data) {
         const { user, token } = response.data;
 
         // Only allow parental users to login
@@ -108,7 +108,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } else {
         set({
           isLoading: false,
-          error: response.error || 'Login failed',
+          error: response.errmsg || 'Login failed',
         });
         return false;
       }
@@ -127,7 +127,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const response = await get().apiHandler.register(email, phone, password, name);
 
-      if (response.success && response.data) {
+      if (response.errcode === '200' && response.data) {
         const { user, token } = response.data;
         const parentalUser = user as Parental;
 
@@ -146,7 +146,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } else {
         set({
           isLoading: false,
-          error: response.error || 'Registration failed',
+          error: response.errmsg || 'Registration failed',
         });
         return false;
       }
@@ -231,7 +231,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (currentUser) {
       try {
         const response = await apiHandler.getPersons(currentUser.id);
-        if (response.success && response.data) {
+        if (response.errcode === '200' && response.data) {
           // Update the current user's persons array
           const updatedUser = {
             ...currentUser,

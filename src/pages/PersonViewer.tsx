@@ -2,12 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useTranslation } from '../i18n/I18nProvider';
-import { Lock, Clock, BookOpen, ArrowLeft, AlertCircle } from 'lucide-react';
-import { Question } from '../types';
-import { VideoPlayer } from '../components/VideoPlayer';
+import { Lock, Clock, BookOpen, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react';
+import { Question, WatchingSessionResponse } from '../types';
+import { ElectronWebViewer } from '../components/ElectronWebViewer';
 
-interface WatchingSession {
-  watchingToken: string;
+interface WatchingSession extends WatchingSessionResponse {
   platformName: string;
   platformUrl: string;
   description?: string;
@@ -27,6 +26,7 @@ export const PersonViewer: React.FC = () => {
   const [dailyTimeExceeded, setDailyTimeExceeded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
 
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const t = useTranslation();
@@ -44,7 +44,6 @@ export const PersonViewer: React.FC = () => {
         navigate('/person-page');
       }
     } else {
-      // No session data, redirect back
       navigate('/person-page');
     }
 
@@ -71,49 +70,39 @@ export const PersonViewer: React.FC = () => {
     try {
       const response = await apiHandler.checkWatching(token);
 
-      if (response.success && response.data) {
-        const { code, data: questions, remainingTime: remaining } = response.data;
+      if (response.errcode === '200' && response.data) {
+        const { remainingTime, questions, dailyTimeExceeded } = response.data;
 
-        if (remaining !== undefined) {
-          setRemainingTime(remaining);
+        // Update remaining time from API response
+        if (remainingTime !== undefined) {
+          setRemainingTime(remainingTime);
         }
 
-        switch (code) {
-          case 200:
-            // Normal watching state
-            setShowQuestions(false);
-            setDailyTimeExceeded(false);
-            break;
+        if (dailyTimeExceeded) {
+          setDailyTimeExceeded(true);
+          setShowQuestions(false);
+          if (checkIntervalRef.current) {
+            clearInterval(checkIntervalRef.current);
+          }
+          return;
+        }
 
-          case 4017:
-            // Time limit exceeded, need to answer questions
-            if (questions && questions.length > 0) {
-              setCurrentQuestions(questions);
-              setCurrentQuestionIndex(0);
-              setUserAnswer('');
-              setShowQuestions(true);
-              setShowResult(false);
-            }
-            break;
-
-          case 4077:
-            // Daily time limit exceeded
-            setDailyTimeExceeded(true);
-            setShowQuestions(false);
-            if (checkIntervalRef.current) {
-              clearInterval(checkIntervalRef.current);
-            }
-            break;
-
-          default:
-            console.warn('Unknown status code:', code);
+        if (questions && questions.length > 0) {
+          setCurrentQuestions(questions);
+          setCurrentQuestionIndex(0);
+          setUserAnswer('');
+          setShowQuestions(true);
+          setShowResult(false);
+        } else {
+          setShowQuestions(false);
+          setDailyTimeExceeded(false);
         }
       } else {
-        setError(response.error || '检查观看状态失败');
+        setError(response.errmsg || t('errors.unknownError'));
       }
     } catch (error) {
       console.error('Error checking watching status:', error);
-      setError('检查观看状态时发生错误');
+      setError(t('errors.networkError'));
     }
   };
 
@@ -129,6 +118,23 @@ export const PersonViewer: React.FC = () => {
     setVideoError(null);
   };
 
+  // Handle refresh button click
+  const handleRefresh = async () => {
+    if (!watchingSession) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await checkWatchingStatus(watchingSession.watchingToken);
+    } catch (error) {
+      console.error('Error refreshing watching status:', error);
+      setError(t('errors.networkError'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Handle answer submission
   const handleAnswerSubmit = async () => {
     if (!watchingSession || !currentQuestions[currentQuestionIndex]) return;
@@ -136,13 +142,9 @@ export const PersonViewer: React.FC = () => {
     const question = currentQuestions[currentQuestionIndex];
 
     try {
-      const response = await apiHandler.verifyQuestion(
-        watchingSession.watchingToken,
-        question.content, // Use content as questionId
-        userAnswer
-      );
+      const response = await apiHandler.verifyQuestion(watchingSession.watchingToken, question.content, userAnswer);
 
-      if (response.success && response.data) {
+      if (response.errcode === '200' && response.data) {
         const { correct, newWatchingToken } = response.data;
 
         setIsCorrect(correct);
@@ -164,13 +166,11 @@ export const PersonViewer: React.FC = () => {
               setUserAnswer('');
               setShowResult(false);
             } else {
-              // All questions answered correctly
               setShowQuestions(false);
               setShowResult(false);
               setCurrentQuestions([]);
               setCurrentQuestionIndex(0);
 
-              // Restart watching check with new token
               if (checkIntervalRef.current) {
                 clearInterval(checkIntervalRef.current);
               }
@@ -178,18 +178,17 @@ export const PersonViewer: React.FC = () => {
             }
           }, 2000);
         } else {
-          // Wrong answer, stay on same question
           setTimeout(() => {
             setUserAnswer('');
             setShowResult(false);
           }, 2000);
         }
       } else {
-        setError(response.error || '验证答案失败');
+        setError(response.errmsg || t('errors.unknownError'));
       }
     } catch (error) {
       console.error('Error verifying answer:', error);
-      setError('验证答案时发生错误');
+      setError(t('errors.networkError'));
     }
   };
 
@@ -213,12 +212,12 @@ export const PersonViewer: React.FC = () => {
     return (
       <div className="text-center py-12">
         <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-        <p className="text-gray-600 text-lg mb-4">无法访问观看页面</p>
+        <p className="text-gray-600 text-lg mb-4">{t('personViewer.cannotAccessViewingPage')}</p>
         <button
           onClick={() => navigate('/person-page')}
           className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
         >
-          返回主页
+          {t('personViewer.returnToHome')}
         </button>
       </div>
     );
@@ -231,14 +230,14 @@ export const PersonViewer: React.FC = () => {
           <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Clock className="w-10 h-10 text-orange-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">今日观看时间已达上限</h2>
-          <p className="text-gray-600 mb-6">为了您的健康，今天的观看时间已经用完了。明天再来继续学习吧！</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('personViewer.dailyTimeLimitReached')}</h2>
+          <p className="text-gray-600 mb-6">{t('personViewer.dailyTimeLimitMessage')}</p>
           <button
             onClick={handleBack}
             className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            返回主页
+            {t('personViewer.returnToHome')}
           </button>
         </div>
       </div>
@@ -252,7 +251,7 @@ export const PersonViewer: React.FC = () => {
         <div className="flex items-center justify-between">
           <button onClick={handleBack} className="inline-flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
             <ArrowLeft className="w-5 h-5 mr-2" />
-            返回
+            {t('personViewer.back')}
           </button>
           <div className="text-center">
             <h1 className="text-xl font-bold text-gray-900">{watchingSession.platformName}</h1>
@@ -261,7 +260,15 @@ export const PersonViewer: React.FC = () => {
               <span className="text-lg font-medium text-blue-600">{formatTime(remainingTime * 60)}</span>
             </div>
           </div>
-          <div className="w-20"></div> {/* Spacer for centering */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleRefresh}
+              disabled={isLoading}
+              className="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50"
+            >
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Clock className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -273,7 +280,9 @@ export const PersonViewer: React.FC = () => {
 
       {videoError && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800">视频加载警告: {videoError}</p>
+          <p className="text-yellow-800">
+            {t('personViewer.videoLoadWarning')}: {videoError}
+          </p>
         </div>
       )}
 
@@ -281,30 +290,36 @@ export const PersonViewer: React.FC = () => {
       {!showQuestions ? (
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="mb-4">
-            <h3 className="text-xl font-medium text-gray-800 mb-2">正在观看 {watchingSession.platformName}</h3>
-            <p className="text-gray-600">{watchingSession.description || '享受您的观看时间！'}</p>
+            <h3 className="text-xl font-medium text-gray-800 mb-2">
+              {t('personViewer.watching')} {watchingSession.platformName}
+            </h3>
+            <p className="text-gray-600">{watchingSession.description || t('personViewer.enjoyWatching')}</p>
           </div>
-          
+
           {/* Video Player */}
-          <VideoPlayer
+          <ElectronWebViewer
             url={watchingSession.platformUrl}
             platformName={watchingSession.platformName}
+            personId={activePerson.id}
             onLoadError={handleVideoLoadError}
             onLoadSuccess={handleVideoLoadSuccess}
             className="aspect-video"
-            timeLimit={remainingTime} // 传递剩余时间（分钟）作为时间限制
           />
-          
+
           {/* Video info bar */}
           <div className="mt-4 flex items-center justify-between bg-gray-50 rounded-lg p-4">
             <div className="flex items-center space-x-3">
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-gray-700">观看中</span>
+              <span className="text-sm font-medium text-gray-700">{t('personViewer.watching')}</span>
             </div>
             <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <span>平台: {watchingSession.platformName}</span>
+              <span>
+                {t('personViewer.platform')}: {watchingSession.platformName}
+              </span>
               <span>•</span>
-              <span>剩余时间: {formatTime(remainingTime * 60)}</span>
+              <span>
+                {t('personViewer.remainingTime')}: {formatTime(remainingTime * 60)}
+              </span>
             </div>
           </div>
         </div>
@@ -315,8 +330,10 @@ export const PersonViewer: React.FC = () => {
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="w-8 h-8 text-blue-600" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">回答问题继续观看</h2>
-            <p className="text-gray-600">请回答 {currentQuestions.length - currentQuestionIndex} 个问题来继续观看</p>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('personViewer.answerQuestionsToContinue')}</h2>
+            <p className="text-gray-600">
+              {t('personViewer.answerQuestionsRemaining', { count: currentQuestions.length - currentQuestionIndex })}
+            </p>
           </div>
 
           {currentQuestions.length > 0 && (
@@ -337,10 +354,10 @@ export const PersonViewer: React.FC = () => {
               <div className="bg-gray-50 rounded-lg p-6 mb-6">
                 <div className="text-center mb-4">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                    {t(`questions.${currentQuestions[currentQuestionIndex]?.subject}`)}
+                    {t(`personViewer.questions.${currentQuestions[currentQuestionIndex]?.subject}`)}
                   </span>
                   <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                    {t(`questions.difficulty.${currentQuestions[currentQuestionIndex]?.difficulty}`)}
+                    {t(`personViewer.questions.difficulty.${currentQuestions[currentQuestionIndex]?.difficulty}`)}
                   </span>
                 </div>
 
@@ -366,7 +383,7 @@ export const PersonViewer: React.FC = () => {
                     type="text"
                     value={userAnswer}
                     onChange={e => setUserAnswer(e.target.value)}
-                    placeholder={t('questions.answer')}
+                    placeholder={t('personViewer.questions.answer')}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 )}
@@ -387,10 +404,12 @@ export const PersonViewer: React.FC = () => {
               {/* Result Display */}
               {showResult && (
                 <div className={`text-center p-4 rounded-lg ${isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-                  <div className="text-lg font-medium mb-2">{isCorrect ? t('questions.correct') : t('questions.incorrect')}</div>
+                  <div className="text-lg font-medium mb-2">
+                    {isCorrect ? t('personViewer.questions.correct') : t('personViewer.questions.incorrect')}
+                  </div>
                   {currentQuestions[currentQuestionIndex]?.explanation && (
                     <div className="text-sm">
-                      <strong>{t('questions.explanation')}:</strong> {currentQuestions[currentQuestionIndex]?.explanation}
+                      <strong>{t('personViewer.questions.explanation')}:</strong> {currentQuestions[currentQuestionIndex]?.explanation}
                     </div>
                   )}
                 </div>

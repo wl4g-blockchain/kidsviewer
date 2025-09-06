@@ -26,10 +26,23 @@ export interface Person extends User {
 
 // Person settings
 export interface PersonSettings {
-  timeLimit: number; // minutes: 10, 15, 20, 30, 40
-  questionCount: number; // number of questions to unlock
+  // Time limits
+  sessionTimeLimit: number; // Minutes per watching session (e.g., 15, 30, 45)
+  dailyTimeLimit: number; // Total minutes allowed per day (e.g., 120, 180)
+  
+  // Question settings
+  questionCount: number; // Number of questions to unlock per session
+  questionsPerDay: number; // Maximum questions per day
+  
+  // Subject and content settings
   subjects: Subject[];
-  allowedUrls: string[]; // parental-set video platform URLs
+  allowedUrls: {
+    platformName: string;
+    url: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    maxDailyTime: number; // Platform-specific daily time limit
+    description?: string;
+  }[];
 }
 
 export interface Subject {
@@ -107,11 +120,24 @@ export interface SubjectProgress {
 }
 
 // API response types
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
+export interface ApiResponse<T = any> {
+  errcode: string; // "200" for success, "4xxx" for business errors, "5xxx" for system errors
+  errmsg: string; // Error message or "ok" for success
+  data?: T; // Optional data payload
+}
+
+// Watching session response types
+export interface WatchingSessionResponse {
+  watchingToken: string;
+  sessionTimeLimit: number; // Minutes allowed for this session
+  remainingDailyTime: number; // Minutes remaining today
+}
+
+export interface WatchingStatusResponse {
+  remainingTime: number; // Minutes remaining in current session
+  remainingDailyTime: number; // Minutes remaining today
+  questions?: Question[]; // Questions if needed
+  dailyTimeExceeded?: boolean; // Whether daily time limit is exceeded
 }
 
 // App state types

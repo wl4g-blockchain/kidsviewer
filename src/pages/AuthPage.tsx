@@ -7,16 +7,16 @@ import { AuthUtil } from '../utils/authUtil';
 import { Eye, EyeOff, Mail, Lock, Sparkles, Star, Heart } from 'lucide-react';
 
 // Demo credentials - in production these would come from environment or config
-const DEFAULT_CREDENTIALS = {
-  email: 'demo@parent.com',
+const DEMO_CREDENTIALS = {
+  email: 'lyra@kidsviewer.local',
   password: '123456',
 } as const;
 
 export const AuthPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    emailOrPhone: DEFAULT_CREDENTIALS.email,
-    password: DEFAULT_CREDENTIALS.password,
+    emailOrPhone: DEMO_CREDENTIALS.email,
+    password: DEMO_CREDENTIALS.password,
   });
 
   const { login, register, isLoading, error, clearError, isAuthenticated, viewMode } = useAuthStore();
@@ -266,11 +266,11 @@ export const AuthPage: React.FC = () => {
             >
               邮箱:{' '}
               <code style={{ backgroundColor: '#fde68a', padding: '0.125rem 0.25rem', borderRadius: '0.25rem' }}>
-                {DEFAULT_CREDENTIALS.email}
+                {DEMO_CREDENTIALS.email}
               </code>{' '}
               | 密码:{' '}
               <code style={{ backgroundColor: '#fde68a', padding: '0.125rem 0.25rem', borderRadius: '0.25rem', marginLeft: '0.25rem' }}>
-                {DEFAULT_CREDENTIALS.password}
+                {DEMO_CREDENTIALS.password}
               </code>
             </p>
           </div>

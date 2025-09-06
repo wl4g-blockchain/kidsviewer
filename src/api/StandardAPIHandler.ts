@@ -1,5 +1,5 @@
 import { IAPIHandler } from './IAPIHandler';
-import { User, Person, Question, ApiResponse, AppSettings } from '../types';
+import { User, Person, Question, ApiResponse, AppSettings, WatchingSessionResponse, WatchingStatusResponse } from '../types';
 
 /**
  * Standard API Handler for Production Environment
@@ -44,22 +44,23 @@ export class StandardAPIHandler implements IAPIHandler {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Network error' }));
+        const errorData = await response.json().catch(() => ({ errmsg: 'Network error' }));
         return {
-          success: false,
-          error: errorData.error || `HTTP ${response.status}: ${response.statusText}`,
+          errcode: response.status.toString(),
+          errmsg: errorData.errmsg || `HTTP ${response.status}: ${response.statusText}`,
         };
       }
 
       const data = await response.json();
       return {
-        success: true,
+        errcode: '200',
+        errmsg: 'ok',
         data,
       };
     } catch (error) {
       return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        errcode: '5000',
+        errmsg: error instanceof Error ? error.message : 'Unknown error occurred',
       };
     }
   }
@@ -152,21 +153,14 @@ export class StandardAPIHandler implements IAPIHandler {
   }
 
   // Watching control APIs
-  async startWatching(personId: string, platformUrl: string): Promise<ApiResponse<{ watchingToken: string }>> {
+  async startWatching(personId: string, platformUrl: string): Promise<ApiResponse<WatchingSessionResponse>> {
     return this.apiCall('/watching/start', {
       method: 'POST',
       body: JSON.stringify({ personId, platformUrl }),
     });
   }
 
-  async checkWatching(watchingToken: string): Promise<
-    ApiResponse<{
-      code: number;
-      data?: Question[];
-      remainingTime?: number;
-      dailyTimeExceeded?: boolean;
-    }>
-  > {
+  async checkWatching(watchingToken: string): Promise<ApiResponse<WatchingStatusResponse>> {
     return this.apiCall('/watching/check', {
       method: 'POST',
       body: JSON.stringify({ watchingToken }),
@@ -248,4 +242,4 @@ export class StandardAPIHandler implements IAPIHandler {
       body: JSON.stringify(settings),
     });
   }
-} 
+}
