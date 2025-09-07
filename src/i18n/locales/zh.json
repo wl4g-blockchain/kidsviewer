@@ -24,7 +24,9 @@
         "reload": "重新加载",
         "savingToServer": "正在保存到服务器...",
         "attempt": "第 {count} 次尝试",
-        "attempts": "已尝试 {count} 次"
+        "attempts": "已尝试 {count} 次",
+        "option": "选项",
+        "confirmDelete": "您确定要删除这个项目吗？"
     },
     "auth": {
         "login": "登录",
@@ -420,10 +422,63 @@
         "developmentBuild": "开发版"
     },
     "questionManagement": {
+        "title": "题库管理",
+        "addQuestion": "添加题目",
         "searchPlaceholder": "通过内容、科目或标签搜索题目...",
         "filters": "筛选器",
         "clearFilters": "清除筛选",
         "showingResults": "显示 {start}-{end}，共 {total} 个题目（总计 {totalQuestions} 个）",
-        "pageInfo": "第 {current} 页，共 {total} 页"
+        "pageInfo": "第 {current} 页，共 {total} 页",
+        "subjects": {
+            "label": "科目",
+            "all": "所有科目",
+            "math": "数学",
+            "chinese": "语文",
+            "english": "英语"
+        },
+        "difficulty": {
+            "label": "难度",
+            "all": "所有难度",
+            "beginner": "初学者",
+            "easy": "简单",
+            "medium": "中等",
+            "hard": "困难",
+            "expert": "专家"
+        },
+        "ageGroups": {
+            "label": "年龄段",
+            "all": "所有年龄段",
+            "preschool": "学前儿童 (2-4岁)",
+            "young": "小童 (4-6岁)",
+            "older": "大童 (6-12岁)",
+            "teen": "青少年 (12-14岁)"
+        },
+        "noQuestions": "未找到题目",
+        "noQuestionsCreated": "还没有创建任何题目。",
+        "noQuestionsMatch": "没有题目符合当前筛选条件。",
+        "createFirstQuestion": "创建第一个题目",
+        "modal": {
+            "create": "创建题目",
+            "edit": "编辑题目",
+            "questionType": "题目类型",
+            "questionContent": "题目内容",
+            "options": "选项",
+            "correctAnswer": "正确答案",
+            "ageGroupsLabel": "年龄段",
+            "tags": "标签（用逗号分隔）",
+            "tagsPlaceholder": "例如：加法, 基础, 数字",
+            "explanationEN": "英文解释（可选）",
+            "explanationENPlaceholder": "英文解释",
+            "explanationCN": "中文解释（可选）",
+            "explanationCNPlaceholder": "中文解释",
+            "create": "创建",
+            "update": "更新"
+        },
+        "questionTypes": {
+            "multiple-choice": "选择题",
+            "true-false": "判断题",
+            "fill-blank": "填空题",
+            "calculation": "计算题"
+        }
     }
 }

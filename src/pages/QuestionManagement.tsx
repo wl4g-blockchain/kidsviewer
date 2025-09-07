@@ -109,7 +109,7 @@ export const QuestionManagement: React.FC = () => {
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
-    if (!confirm('Are you sure you want to delete this question?')) return;
+    if (!confirm(t('common.confirmDelete') || 'Are you sure you want to delete this question?')) return;
 
     try {
       const response = await apiHandler.deleteQuestionTemplate(questionId);
@@ -150,14 +150,14 @@ export const QuestionManagement: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <BookOpen className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">Question Bank Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('questionManagement.title')}</h1>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Add Question
+          {t('questionManagement.addQuestion')}
         </button>
       </div>
 
@@ -192,47 +192,47 @@ export const QuestionManagement: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.subjects.label')}</label>
             <select
               value={filters.subject}
               onChange={e => setFilters(prev => ({ ...prev, subject: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">All Subjects</option>
-              <option value="math">Math</option>
-              <option value="chinese">Chinese</option>
-              <option value="english">English</option>
+              <option value="">{t('questionManagement.subjects.all')}</option>
+              <option value="math">{t('questionManagement.subjects.math')}</option>
+              <option value="chinese">{t('questionManagement.subjects.chinese')}</option>
+              <option value="english">{t('questionManagement.subjects.english')}</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.difficulty.label')}</label>
             <select
               value={filters.difficulty}
               onChange={e => setFilters(prev => ({ ...prev, difficulty: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">All Difficulties</option>
-              <option value="beginner">Beginner</option>
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-              <option value="expert">Expert</option>
+              <option value="">{t('questionManagement.difficulty.all')}</option>
+              <option value="beginner">{t('questionManagement.difficulty.beginner')}</option>
+              <option value="easy">{t('questionManagement.difficulty.easy')}</option>
+              <option value="medium">{t('questionManagement.difficulty.medium')}</option>
+              <option value="hard">{t('questionManagement.difficulty.hard')}</option>
+              <option value="expert">{t('questionManagement.difficulty.expert')}</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Age Group</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.ageGroups.label')}</label>
             <select
               value={filters.ageGroup}
               onChange={e => setFilters(prev => ({ ...prev, ageGroup: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">All Age Groups</option>
-              <option value="preschool">Preschool (2-4)</option>
-              <option value="young">Young (4-6)</option>
-              <option value="older">Older (6-12)</option>
-              <option value="teen">Teen (12-14)</option>
+              <option value="">{t('questionManagement.ageGroups.all')}</option>
+              <option value="preschool">{t('questionManagement.ageGroups.preschool')}</option>
+              <option value="young">{t('questionManagement.ageGroups.young')}</option>
+              <option value="older">{t('questionManagement.ageGroups.older')}</option>
+              <option value="teen">{t('questionManagement.ageGroups.teen')}</option>
             </select>
           </div>
         </div>
@@ -270,7 +270,7 @@ export const QuestionManagement: React.FC = () => {
                         : 'bg-green-100 text-green-800'
                     }`}
                   >
-                    {question.subject.toUpperCase()}
+                    {t(`questionManagement.subjects.${question.subject}`)}
                   </span>
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -285,10 +285,10 @@ export const QuestionManagement: React.FC = () => {
                         : 'bg-purple-100 text-purple-800'
                     }`}
                   >
-                    {question.difficulty.toUpperCase()}
+                    {t(`questionManagement.difficulty.${question.difficulty}`)}
                   </span>
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                    {question.type.toUpperCase()}
+                    {t(`questionManagement.questionTypes.${question.type}`)}
                   </span>
                 </div>
 
@@ -404,9 +404,9 @@ export const QuestionManagement: React.FC = () => {
       {filteredQuestions.length === 0 && (
         <div className="text-center py-12">
           <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">No Questions Found</h3>
+          <h3 className="text-xl font-semibold text-gray-600 mb-2">{t('questionManagement.noQuestions')}</h3>
           <p className="text-gray-500 mb-6">
-            {questions.length === 0 ? 'No questions have been created yet.' : 'No questions match the current filters.'}
+            {questions.length === 0 ? t('questionManagement.noQuestionsCreated') : t('questionManagement.noQuestionsMatch')}
           </p>
           {questions.length === 0 ? (
             <button
@@ -414,7 +414,7 @@ export const QuestionManagement: React.FC = () => {
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Create First Question
+              {t('questionManagement.createFirstQuestion')}
             </button>
           ) : (
             <button
@@ -422,7 +422,7 @@ export const QuestionManagement: React.FC = () => {
               className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               <X className="w-5 h-5 mr-2" />
-              Clear Filters
+              {t('questionManagement.clearFilters')}
             </button>
           )}
         </div>
@@ -451,6 +451,7 @@ interface QuestionModalProps {
 }
 
 const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose }) => {
+  const t = useTranslation();
   const [formData, setFormData] = useState({
     type: question?.type || ('multiple-choice' as const),
     subject: question?.subject || 'math',
@@ -498,7 +499,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-900">{question ? 'Edit Question' : 'Create Question'}</h2>
+          <h2 className="text-xl font-bold text-gray-900">{question ? t('questionManagement.modal.edit') : t('questionManagement.modal.create')}</h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
             <X className="w-5 h-5" />
           </button>
@@ -507,50 +508,50 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Question Type</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.questionType')}</label>
               <select
                 value={formData.type}
                 onChange={e => setFormData(prev => ({ ...prev, type: e.target.value as any }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="multiple-choice">Multiple Choice</option>
-                <option value="true-false">True/False</option>
-                <option value="fill-blank">Fill in the Blank</option>
-                <option value="calculation">Calculation</option>
+                <option value="multiple-choice">{t('questionManagement.questionTypes.multiple-choice')}</option>
+                <option value="true-false">{t('questionManagement.questionTypes.true-false')}</option>
+                <option value="fill-blank">{t('questionManagement.questionTypes.fill-blank')}</option>
+                <option value="calculation">{t('questionManagement.questionTypes.calculation')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.subjects.label')}</label>
               <select
                 value={formData.subject}
                 onChange={e => setFormData(prev => ({ ...prev, subject: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="math">Math</option>
-                <option value="chinese">Chinese</option>
-                <option value="english">English</option>
+                <option value="math">{t('questionManagement.subjects.math')}</option>
+                <option value="chinese">{t('questionManagement.subjects.chinese')}</option>
+                <option value="english">{t('questionManagement.subjects.english')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.difficulty.label')}</label>
               <select
                 value={formData.difficulty}
                 onChange={e => setFormData(prev => ({ ...prev, difficulty: e.target.value as any }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="beginner">Beginner</option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-                <option value="expert">Expert</option>
+                <option value="beginner">{t('questionManagement.difficulty.beginner')}</option>
+                <option value="easy">{t('questionManagement.difficulty.easy')}</option>
+                <option value="medium">{t('questionManagement.difficulty.medium')}</option>
+                <option value="hard">{t('questionManagement.difficulty.hard')}</option>
+                <option value="expert">{t('questionManagement.difficulty.expert')}</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Question Content</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.questionContent')}</label>
             <textarea
               value={formData.content}
               onChange={e => setFormData(prev => ({ ...prev, content: e.target.value }))}
@@ -562,7 +563,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
 
           {formData.type === 'multiple-choice' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Options</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.options')}</label>
               <div className="space-y-2">
                 {formData.options.map((option, index) => (
                   <input
@@ -570,7 +571,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
                     type="text"
                     value={option}
                     onChange={e => handleOptionChange(index, e.target.value)}
-                    placeholder={`Option ${index + 1}`}
+                    placeholder={`${t('common.option') || 'Option'} ${index + 1}`}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 ))}
@@ -579,7 +580,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Correct Answer</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.correctAnswer')}</label>
             <input
               type="text"
               value={formData.correctAnswer}
@@ -590,7 +591,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Age Groups</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.ageGroupsLabel')}</label>
             <div className="flex space-x-4">
               {(['preschool', 'young', 'older', 'teen'] as const).map(ageGroup => (
                 <label key={ageGroup} className="flex items-center">
@@ -600,57 +601,51 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
                     onChange={() => handleAgeGroupChange(ageGroup)}
                     className="mr-2"
                   />
-                  {ageGroup === 'preschool' 
-                    ? 'Preschool (2-4)' 
-                    : ageGroup === 'young' 
-                    ? 'Young (4-6)' 
-                    : ageGroup === 'older'
-                    ? 'Older (6-12)'
-                    : 'Teen (12-14)'}
+                  {t(`questionManagement.ageGroups.${ageGroup}`)}
                 </label>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tags (comma-separated)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.tags')}</label>
             <input
               type="text"
               value={formData.tags}
               onChange={e => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-              placeholder="e.g., addition, basic, numbers"
+              placeholder={t('questionManagement.modal.tagsPlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Explanation EN (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.explanationEN')}</label>
             <textarea
               value={formData.explanationEN}
               onChange={e => setFormData(prev => ({ ...prev, explanationEN: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={2}
-              placeholder="English explanation"
+              placeholder={t('questionManagement.modal.explanationENPlaceholder')}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Explanation CN (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.explanationCN')}</label>
             <textarea
               value={formData.explanationCN}
               onChange={e => setFormData(prev => ({ ...prev, explanationCN: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows={2}
-              placeholder="中文解释"
+              placeholder={t('questionManagement.modal.explanationCNPlaceholder')}
             />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
             <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-              Cancel
+              {t('common.cancel')}
             </button>
             <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-              {question ? 'Update' : 'Create'}
+              {question ? t('questionManagement.modal.update') : t('questionManagement.modal.create')}
             </button>
           </div>
         </form>

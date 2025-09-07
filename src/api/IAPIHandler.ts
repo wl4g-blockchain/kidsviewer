@@ -81,7 +81,7 @@ export interface IAPIHandler {
   // Settings
   getAppSettings(): Promise<ApiResponse<AppSettings>>;
   updateAppSettings(settings: Partial<AppSettings>): Promise<ApiResponse<AppSettings>>;
-  
+
   // App information
   getAppInfo(): Promise<ApiResponse<AppInfo>>;
 

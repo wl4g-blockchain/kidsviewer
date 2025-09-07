@@ -89,6 +89,12 @@ export const useWatchingSession = (
       checkIntervalRef.current = window.setInterval(async () => {
         if (!token) return;
 
+        alert(showQuestions);
+        // Pause checking when questions are visible to avoid interrupting user interaction
+        if (showQuestions) {
+          return;
+        }
+
         try {
           const response = await api.checkWatching(token);
 
