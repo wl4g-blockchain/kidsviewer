@@ -1,5 +1,5 @@
 import { IAPIHandler } from './IAPIHandler';
-import { User, Person, Question, ApiResponse, AppSettings, WatchingSessionResponse, WatchingStatusResponse } from '../types';
+import { User, Person, Question, ApiResponse, AppSettings, AppInfo, Platform, QuestionTemplate, WatchingSessionResponse, WatchingStatusResponse } from '../types';
 
 /**
  * Standard API Handler for Production Environment
@@ -138,13 +138,12 @@ export class StandardAPIHandler implements IAPIHandler {
   }
 
   // Person accessible URLs
-  async getPersonAccessibleUrls(personId: string): Promise<
+  async getPersonPlatforms(personId: string): Promise<
     ApiResponse<
       {
-        platformName: string;
+        platformNameEN: string;
+        platformNameCN: string;
         url: string;
-        difficulty: string;
-        maxDailyTime: number;
         description?: string;
       }[]
     >
@@ -241,5 +240,64 @@ export class StandardAPIHandler implements IAPIHandler {
       method: 'PUT',
       body: JSON.stringify(settings),
     });
+  }
+
+  // Additional methods required by IAPIHandler interface
+  async deletePerson(personId: string): Promise<ApiResponse<void>> {
+    return this.apiCall(`/persons/${personId}`, { method: 'DELETE' });
+  }
+
+  async getAppInfo(): Promise<ApiResponse<AppInfo>> {
+    return this.apiCall('/app/info');
+  }
+
+  async getPlatforms(): Promise<ApiResponse<Platform[]>> {
+    return this.apiCall('/platforms');
+  }
+
+  async createPlatform(platformData: Partial<Platform>): Promise<ApiResponse<Platform>> {
+    return this.apiCall('/platforms', {
+      method: 'POST',
+      body: JSON.stringify(platformData),
+    });
+  }
+
+  async updatePlatform(platformId: string, platformData: Partial<Platform>): Promise<ApiResponse<Platform>> {
+    return this.apiCall(`/platforms/${platformId}`, {
+      method: 'PUT',
+      body: JSON.stringify(platformData),
+    });
+  }
+
+  async deletePlatform(platformId: string): Promise<ApiResponse<void>> {
+    return this.apiCall(`/platforms/${platformId}`, { method: 'DELETE' });
+  }
+
+  async getQuestionTemplates(filters?: { subject?: string; difficulty?: string; ageGroup?: string }): Promise<ApiResponse<QuestionTemplate[]>> {
+    const queryParams = new URLSearchParams();
+    if (filters?.subject) queryParams.append('subject', filters.subject);
+    if (filters?.difficulty) queryParams.append('difficulty', filters.difficulty);
+    if (filters?.ageGroup) queryParams.append('ageGroup', filters.ageGroup);
+    
+    const url = `/questions/templates${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return this.apiCall(url);
+  }
+
+  async createQuestionTemplate(templateData: Partial<QuestionTemplate>): Promise<ApiResponse<QuestionTemplate>> {
+    return this.apiCall('/questions/templates', {
+      method: 'POST',
+      body: JSON.stringify(templateData),
+    });
+  }
+
+  async updateQuestionTemplate(templateId: string, templateData: Partial<QuestionTemplate>): Promise<ApiResponse<QuestionTemplate>> {
+    return this.apiCall(`/questions/templates/${templateId}`, {
+      method: 'PUT',
+      body: JSON.stringify(templateData),
+    });
+  }
+
+  async deleteQuestionTemplate(templateId: string): Promise<ApiResponse<void>> {
+    return this.apiCall(`/questions/templates/${templateId}`, { method: 'DELETE' });
   }
 }

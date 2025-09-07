@@ -1,4 +1,4 @@
-import { User } from '../types';
+import { User, Parental, Person } from '../types';
 
 // JWT payload interface
 interface JWTPayload {
@@ -146,30 +146,6 @@ export class AuthUtil {
   }
 
   /**
-   * Get token expiration time in milliseconds
-   */
-  static getTokenExpiration(token: string): number | null {
-    const payload = this.parseJWT(token);
-    if (!payload) {
-      return null;
-    }
-    return payload.exp * 1000; // Convert seconds to milliseconds
-  }
-
-  /**
-   * Get remaining token validity time in minutes
-   */
-  static getRemainingTokenTime(token: string): number {
-    const expiration = this.getTokenExpiration(token);
-    if (!expiration) {
-      return 0;
-    }
-
-    const remaining = expiration - Date.now();
-    return Math.max(0, Math.floor(remaining / (1000 * 60))); // Convert to minutes
-  }
-
-  /**
    * Check if current session is authenticated
    */
   static isAuthenticated(): boolean {
@@ -184,20 +160,20 @@ export class AuthUtil {
    */
   static initializeAuth(): {
     isAuthenticated: boolean;
-    user: User | null;
+    parent: Parental | null;
     viewMode: 'parent' | 'child';
-    activePerson: User | null;
+    activePerson: Person | null;
     token: string | null;
   } {
     const token = this.getCurrentToken();
     const user = this.getCurrentUser();
     const viewMode = this.getViewMode();
-    const activePerson = this.getActivePerson();
+    const activePerson = this.getActivePerson() as Person | null;
     const isAuthenticated = !!(token && user);
 
     return {
       isAuthenticated,
-      user,
+      parent: user as Parental | null,
       viewMode,
       activePerson,
       token,

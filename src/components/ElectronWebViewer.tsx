@@ -3,9 +3,8 @@ import { useTranslation } from '../i18n/I18nProvider';
 import { AlertCircle, ExternalLink, Loader2, RefreshCw, Maximize2 } from 'lucide-react';
 import { isIOS, isElectron as checkIsElectron } from '../utils/platformUtil';
 import { IOSWebViewer } from './IOSWebViewer';
-import { APIFactory } from '../api/APIFactory';
 import { QuestionsContainer, Question as QuestionType } from './QuestionModal';
-import { Question as APIQuestion } from '../types';
+import { useWatchingSession } from '../hooks/useWatchingSession';
 
 interface ElectronWebViewerProps {
   url: string;
@@ -46,21 +45,42 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
   onLoadSuccess,
   className = '',
 }) => {
+  // Use common watching session hook
+  const {
+    // watchingToken, // Not used in ElectronWebViewer
+    isLoading: sessionLoading,
+    hasError: sessionError,
+    errorMessage: sessionErrorMessage,
+    showQuestions,
+    questions: sessionQuestions,
+    startWatching,
+    handleAnswerQuestion,
+    // setShowQuestions, // Not used in ElectronWebViewer
+    clearError,
+  } = useWatchingSession(personId, url, onLoadError, onLoadSuccess);
+
+  // Convert session questions to component format
+  const questions: QuestionType[] = sessionQuestions.map(q => ({
+    id: q.id,
+    question: q.question,
+    options: q.options,
+  }));
+
+  // Local component state
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
   const [isElectron, setIsElectron] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
   const [webViewWindowId, setWebViewWindowId] = useState<number | null>(null);
   const [webViewMode, setWebViewMode] = useState<'embedded' | 'window'>('embedded');
-  const [watchingToken, setWatchingToken] = useState<string | null>(null);
-  const [showQuestions, setShowQuestions] = useState(false);
-  const [questions, setQuestions] = useState<QuestionType[]>([]);
-  const checkIntervalRef = useRef<number | null>(null);
+  const [localLoading, setLocalLoading] = useState(false);
+
   const t = useTranslation();
-  const api = APIFactory.createAPIHandler();
+
+  // Computed states
+  const isLoading = sessionLoading || localLoading;
+  const hasError = sessionError;
+  const errorMessage = sessionErrorMessage;
 
   // Enhanced detection for Electron environment and preload script
   useEffect(() => {
@@ -86,12 +106,8 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
       if (isElectronEnv && !window.electronAPI) {
         console.error('Running in Electron environment, but electronAPI is undefined. Please check preload script.');
 
-        // Add more detailed error information
-        setHasError(true);
-        setErrorMessage(
-          'Electron API not loaded. This is usually caused by the preload script not executing correctly. Please try restarting the application.'
-        );
-        setIsLoading(false);
+        // Add more detailed error information - these states are managed by useWatchingSession hook
+        onLoadError?.('Electron API not loaded. This is usually caused by the preload script not executing correctly. Please try restarting the application.');
       }
     };
 
@@ -116,92 +132,37 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
 
   // Start watching session when component mounts
   useEffect(() => {
-    const startWatchingSession = async () => {
-      try {
-        const response = await api.startWatching(personId, url);
-        if (response.errcode === "200" && response.data?.watchingToken) {
-          setWatchingToken(response.data.watchingToken);
-          startCheckingWatchingStatus(response.data.watchingToken);
-        } else {
-          throw new Error('Failed to start watching session');
-        }
-      } catch (error) {
-        console.error('Error starting watching session:', error);
-        setHasError(true);
-        setErrorMessage(error instanceof Error ? error.message : 'Failed to start watching session');
+    startWatching();
+  }, [startWatching]);
+
+  // Handle questions showing - pause content when questions appear
+  useEffect(() => {
+    if (showQuestions) {
+      // Pause content viewing when questions are shown
+      if (webViewMode === 'embedded') {
+        // Hide or pause embedded content
+      } else if (webViewWindowId !== null) {
+        // Minimize or pause window content
       }
-    };
-
-    startWatchingSession();
-
-    return () => {
-      if (checkIntervalRef.current) {
-        clearInterval(checkIntervalRef.current);
-      }
-    };
-  }, [personId, url, api]);
-
-  // Helper function to convert API Question to QuestionModal Question type
-  const convertAPIQuestionToModalQuestion = (apiQuestions: APIQuestion[]): QuestionType[] => {
-    return apiQuestions.map(q => ({
-      id: q.id,
-      question: q.content,
-      options: q.options || [],
-    }));
-  };
-
-  // Periodically check watching status
-  const startCheckingWatchingStatus = (token: string) => {
-    if (checkIntervalRef.current) {
-      clearInterval(checkIntervalRef.current);
     }
+  }, [showQuestions, webViewMode, webViewWindowId]);
 
-    checkIntervalRef.current = window.setInterval(async () => {
-      if (!token) return;
-
-      try {
-        const response = await api.checkWatching(token);
-
-        if (response.errcode === "200") {
-          // Check if questions need to be shown
-          if (response.data?.questions && response.data.questions.length > 0 && response.data.questions && response.data.questions.length > 0) {
-            setQuestions(convertAPIQuestionToModalQuestion(response.data.questions));
-            setShowQuestions(true);
-            // Pause content viewing
-            if (webViewMode === 'embedded') {
-              // Hide or pause embedded content
-            } else if (webViewWindowId !== null) {
-              // Minimize or pause window content
-            }
-          }
-
-          // Check if token expired or daily time exceeded
-          if (response.data?.dailyTimeExceeded || response.data?.dailyTimeExceeded) {
-            // Token expired or daily time exceeded
-            if (webViewMode === 'embedded') {
-              if (window.electronAPI) {
-                window.electronAPI.destroyVideoView();
-              }
-            } else if (webViewWindowId !== null) {
-              if (window.electronAPI) {
-                window.electronAPI.closeVideoWindow(webViewWindowId);
-              }
-              setWebViewWindowId(null);
-            }
-
-            setHasError(true);
-            setErrorMessage(response.data?.dailyTimeExceeded ? t('time.dailyLimitExceeded') : t('time.sessionExpired'));
-
-            if (checkIntervalRef.current) {
-              clearInterval(checkIntervalRef.current);
-            }
-          }
+  // Handle session errors - close content when session expires
+  useEffect(() => {
+    if (hasError) {
+      // Close content when session expires or daily time exceeded
+      if (webViewMode === 'embedded') {
+        if (window.electronAPI) {
+          window.electronAPI.destroyVideoView();
         }
-      } catch (error) {
-        console.error('Error checking watching status:', error);
+      } else if (webViewWindowId !== null) {
+        if (window.electronAPI) {
+          window.electronAPI.closeVideoWindow(webViewWindowId);
+        }
+        setWebViewWindowId(null);
       }
-    }, 3000); // Check every 3 seconds
-  };
+    }
+  }, [hasError, webViewMode, webViewWindowId]);
 
   // Initialize BrowserView when component mounts
   useEffect(() => {
@@ -209,9 +170,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
 
     const initializeWebView = async () => {
       try {
-        setIsLoading(true);
-        setHasError(false);
-        setErrorMessage('');
+        setLocalLoading(true);
         setIsRetrying(true);
 
         // Confirm electronAPI is available
@@ -242,9 +201,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         }
       } catch (error) {
         console.error('Error initializing web view:', error);
-        setHasError(true);
-        setErrorMessage(error instanceof Error ? error.message : 'Unknown error');
-        setIsLoading(false);
+        setLocalLoading(false);
         setIsRetrying(false);
         onLoadError?.(error instanceof Error ? error.message : 'Unknown error');
       }
@@ -253,18 +210,14 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
     // Set up event listeners
     const handleWebViewLoadError = (data: { url: string; error: string }) => {
       console.error('Web view load error:', data);
-      setHasError(true);
-      setErrorMessage(data.error);
-      setIsLoading(false);
+      setLocalLoading(false);
       setIsRetrying(false);
       onLoadError?.(data.error);
     };
 
     const handleWebViewLoadSuccess = (data: { url: string }) => {
       console.log('Web view loaded successfully:', data.url);
-      setIsLoading(false);
-      setHasError(false);
-      setErrorMessage('');
+      setLocalLoading(false);
       setIsRetrying(false);
       onLoadSuccess?.();
     };
@@ -292,9 +245,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
 
     const openWebInWindow = async () => {
       try {
-        setIsLoading(true);
-        setHasError(false);
-        setErrorMessage('');
+        setLocalLoading(true);
 
         // Confirm API is available
         if (!window.electronAPI || !window.electronAPI.openVideoWindow) {
@@ -309,16 +260,14 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         if (result.success && result.windowId) {
           console.log('Web view window opened successfully with ID:', result.windowId);
           setWebViewWindowId(result.windowId);
-          setIsLoading(false);
+          setLocalLoading(false);
           onLoadSuccess?.();
         } else {
           throw new Error(result.error || 'Failed to open window');
         }
       } catch (error) {
         console.error('Error opening window:', error);
-        setHasError(true);
-        setErrorMessage(error instanceof Error ? error.message : 'Unknown error');
-        setIsLoading(false);
+        setLocalLoading(false);
         onLoadError?.(error instanceof Error ? error.message : 'Unknown error');
       }
     };
@@ -377,28 +326,9 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         }
       }
 
-      if (checkIntervalRef.current) {
-        clearInterval(checkIntervalRef.current);
-      }
+      // Cleanup handled by useWatchingSession hook
     };
   }, [isElectron, webViewMode, webViewWindowId]);
-
-  // Switch between embedded and window modes
-  const toggleViewMode = async () => {
-    if (!isElectron || !window.electronAPI) return;
-
-    // Clean up current mode
-    if (webViewMode === 'embedded') {
-      await window.electronAPI.destroyVideoView();
-    } else if (webViewWindowId !== null) {
-      await window.electronAPI.closeVideoWindow(webViewWindowId);
-      setWebViewWindowId(null);
-    }
-
-    // Toggle mode
-    setWebViewMode(prev => (prev === 'embedded' ? 'window' : 'embedded'));
-    setIsLoading(true);
-  };
 
   // Fallback to open in new window - use internal window instead of external browser
   const openInNewWindow = () => {
@@ -437,9 +367,8 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
     if (!isElectron) return;
 
     setRetryCount(prev => prev + 1);
-    setIsLoading(true);
-    setHasError(false);
-    setErrorMessage('');
+    setLocalLoading(true);
+    clearError();
     setIsRetrying(true);
 
     if (webViewMode === 'embedded' && containerRef.current && window.electronAPI) {
@@ -461,9 +390,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         }
       } catch (error) {
         console.error('Error retrying web view load:', error);
-        setHasError(true);
-        setErrorMessage(error instanceof Error ? error.message : 'Unknown error');
-        setIsLoading(false);
+        setLocalLoading(false);
         setIsRetrying(false);
         onLoadError?.(error instanceof Error ? error.message : 'Unknown error');
       }
@@ -477,43 +404,35 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
 
         if (result.success && result.windowId) {
           setWebViewWindowId(result.windowId);
-          setIsLoading(false);
+          setLocalLoading(false);
           setIsRetrying(false);
         } else {
           throw new Error(result.error || 'Failed to open window');
         }
       } catch (error) {
         console.error('Error retrying window:', error);
-        setHasError(true);
-        setErrorMessage(error instanceof Error ? error.message : 'Unknown error');
-        setIsLoading(false);
+        setLocalLoading(false);
         setIsRetrying(false);
         onLoadError?.(error instanceof Error ? error.message : 'Unknown error');
       }
     }
   };
 
-  // Handle answering questions
-  const handleAnswerQuestion = async (questionId: string, answer: string) => {
-    if (!watchingToken) return;
+  // Handle view mode toggle
+  const toggleViewMode = async () => {
+    if (!isElectron || !window.electronAPI) return;
 
-    try {
-      const response = await api.verifyQuestion(watchingToken, questionId, answer);
-
-      if (response.errcode === "200" && response.data) {
-        if (response.data.correct && response.data.newWatchingToken) {
-          // Update token and continue watching
-          setWatchingToken(response.data.newWatchingToken);
-          setShowQuestions(false);
-          startCheckingWatchingStatus(response.data.newWatchingToken);
-        } else {
-          // Incorrect answer, could show feedback
-          console.log('Incorrect answer');
-        }
-      }
-    } catch (error) {
-      console.error('Error verifying question:', error);
+    // Clean up current mode
+    if (webViewMode === 'embedded') {
+      await window.electronAPI.destroyVideoView();
+    } else if (webViewWindowId !== null) {
+      await window.electronAPI.closeVideoWindow(webViewWindowId);
+      setWebViewWindowId(null);
     }
+
+    // Toggle mode
+    setWebViewMode(prev => (prev === 'embedded' ? 'window' : 'embedded'));
+    setLocalLoading(true);
   };
 
   useEffect(() => {

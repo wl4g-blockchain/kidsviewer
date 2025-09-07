@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../i18n/I18nProvider';
 import { AlertCircle, Loader2, Bug, X, Maximize2, Monitor } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
-import { APIFactory } from '../api/APIFactory';
 import { QuestionsContainer, Question as QuestionType } from './QuestionModal';
-import { Question as APIQuestion } from '../types';
+import { useWatchingSession } from '../hooks/useWatchingSession';
 
 interface IOSWebViewerProps {
   url: string;
@@ -22,21 +21,36 @@ interface IOSWebViewerProps {
  * Supports i18n with English comments
  */
 export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, personId, onLoadError, onLoadSuccess, className = '' }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showQuestions, setShowQuestions] = useState(false);
-  const [questions, setQuestions] = useState<QuestionType[]>([]);
+  // Use common watching session hook
+  const {
+    watchingToken,
+    isLoading: sessionLoading,
+    hasError: sessionError,
+    errorMessage: sessionErrorMessage,
+    showQuestions,
+    questions: sessionQuestions,
+    startWatching,
+    handleAnswerQuestion,
+    clearError,
+  } = useWatchingSession(personId, url, onLoadError, onLoadSuccess);
+
+  // Convert session questions to component format
+  const questions: QuestionType[] = sessionQuestions.map(q => ({
+    id: q.id,
+    question: q.question,
+    options: q.options,
+  }));
+
+  // Local component state
   const [popupWindow, setPopupWindow] = useState<Window | null>(null);
   const [popupActive, setPopupActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [showDebug, setShowDebug] = useState(false);
-  const [watchingToken, setWatchingToken] = useState<string | null>(null);
-  const [showStartButton, setShowStartButton] = useState(false); // Add new state for start button
-  const checkIntervalRef = useRef<number | null>(null);
+  const [showStartButton, setShowStartButton] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
+
   const t = useTranslation();
-  const api = APIFactory.createAPIHandler();
 
   // Add debug log
   const addLog = (message: string) => {
@@ -50,112 +64,29 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
     addLog(`Capacitor environment: ${Capacitor.isNativePlatform() ? 'Yes' : 'No'}`);
     addLog(`Platform: ${Capacitor.getPlatform()}`);
 
-    // Start watching session and immediately open popup
-    startWatchingSession();
+    // Start watching session
+    startWatching().then(() => {
+      setShowStartButton(true);
+    });
 
     return () => {
       // Close popup if open
       if (popupWindow && !popupWindow.closed) {
         popupWindow.close();
       }
-
-      // Clear checking interval
-      if (checkIntervalRef.current) {
-        clearInterval(checkIntervalRef.current);
-      }
     };
-  }, []);
+  }, [startWatching]);
 
-  // Start watching session
-  const startWatchingSession = async () => {
-    try {
-      addLog(`Starting watching session for person: ${personId}`);
-      const response = await api.startWatching(personId, url);
-
-      if (response.errcode === '200' && response.data?.watchingToken) {
-        addLog(`Watching session started with token: ${response.data.watchingToken.substring(0, 10)}...`);
-        setWatchingToken(response.data.watchingToken);
-        startCheckingWatchingStatus(response.data.watchingToken);
-
-        // Instead of immediately opening popup, show a button for user to click
-        setIsLoading(false);
-        setShowStartButton(true);
-      } else {
-        throw new Error('Failed to start watching session');
-      }
-    } catch (error) {
-      const errMsg = error instanceof Error ? error.message : 'Unknown error';
-      addLog(`Error starting watching session: ${errMsg}`);
-      setHasError(true);
-      setErrorMessage(`Failed to start watching session: ${errMsg}`);
-      onLoadError?.(errMsg);
-    }
-  };
-
-  // Periodically check watching status
-  const startCheckingWatchingStatus = (token: string) => {
-    if (checkIntervalRef.current) {
-      clearInterval(checkIntervalRef.current);
-    }
-
-    addLog('Starting to check watching status');
-
-    checkIntervalRef.current = window.setInterval(async () => {
-      if (!token) return;
-
-      try {
-        const response = await api.checkWatching(token);
-
-        if (response.errcode === '200' && response.data) {
-          // Check if questions need to be shown
-          if (response.data.questions && response.data.questions.length > 0) {
-            addLog(`Questions received: ${response.data.questions.length}`);
-            setQuestions(convertAPIQuestionToModalQuestion(response.data.questions));
-            setShowQuestions(true);
-          }
-
-          // Check if daily time exceeded
-          if (response.data.dailyTimeExceeded) {
-            addLog('Daily time limit exceeded');
-
-            // Close popup window if open
-            if (popupWindow && !popupWindow.closed) {
-              popupWindow.close();
-              setPopupWindow(null);
-              setPopupActive(false);
-            }
-
-            setHasError(true);
-            setErrorMessage(t('time.dailyLimitExceeded'));
-
-            if (checkIntervalRef.current) {
-              clearInterval(checkIntervalRef.current);
-            }
-          }
-        } else {
-          addLog(`Error checking watching status: ${response.errmsg}`);
-        }
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : 'Unknown error';
-        addLog(`Error checking watching status: ${errMsg}`);
-      }
-    }, 1000); // Check every second
-  };
-
-  // Helper function to convert API Question to QuestionModal Question type
-  const convertAPIQuestionToModalQuestion = (apiQuestions: APIQuestion[]): QuestionType[] => {
-    return apiQuestions.map(q => ({
-      id: q.id,
-      question: q.content,
-      options: q.options || [],
-    }));
-  };
+  // Computed states based on session and local state
+  const isLoading = sessionLoading || localLoading;
+  const hasError = sessionError;
+  const errorMessage = sessionErrorMessage;
 
   // Open popup window with hidden address bar and bottom area
   const openPopupWindow = async () => {
     addLog('Attempting to open content in app browser...');
     try {
-      setIsLoading(true);
+      setLocalLoading(true);
       addLog(`Opening URL: ${url}`);
 
       // Use Capacitor Browser plugin to open URL in app
@@ -225,15 +156,13 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
         }, 1000);
       }
 
-      setIsLoading(false);
+      setLocalLoading(false);
       onLoadSuccess?.();
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Failed to open content';
       addLog(`Failed to open content: ${errMsg}`);
       console.error('Failed to open content:', error);
-      setHasError(true);
-      setErrorMessage(errMsg);
-      setIsLoading(false);
+      setLocalLoading(false);
       onLoadError?.(errMsg);
     }
   };
@@ -271,31 +200,16 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
     }
   };
 
-  // Handle answering questions
-  const handleAnswerQuestion = async (questionId: string, answer: string) => {
-    if (!watchingToken) return;
-
+  // Handle answering questions with logging
+  const handleAnswerQuestionWithLog = async (questionId: string, answer: string) => {
     addLog(`Submitting answer for question ${questionId}: ${answer}`);
 
     try {
-      const response = await api.verifyQuestion(watchingToken, questionId, answer);
+      await handleAnswerQuestion(questionId, answer);
 
-      if (response.errcode === '200' && response.data) {
-        if (response.data.correct && response.data.newWatchingToken) {
-          addLog('Answer correct, received new token');
-          // Update token and continue watching
-          setWatchingToken(response.data.newWatchingToken);
-          setShowQuestions(false);
-          startCheckingWatchingStatus(response.data.newWatchingToken);
-
-          // Reopen popup if it was closed
-          if (!popupActive) {
-            openPopupWindow();
-          }
-        } else {
-          addLog('Incorrect answer');
-          // Could show feedback for incorrect answer
-        }
+      // Reopen popup if it was closed and questions are no longer showing
+      if (!popupActive && !showQuestions) {
+        openPopupWindow();
       }
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -329,7 +243,7 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
         )}
 
         {/* Questions interface */}
-        <QuestionsContainer questions={questions} onAnswer={handleAnswerQuestion} isVisible={showQuestions} />
+        <QuestionsContainer questions={questions} onAnswer={handleAnswerQuestionWithLog} isVisible={showQuestions} />
 
         {/* Error state */}
         {hasError && !showDebug && (
@@ -341,8 +255,10 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
 
             <button
               onClick={() => {
-                setHasError(false);
-                startWatchingSession();
+                clearError();
+                startWatching().then(() => {
+                  setShowStartButton(true);
+                });
               }}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center"
             >

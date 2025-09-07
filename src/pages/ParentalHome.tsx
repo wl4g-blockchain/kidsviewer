@@ -1,21 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { useAuthStore } from "../stores/authStore";
-import { useTranslation } from "../i18n/I18nProvider";
-import {
-  Plus,
-  Settings,
-  BarChart3,
-  Users,
-  Clock,
-  BookOpen,
-  Shield,
-  X,
-  Calendar,
-  TrendingUp,
-  Trophy,
-} from "lucide-react";
-import { Person } from "../types";
-import { AddPersonModal } from "../components/AddPersonModal";
+import React, { useState, useEffect } from 'react';
+import { useAuthStore } from '../stores/authStore';
+import { useTranslation } from '../i18n/I18nProvider';
+import { Plus, Settings, BarChart3, Users, Clock, BookOpen, Shield, X, Calendar, TrendingUp, Trophy, Trash2 } from 'lucide-react';
+import { Person } from '../types';
+import { AddPersonModal } from '../components/AddPersonModal';
 
 export const ParentalHome: React.FC = () => {
   const { currentUser, apiHandler, switchToPerson } = useAuthStore();
@@ -24,18 +12,21 @@ export const ParentalHome: React.FC = () => {
   const [showAddPersonModal, setShowAddPersonModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
-  const [watchingHistory, setWatchingHistory] = useState<{
-    date: string;
-    platform: string;
-    watchedMinutes: number;
-    questionsAnswered: number;
-    questionsCorrect: number;
-  }[]>([]);
+  const [watchingHistory, setWatchingHistory] = useState<
+    {
+      date: string;
+      platform: string;
+      watchedMinutes: number;
+      questionsAnswered: number;
+      questionsCorrect: number;
+    }[]
+  >([]);
   const t = useTranslation();
 
   useEffect(() => {
-    if (currentUser?.userType === "PARENTAL") {
+    if (currentUser?.userType === 'PARENTAL') {
       loadPersons();
     }
   }, [currentUser]);
@@ -43,11 +34,11 @@ export const ParentalHome: React.FC = () => {
   const loadPersons = async () => {
     try {
       const response = await apiHandler.getPersons(currentUser!.id);
-      if (response.errcode === "200" && response.data) {
+      if (response.errcode === '200' && response.data) {
         setPersons(response.data);
       }
     } catch (error) {
-      console.error("Failed to load persons:", error);
+      console.error('Failed to load persons:', error);
     } finally {
       setIsLoading(false);
     }
@@ -55,9 +46,7 @@ export const ParentalHome: React.FC = () => {
 
   const getTotalUsage = () => {
     return persons.reduce((total, person) => {
-      const today = person.statistics.dailyUsage.find(
-        (usage) => usage.date === new Date().toISOString().split("T")[0]
-      );
+      const today = person.statistics.dailyUsage.find(usage => usage.date === new Date().toISOString().split('T')[0]);
       return total + (today?.totalTime || 0);
     }, 0);
   };
@@ -77,7 +66,7 @@ export const ParentalHome: React.FC = () => {
   };
 
   const handleAddPersonSuccess = (newPerson: Person) => {
-    setPersons((prev) => [...prev, newPerson]);
+    setPersons(prev => [...prev, newPerson]);
   };
 
   // Switch to person protection view handler
@@ -90,10 +79,10 @@ export const ParentalHome: React.FC = () => {
   const handleShowProgress = async (person: Person) => {
     setSelectedPerson(person);
     setIsLoading(true);
-    
+
     try {
       const response = await apiHandler.getWatchingHistory(person.id, 7);
-      if (response.errcode === "200" && response.data) {
+      if (response.errcode === '200' && response.data) {
         setWatchingHistory(response.data);
       } else {
         setWatchingHistory([]);
@@ -119,19 +108,42 @@ export const ParentalHome: React.FC = () => {
 
     try {
       const response = await apiHandler.updatePersonSettings(selectedPerson.id, settings);
-      if (response.errcode === "200" && response.data) {
+      if (response.errcode === '200' && response.data) {
         // Update local state
-        setPersons(prev => prev.map(p => 
-          p.id === selectedPerson.id ? response.data! : p
-        ));
+        setPersons(prev => prev.map(p => (p.id === selectedPerson.id ? response.data! : p)));
         setShowSettingsModal(false);
         setSelectedPerson(null);
       } else {
-        throw new Error(response.errmsg || '更新设置失败');
+        throw new Error(response.errmsg || t('parental.updateSettingsFailed'));
       }
     } catch (error) {
       console.error('Failed to update settings:', error);
-      alert('更新设置失败，请重试');
+      alert(t('parental.updateSettingsFailed'));
+    }
+  };
+
+  // Handle delete person
+  const handleShowDeleteModal = (person: Person) => {
+    setSelectedPerson(person);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeletePerson = async () => {
+    if (!selectedPerson) return;
+
+    try {
+      const response = await apiHandler.deletePerson(selectedPerson.id);
+      if (response.errcode === '200') {
+        // Update local state by removing the deleted person
+        setPersons(prev => prev.filter(p => p.id !== selectedPerson.id));
+        setShowDeleteModal(false);
+        setSelectedPerson(null);
+      } else {
+        throw new Error(response.errmsg || t('parental.deletePersonFailed'));
+      }
+    } catch (error) {
+      console.error('Failed to delete person:', error);
+      alert(t('parental.deletePersonFailed'));
     }
   };
 
@@ -150,12 +162,8 @@ export const ParentalHome: React.FC = () => {
         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full shadow-2xl mb-6 kids-pulse-element">
           <span className="text-3xl">👑</span>
         </div>
-        <h1 className="text-4xl font-black text-gradient mb-3">
-          {t("parental.dashboard")}
-        </h1>
-        <p className="text-lg text-gray-600">
-          Manage your persons's screen time and learning progress
-        </p>
+        <h1 className="text-4xl font-black text-gradient mb-3">{t('parental.dashboard')}</h1>
+        <p className="text-lg text-gray-600">{t('parental.dashboardSubtitle')}</p>
       </div>
 
       {/* Stats Overview */}
@@ -164,40 +172,32 @@ export const ParentalHome: React.FC = () => {
           <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 text-blue-600 rounded-full mb-4">
             <Users className="w-6 h-6" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {persons.length}
-          </div>
-          <div className="text-sm text-gray-600">Persons</div>
+          <div className="text-2xl font-bold text-gray-900">{persons.length}</div>
+          <div className="text-sm text-gray-600">{t('parental.statsPersons')}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 text-green-600 rounded-full mb-4">
             <Clock className="w-6 h-6" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {getTotalUsage()}
-          </div>
-          <div className="text-sm text-gray-600">Minutes Today</div>
+          <div className="text-2xl font-bold text-gray-900">{getTotalUsage()}</div>
+          <div className="text-sm text-gray-600">{t('parental.statsMinutesToday')}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 text-purple-600 rounded-full mb-4">
             <BookOpen className="w-6 h-6" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {getTotalQuestions()}
-          </div>
-          <div className="text-sm text-gray-600">Questions Answered</div>
+          <div className="text-2xl font-bold text-gray-900">{getTotalQuestions()}</div>
+          <div className="text-sm text-gray-600">{t('parental.statsQuestionsAnswered')}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 text-orange-600 rounded-full mb-4">
             <BarChart3 className="w-6 h-6" />
           </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {getAverageAccuracy()}%
-          </div>
-          <div className="text-sm text-gray-600">Average Accuracy</div>
+          <div className="text-2xl font-bold text-gray-900">{getAverageAccuracy()}%</div>
+          <div className="text-sm text-gray-600">{t('parental.statsAverageAccuracy')}</div>
         </div>
       </div>
 
@@ -205,13 +205,13 @@ export const ParentalHome: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium text-gray-900">Your Persons</h2>
+            <h2 className="text-lg font-medium text-gray-900">{t('parental.yourPersons')}</h2>
             <button
               onClick={() => setShowAddPersonModal(true)}
               className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
             >
               <Plus className="w-4 h-4 mr-2" />
-              {t("parental.addPerson")}
+              {t('parental.addPerson')}
             </button>
           </div>
         </div>
@@ -220,25 +220,20 @@ export const ParentalHome: React.FC = () => {
           {persons.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <Users className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                No persons added
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Get started by adding your first person to manage their screen
-                time.
-              </p>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">{t('parental.noPersonsAdded')}</h3>
+              <p className="mt-1 text-sm text-gray-500">{t('parental.addFirstPersonDesc')}</p>
               <div className="mt-6">
                 <button
                   onClick={() => setShowAddPersonModal(true)}
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  {t("parental.addPerson")}
+                  {t('parental.addPerson')}
                 </button>
               </div>
             </div>
           ) : (
-            persons.map((person) => (
+            persons.map(person => (
               <div key={person.id} className="px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -248,36 +243,40 @@ export const ParentalHome: React.FC = () => {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {person.alias}
-                      </h3>
+                      <h3 className="text-lg font-medium text-gray-900">{person.alias}</h3>
                       <p className="text-sm text-gray-500">
-                        {t(`parental.ageGroups.${person.ageGroup}`)} •{" "}
-                        {person.settings.sessionTimeLimit} {t("time.minutes")}
+                        {t(`parental.ageGroups.${person.ageGroup}`)} • {person.settings.sessionTimeLimit} {t('time.minutes')}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button 
+                    <button
                       onClick={() => handleSwitchToPersonView(person)}
                       className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
                     >
                       <Shield className="w-4 h-4 mr-2" />
-                      {t("parental.enterMinorProtectionView")}
+                      {t('parental.enterMinorProtectionView')}
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleShowProgress(person)}
                       className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                     >
                       <BarChart3 className="w-4 h-4 mr-2" />
-                      Progress
+                      {t('parental.progress')}
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleShowSettings(person)}
                       className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                     >
                       <Settings className="w-4 h-4 mr-2" />
-                      {t("parental.settings")}
+                      {t('parental.settings')}
+                    </button>
+                    <button
+                      onClick={() => handleShowDeleteModal(person)}
+                      className="inline-flex items-center px-3 py-2 border border-red-300 text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {t('common.delete')}
                     </button>
                   </div>
                 </div>
@@ -285,22 +284,16 @@ export const ParentalHome: React.FC = () => {
                 {/* Person Stats */}
                 <div className="mt-4 grid grid-cols-3 gap-4">
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-gray-900">
-                      {person.statistics.questionStats.totalAnswered}
-                    </div>
-                    <div className="text-sm text-gray-500">Questions</div>
+                    <div className="text-lg font-semibold text-gray-900">{person.statistics.questionStats.totalAnswered}</div>
+                    <div className="text-sm text-gray-500">{t('parental.questions')}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-gray-900">
-                      {person.statistics.questionStats.accuracyRate}%
-                    </div>
-                    <div className="text-sm text-gray-500">Accuracy</div>
+                    <div className="text-lg font-semibold text-gray-900">{person.statistics.questionStats.accuracyRate}%</div>
+                    <div className="text-sm text-gray-500">{t('parental.accuracy')}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-lg font-semibold text-gray-900">
-                      {person.statistics.learningProgress.level}
-                    </div>
-                    <div className="text-sm text-gray-500">Level</div>
+                    <div className="text-lg font-semibold text-gray-900">{t('parental.levels.' + person.statistics.learningProgress.level)}</div>
+                    <div className="text-sm text-gray-500">{t('parental.level')}</div>
                   </div>
                 </div>
               </div>
@@ -312,38 +305,24 @@ export const ParentalHome: React.FC = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Daily Reports
-          </h3>
-          <p className="text-gray-600 mb-4">
-            View detailed reports of your children's daily usage and learning
-            progress.
-          </p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('parental.dailyReports')}</h3>
+          <p className="text-gray-600 mb-4">{t('parental.dailyReportsDesc')}</p>
           <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-            View Reports
+            {t('parental.viewReports')}
           </button>
         </div>
 
         <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Learning Progress
-          </h3>
-          <p className="text-gray-600 mb-4">
-            Track how your children are improving in different subjects over
-            time.
-          </p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('parental.learningProgress')}</h3>
+          <p className="text-gray-600 mb-4">{t('parental.learningProgressDesc')}</p>
           <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-purple-700 bg-purple-100 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200">
-            View Progress
+            {t('parental.viewProgress')}
           </button>
         </div>
       </div>
 
       {/* Add Person Modal */}
-      <AddPersonModal
-        isOpen={showAddPersonModal}
-        onClose={() => setShowAddPersonModal(false)}
-        onSuccess={handleAddPersonSuccess}
-      />
+      <AddPersonModal isOpen={showAddPersonModal} onClose={() => setShowAddPersonModal(false)} onSuccess={handleAddPersonSuccess} />
 
       {/* Progress Modal */}
       {showProgressModal && selectedPerson && (
@@ -352,16 +331,13 @@ export const ParentalHome: React.FC = () => {
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <BarChart3 className="w-6 h-6 mr-2 text-blue-600" />
-                {selectedPerson.alias} 的观看记录
+                {t('parental.watchingHistoryFor', { name: selectedPerson.alias })}
               </h2>
-              <button
-                onClick={() => setShowProgressModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
+              <button onClick={() => setShowProgressModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6 overflow-y-auto max-h-[60vh]">
               {watchingHistory.length > 0 ? (
                 <div className="space-y-4">
@@ -371,22 +347,29 @@ export const ParentalHome: React.FC = () => {
                       <div className="text-2xl font-bold text-blue-600">
                         {watchingHistory.reduce((sum, h) => sum + h.watchedMinutes, 0)}
                       </div>
-                      <div className="text-sm text-blue-800">总观看时间(分钟)</div>
+                      <div className="text-sm text-blue-800">{t('parental.totalWatchingTime')}</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4 text-center">
                       <BookOpen className="w-8 h-8 text-green-600 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-green-600">
                         {watchingHistory.reduce((sum, h) => sum + h.questionsAnswered, 0)}
                       </div>
-                      <div className="text-sm text-green-800">问题已回答</div>
+                      <div className="text-sm text-green-800">{t('parental.questionsAnswered')}</div>
                     </div>
                     <div className="bg-purple-50 rounded-lg p-4 text-center">
                       <Trophy className="w-8 h-8 text-purple-600 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-purple-600">
-                        {Math.round((watchingHistory.reduce((sum, h) => sum + h.questionsCorrect, 0) / 
-                         Math.max(watchingHistory.reduce((sum, h) => sum + h.questionsAnswered, 0), 1)) * 100)}%
+                        {Math.round(
+                          (watchingHistory.reduce((sum, h) => sum + h.questionsCorrect, 0) /
+                            Math.max(
+                              watchingHistory.reduce((sum, h) => sum + h.questionsAnswered, 0),
+                              1
+                            )) *
+                            100
+                        )}
+                        %
                       </div>
-                      <div className="text-sm text-purple-800">正确率</div>
+                      <div className="text-sm text-purple-800">{t('parental.correctRate')}</div>
                     </div>
                   </div>
 
@@ -402,9 +385,9 @@ export const ParentalHome: React.FC = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-bold text-blue-600">{record.watchedMinutes}分钟</div>
+                            <div className="text-lg font-bold text-blue-600">{record.watchedMinutes} {t('time.minutes')}</div>
                             <div className="text-sm text-gray-600">
-                              答题: {record.questionsCorrect}/{record.questionsAnswered}
+                              {t('parental.answeredQuestions')}: {record.questionsCorrect}/{record.questionsAnswered}
                             </div>
                           </div>
                         </div>
@@ -415,7 +398,7 @@ export const ParentalHome: React.FC = () => {
               ) : (
                 <div className="text-center py-8">
                   <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">暂无观看记录</p>
+                  <p className="text-gray-600">{t('parental.noWatchingHistory')}</p>
                 </div>
               )}
             </div>
@@ -430,18 +413,15 @@ export const ParentalHome: React.FC = () => {
             <div className="flex items-center justify-between p-6 border-b">
               <h2 className="text-xl font-bold text-gray-900 flex items-center">
                 <Settings className="w-6 h-6 mr-2 text-blue-600" />
-                修改 {selectedPerson.alias} 的设置
+                {t('parental.editSettingsFor', { name: selectedPerson.alias })}
               </h2>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
+              <button onClick={() => setShowSettingsModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
-            <form 
-              onSubmit={(e) => {
+
+            <form
+              onSubmit={e => {
                 e.preventDefault();
                 const formData = new FormData(e.target as HTMLFormElement);
                 const settings = {
@@ -453,9 +433,7 @@ export const ParentalHome: React.FC = () => {
               className="p-6 space-y-4"
             >
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  时间限制 (分钟)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('parental.timeLimit')} ({t('time.minutes')})</label>
                 <input
                   type="number"
                   name="timeLimit"
@@ -466,11 +444,9 @@ export const ParentalHome: React.FC = () => {
                   required
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  问题数量
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('parental.questionCount')}</label>
                 <input
                   type="number"
                   name="questionCount"
@@ -488,16 +464,55 @@ export const ParentalHome: React.FC = () => {
                   onClick={() => setShowSettingsModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  取消
+                  {t('common.cancel')}
                 </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  保存设置
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                  {t('parental.saveSettings')}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && selectedPerson && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                <Trash2 className="w-6 h-6 mr-2 text-red-600" />
+                {t('parental.deletePerson')}
+              </h2>
+              <button onClick={() => setShowDeleteModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <p className="text-gray-700 mb-6">
+                {t('parental.deletePersonConfirmation', { name: selectedPerson.alias })}
+              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                <p className="text-yellow-800 text-sm">
+                  {t('parental.deletePersonWarning')}
+                </p>
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={handleDeletePerson}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  {t('common.delete')}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

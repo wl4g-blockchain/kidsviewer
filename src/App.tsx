@@ -1,9 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { PersonHome } from './pages/PersonHome';
 import { ParentalHome } from './pages/ParentalHome';
-import { PersonViewer } from './pages/PersonViewer';
+import { PersonHome } from './pages/PersonHome';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthPage } from './pages/AuthPage';
 import { useAuthStore } from './stores/authStore';
@@ -96,7 +95,7 @@ function App() {
           <ProtectedRoute requireAuth={true}>
             <Layout>
               <Routes>
-                {/* 根据视图模式自动重定向到对应的主页 */}
+                {/* Auto redirect to corresponding home page based on view mode */}
                 <Route path="/" element={<Navigate to={viewMode === 'parent' ? '/parental-page' : '/person-page'} replace />} />
 
                 {/* Parent-only routes */}
@@ -111,7 +110,6 @@ function App() {
                 {viewMode === 'child' && activePerson && (
                   <>
                     <Route path="/person-page" element={<PersonHome />} />
-                    <Route path="/person-viewer" element={<PersonViewer />} />
                   </>
                 )}
 

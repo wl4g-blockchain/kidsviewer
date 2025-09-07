@@ -1,4 +1,15 @@
-import { User, Person, Question, ApiResponse, AppSettings, WatchingSessionResponse, WatchingStatusResponse } from '../types';
+import {
+  User,
+  Person,
+  Question,
+  Platform,
+  QuestionTemplate,
+  ApiResponse,
+  AppSettings,
+  AppInfo,
+  WatchingSessionResponse,
+  WatchingStatusResponse,
+} from '../types';
 
 // Base API handler interface
 export interface IAPIHandler {
@@ -15,6 +26,7 @@ export interface IAPIHandler {
   createPerson(parentalId: string, personData: Partial<Person>): Promise<ApiResponse<Person>>;
   getPersons(parentalId: string): Promise<ApiResponse<Person[]>>;
   updatePersonSettings(personId: string, settings: Partial<Person['settings']>): Promise<ApiResponse<Person>>;
+  deletePerson(personId: string): Promise<ApiResponse<void>>;
 
   // Parental control password verification
   verifyParentalPassword(password: string): Promise<ApiResponse<boolean>>;
@@ -23,14 +35,13 @@ export interface IAPIHandler {
   getPerson(personId: string): Promise<ApiResponse<Person>>;
   updatePersonStatistics(personId: string, statistics: Partial<Person['statistics']>): Promise<ApiResponse<Person>>;
 
-  // Person accessible URLs - get platform name, difficulty, max daily time etc.
-  getPersonAccessibleUrls(personId: string): Promise<
+  // Person accessible URLs - get platform information
+  getPersonPlatforms(personId: string): Promise<
     ApiResponse<
       {
-        platformName: string;
+        platformNameEN: string;
+        platformNameCN: string;
         url: string;
-        difficulty: string;
-        maxDailyTime: number;
         description?: string;
       }[]
     >
@@ -70,4 +81,19 @@ export interface IAPIHandler {
   // Settings
   getAppSettings(): Promise<ApiResponse<AppSettings>>;
   updateAppSettings(settings: Partial<AppSettings>): Promise<ApiResponse<AppSettings>>;
+  
+  // App information
+  getAppInfo(): Promise<ApiResponse<AppInfo>>;
+
+  // Platform management
+  getPlatforms(): Promise<ApiResponse<Platform[]>>;
+  createPlatform(platformData: Partial<Platform>): Promise<ApiResponse<Platform>>;
+  updatePlatform(platformId: string, platformData: Partial<Platform>): Promise<ApiResponse<Platform>>;
+  deletePlatform(platformId: string): Promise<ApiResponse<void>>;
+
+  // Question template management
+  getQuestionTemplates(filters?: { subject?: string; difficulty?: string; ageGroup?: string }): Promise<ApiResponse<QuestionTemplate[]>>;
+  createQuestionTemplate(templateData: Partial<QuestionTemplate>): Promise<ApiResponse<QuestionTemplate>>;
+  updateQuestionTemplate(templateId: string, templateData: Partial<QuestionTemplate>): Promise<ApiResponse<QuestionTemplate>>;
+  deleteQuestionTemplate(templateId: string): Promise<ApiResponse<void>>;
 }

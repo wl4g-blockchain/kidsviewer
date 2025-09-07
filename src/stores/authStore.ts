@@ -27,6 +27,9 @@ interface AuthState {
   initializeAuth: () => Promise<void>; // Initialize auth from storage
 }
 
+// Create API handler once outside the store to prevent recreation
+const apiHandler = APIFactory.createAPIHandler();
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   // Initial state
   currentUser: null,
@@ -37,8 +40,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
   isInitialized: false,
 
-  // API handler
-  apiHandler: APIFactory.createAPIHandler(),
+  // API handler - use the singleton instance
+  apiHandler,
 
   // Initialize auth from local storage using AuthUtil
   initializeAuth: async () => {
@@ -48,62 +51,50 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const authData = AuthUtil.initializeAuth();
 
       set({
-        currentUser: authData.user as Parental | null,
-        activePerson: authData.activePerson as Person | null,
+        currentUser: authData.parent,
+        activePerson: authData.activePerson,
         isAuthenticated: authData.isAuthenticated,
         viewMode: authData.viewMode,
-        isLoading: false,
-        error: null,
         isInitialized: true,
+        isLoading: false,
       });
     } catch (error) {
-      // Clear any corrupted data
-      AuthUtil.clearAuthData();
-
+      console.error('Auth initialization failed:', error);
       set({
         currentUser: null,
         activePerson: null,
         isAuthenticated: false,
         viewMode: 'parent',
-        isLoading: false,
-        error: null,
         isInitialized: true,
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Authentication initialization failed',
       });
     }
   },
 
-  // Actions
+  // Login with email and password
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await get().apiHandler.login(email, password);
+      const { apiHandler } = get();
+      const response = await apiHandler.login(email, password);
 
       if (response.errcode === '200' && response.data) {
         const { user, token } = response.data;
 
-        // Only allow parental users to login
-        if (user.userType !== 'PARENTAL') {
-          set({
-            isLoading: false,
-            error: 'This app is designed for parent accounts only',
-          });
-          return false;
-        }
-
-        const parentalUser = user as Parental;
-
-        // Store authentication data using AuthUtil
-        AuthUtil.storeAuthData(token, parentalUser, 'parent');
+        // Store auth data using AuthUtil
+        AuthUtil.storeAuthData(token, user, 'parent');
 
         set({
-          currentUser: parentalUser,
+          currentUser: user as Parental,
+          activePerson: null,
           isAuthenticated: true,
           viewMode: 'parent',
-          activePerson: null,
           isLoading: false,
           error: null,
         });
+
         return true;
       } else {
         set({
@@ -113,35 +104,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return false;
       }
     } catch (error) {
+      console.error('Login error:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'An error occurred during login',
+        error: error instanceof Error ? error.message : 'Login failed',
       });
       return false;
     }
   },
 
+  // Register new parent account
   register: async (email: string, phone: string, password: string, name: string) => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await get().apiHandler.register(email, phone, password, name);
+      const { apiHandler } = get();
+      const response = await apiHandler.register(email, phone, password, name);
 
       if (response.errcode === '200' && response.data) {
         const { user, token } = response.data;
-        const parentalUser = user as Parental;
 
-        // Store authentication data using AuthUtil
-        AuthUtil.storeAuthData(token, parentalUser, 'parent');
+        // Store auth data using AuthUtil
+        AuthUtil.storeAuthData(token, user, 'parent');
 
         set({
-          currentUser: parentalUser,
+          currentUser: user as Parental,
+          activePerson: null,
           isAuthenticated: true,
           viewMode: 'parent',
-          activePerson: null,
           isLoading: false,
           error: null,
         });
+
         return true;
       } else {
         set({
@@ -151,33 +145,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return false;
       }
     } catch (error) {
+      console.error('Registration error:', error);
       set({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'An error occurred during registration',
+        error: error instanceof Error ? error.message : 'Registration failed',
       });
       return false;
     }
   },
 
+  // Logout and clear all auth data
   logout: async () => {
+    set({ isLoading: true });
+
     try {
-      // Call API logout
-      await get().apiHandler.logout();
-
-      // Clear authentication data using AuthUtil
-      AuthUtil.clearAuthData();
-
-      set({
-        currentUser: null,
-        activePerson: null,
-        isAuthenticated: false,
-        viewMode: 'parent',
-        isLoading: false,
-        error: null,
-      });
+      const { apiHandler } = get();
+      await apiHandler.logout();
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if API call fails, clear local state
+    } finally {
+      // Clear auth data using AuthUtil
       AuthUtil.clearAuthData();
 
       set({
@@ -187,20 +174,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         viewMode: 'parent',
         isLoading: false,
         error: null,
+        isInitialized: true,
       });
     }
   },
 
-  // Switch to child view mode
+  // Switch to child view
   switchToPerson: (person: Person) => {
-    const currentUser = get().currentUser;
-    if (currentUser) {
-      const token = AuthUtil.getCurrentToken();
-      if (token) {
-        AuthUtil.storeAuthData(token, currentUser, 'child');
-        AuthUtil.storeActivePerson(person);
-      }
-    }
+    const { currentUser } = get();
+    if (!currentUser) return;
+
+    // Store the switch using AuthUtil
+    AuthUtil.storeActivePerson(person);
+    AuthUtil.storeAuthData(AuthUtil.getCurrentToken() || '', currentUser, 'child');
 
     set({
       activePerson: person,
@@ -208,16 +194,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  // Switch back to parent view mode
+  // Switch back to parent view
   switchToParent: () => {
-    const currentUser = get().currentUser;
-    if (currentUser) {
-      const token = AuthUtil.getCurrentToken();
-      if (token) {
-        AuthUtil.storeAuthData(token, currentUser, 'parent');
-        AuthUtil.storeActivePerson(null);
-      }
-    }
+    // Store the switch using AuthUtil
+    AuthUtil.storeActivePerson(null);
+    AuthUtil.storeAuthData(AuthUtil.getCurrentToken() || '', get().currentUser!, 'parent');
 
     set({
       activePerson: null,
@@ -225,33 +206,43 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  // Refresh persons list from current user
-  refreshPersons: async () => {
-    const { currentUser, apiHandler } = get();
-    if (currentUser) {
-      try {
-        const response = await apiHandler.getPersons(currentUser.id);
-        if (response.errcode === '200' && response.data) {
-          // Update the current user's persons array
-          const updatedUser = {
-            ...currentUser,
-            persons: response.data,
-          };
-
-          // Update localStorage
-          localStorage.setItem('kidsviewer_user', JSON.stringify(updatedUser));
-
-          set({
-            currentUser: updatedUser,
-          });
-        }
-      } catch (error) {
-        console.error('Failed to refresh persons:', error);
-      }
-    }
-  },
-
+  // Clear error state
   clearError: () => {
     set({ error: null });
+  },
+
+  // Refresh persons list
+  refreshPersons: async () => {
+    const { currentUser, apiHandler } = get();
+    if (!currentUser) return;
+
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await apiHandler.getPersons(currentUser.id);
+
+      if (response.errcode === '200' && response.data) {
+        const updatedParent = { ...currentUser, persons: response.data };
+
+        // Update stored auth data
+        AuthUtil.storeAuthData(AuthUtil.getCurrentToken() || '', updatedParent, get().viewMode);
+
+        set({
+          currentUser: updatedParent,
+          isLoading: false,
+        });
+      } else {
+        set({
+          isLoading: false,
+          error: response.errmsg || 'Failed to refresh persons',
+        });
+      }
+    } catch (error) {
+      console.error('Refresh persons error:', error);
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Failed to refresh persons',
+      });
+    }
   },
 }));

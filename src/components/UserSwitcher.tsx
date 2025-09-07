@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Users, ChevronDown, LogOut, Crown, Baby, Lock } from 'lucide-react';
@@ -153,13 +154,13 @@ export const UserSwitcher: React.FC = () => {
         </button>
 
         {/* Dropdown menu */}
-        {isOpen && (
-          <>
+        {isOpen && createPortal(
+          <div className="fixed inset-0 z-[9998] flex justify-end">
             {/* Backdrop */}
-            <div className="fixed inset-0 z-[90]" onClick={() => setIsOpen(false)} />
+            <div className="fixed inset-0" onClick={() => setIsOpen(false)} />
 
-            {/* Menu */}
-            <div className="absolute top-full left-0 mt-2 w-full sm:w-80 bg-white rounded-2xl shadow-2xl border-2 border-purple-100 z-[100] overflow-hidden">
+            {/* Menu positioned relative to trigger */}
+            <div className="absolute top-16 right-4 w-80 bg-white rounded-2xl shadow-2xl border-2 border-purple-100 z-[9999] overflow-hidden">
               {/* Parent section */}
               <div className="p-2">
                 <div className="text-xs font-bold text-gray-500 uppercase tracking-wide px-3 py-2 flex items-center">
@@ -213,7 +214,12 @@ export const UserSwitcher: React.FC = () => {
                     {persons.map(person => (
                       <button
                         key={person.id}
-                        onClick={() => handleSwitchToPerson(person)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Switching to person:', person);
+                          handleSwitchToPerson(person);
+                        }}
                         className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 ${
                           viewMode === 'child' && activePerson?.id === person.id
                             ? 'bg-gradient-to-r from-green-50 to-cyan-50 border-2 border-green-200'
@@ -252,7 +258,8 @@ export const UserSwitcher: React.FC = () => {
                 </button>
               </div>
             </div>
-          </>
+          </div>,
+          document.body
         )}
       </div>
 

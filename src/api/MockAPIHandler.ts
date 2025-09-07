@@ -1,5 +1,17 @@
 import { IAPIHandler } from './IAPIHandler';
-import { User, Parental, Person, Question, ApiResponse, AppSettings, WatchingSessionResponse, WatchingStatusResponse } from '../types';
+import {
+  User,
+  Parental,
+  Person,
+  Question,
+  Platform,
+  QuestionTemplate,
+  ApiResponse,
+  AppSettings,
+  AppInfo,
+  WatchingSessionResponse,
+  WatchingStatusResponse,
+} from '../types';
 
 // Default hardcoded credentials for demo
 const DEMO_CREDENTIALS = {
@@ -77,6 +89,8 @@ function shuffleArray<T>(array: T[]): T[] {
 // Mock data structure
 const mockDataDB = {
   users: [] as User[],
+  platforms: [] as Platform[],
+  questionTemplates: [] as QuestionTemplate[],
   settings: {
     language: 'en',
     theme: 'light',
@@ -125,6 +139,22 @@ const mockDataDB = {
   }[],
   questionBank: {
     math: {
+      beginner: [
+        {
+          type: 'calculation' as const,
+          content: 'What is 2 + 3?',
+          correctAnswer: 5,
+          explanationEN: '2 + 3 = 5',
+          explanationCN: '2 + 3 = 5',
+        },
+        {
+          type: 'calculation' as const,
+          content: 'What is 4 - 1?',
+          correctAnswer: 3,
+          explanationEN: '4 - 1 = 3',
+          explanationCN: '4 - 1 = 3',
+        },
+      ],
       easy: [
         {
           type: 'calculation' as const,
@@ -443,38 +473,30 @@ const mockDataDB = {
 };
 
 // Generate questions based on subjects, difficulty, and count
-function generateQuestions(subjects: string[], difficulty: string, count: number): Question[] {
+function generateQuestions(subjects: string[], difficulty: string, count: number, language: string = 'en'): Question[] {
   const questions: Question[] = [];
-  const availableQuestions: any[] = [];
 
-  // Collect all available questions from specified subjects and difficulty
-  subjects.forEach(subject => {
-    if (
-      mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank] &&
-      mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank][difficulty as keyof typeof mockDataDB.questionBank.math]
-    ) {
-      availableQuestions.push(
-        ...mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank][difficulty as keyof typeof mockDataDB.questionBank.math]
-      );
-    }
-  });
+  // Get available question templates that match criteria
+  const availableTemplates = mockDataDB.questionTemplates.filter(
+    template => subjects.includes(template.subject) && template.difficulty === difficulty
+  );
 
   // Shuffle and select questions
-  const shuffled = shuffleArray([...availableQuestions]);
-  const selectedQuestions = shuffled.slice(0, Math.min(count, shuffled.length));
+  const shuffled = shuffleArray([...availableTemplates]);
+  const selectedTemplates = shuffled.slice(0, Math.min(count, shuffled.length));
 
-  // Convert to Question interface format
-  selectedQuestions.forEach((q, index) => {
+  // Convert templates to Question instances with appropriate explanation
+  selectedTemplates.forEach((template, index) => {
     const question: Question = {
       id: `q_${Date.now()}_${index}`,
-      type: q.type,
-      subject: subjects[Math.floor(Math.random() * subjects.length)],
-      difficulty: difficulty as 'easy' | 'medium' | 'hard',
-      content: q.content,
-      options: q.options,
-      correctAnswer: q.correctAnswer,
-      explanation: q.explanation,
-      language: 'en', // Default to English, can be made configurable
+      type: template.type,
+      subject: template.subject,
+      difficulty: template.difficulty,
+      content: template.content,
+      options: template.options,
+      correctAnswer: template.correctAnswer,
+      explanation: language === 'zh' ? template.explanationCN : template.explanationEN,
+      language: template.language,
     };
     questions.push(question);
   });
@@ -500,12 +522,18 @@ export class MockAPIHandler implements IAPIHandler {
   }
 
   private initializeMockData() {
+    // Initialize platforms
+    this.initializePlatforms();
+
+    // Initialize question templates
+    this.initializeQuestionTemplates();
+
     // Initialize with some demo data
-    const parent_0: Parental = {
-      id: 'parent_demo_001',
+    const parent_01: Parental = {
+      id: 'parent_01',
       email: 'lyra@kidsviewer.local',
       phone: '+1234567890',
-      name: 'Demo Parent',
+      name: 'Lyra',
       userType: 'PARENTAL',
       controlPassword: '123456',
       persons: [],
@@ -513,34 +541,9 @@ export class MockAPIHandler implements IAPIHandler {
       updatedAt: new Date(),
     };
 
-    // Update mock person settings
-    const defaultAllowedUrls = [
-      {
-        platformName: 'Khan Academy Kids',
-        url: 'https://www.khanacademy.org/kids',
-        difficulty: 'easy' as const,
-        maxDailyTime: 30,
-        description: 'Educational games and videos for young learners',
-      },
-      {
-        platformName: 'National Geographic Kids',
-        url: 'https://kids.nationalgeographic.com/',
-        difficulty: 'medium' as const,
-        maxDailyTime: 45,
-        description: 'Explore nature, science, and world cultures',
-      },
-      {
-        platformName: 'YouTube Kids',
-        url: 'https://www.youtubekids.com/',
-        difficulty: 'medium' as const,
-        maxDailyTime: 35,
-        description: 'Safe, educational videos curated for children',
-      },
-    ];
-
-    const person_0: Person = {
+    const person_01: Person = {
       id: 'person_01',
-      parentalId: 'parent_demo_001',
+      parentalId: 'parent_01',
       userType: 'PERSON',
       email: 'barry.james@kidsviewer.local',
       name: 'Barry',
@@ -548,15 +551,15 @@ export class MockAPIHandler implements IAPIHandler {
       ageGroup: 'young',
       settings: {
         sessionTimeLimit: 20,
-        dailyTimeLimit: 120,
+        dailyTotalTimeLimit: 120,
         questionCount: 3,
         questionsPerDay: 15,
+        platformIds: ['platform_001', 'platform_002', 'platform_003', 'platform_004'],
         subjects: [
           { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
           { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
           { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
         ],
-        allowedUrls: defaultAllowedUrls,
       },
       statistics: {
         dailyUsage: [],
@@ -577,8 +580,218 @@ export class MockAPIHandler implements IAPIHandler {
       updatedAt: new Date(),
     };
 
-    parent_0.persons.push(person_0);
-    mockDataDB.users.push(parent_0, person_0);
+    parent_01.persons.push(person_01);
+    mockDataDB.users.push(parent_01, person_01);
+  }
+
+  private initializePlatforms() {
+    const platforms: Platform[] = [
+      {
+        id: 'platform_001',
+        nameEN: 'National Geographic Kids',
+        nameCN: '国家地理儿童版',
+        url: 'https://kids.nationalgeographic.com/',
+        description: 'Explore nature, science, and world cultures',
+        ageGroups: ['young', 'older'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'platform_002',
+        nameEN: 'Khan Academy Kids',
+        nameCN: '可汗学院儿童版',
+        url: 'https://www.khanacademy.org/kids',
+        description: 'Educational games and videos for young learners',
+        ageGroups: ['preschool', 'young'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'platform_003',
+        nameEN: 'YouTube Kids',
+        nameCN: 'YouTube 儿童版',
+        url: 'https://www.youtubekids.com/',
+        description: 'Safe, educational videos curated for children',
+        ageGroups: ['young', 'older'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'platform_004',
+        nameEN: 'Douyin',
+        nameCN: '抖音',
+        url: 'https://www.douyin.com/',
+        description: 'Safe, educational videos curated for children',
+        ageGroups: ['young', 'older'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'platform_005',
+        nameEN: 'Xiaohongshu',
+        nameCN: '小红书',
+        url: 'https://www.xiaohongshu.com/',
+        description: 'Safe, educational videos curated for children',
+        ageGroups: ['older'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'platform_006',
+        nameEN: 'Kuaishou',
+        nameCN: '快手',
+        url: 'https://www.kuaishou.com/',
+        description: 'Safe, educational videos curated for children',
+        ageGroups: ['young', 'older'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'platform_007',
+        nameEN: 'Bilibili',
+        nameCN: '哔哩哔哩',
+        url: 'https://www.bilibili.com/',
+        description: 'Safe, educational videos curated for children',
+        ageGroups: ['older'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'platform_008',
+        nameEN: 'Qiyiguo',
+        nameCN: '奇异果',
+        url: 'https://www.qiyiguo.com/',
+        description: 'Safe, educational videos curated for children',
+        ageGroups: ['preschool', 'young', 'older'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    mockDataDB.platforms.push(...platforms);
+  }
+
+  private initializeQuestionTemplates() {
+    // Create simplified question templates with i18n support
+    const templates: QuestionTemplate[] = [
+      // Math questions - Beginner level
+      {
+        id: 'math_001',
+        type: 'calculation',
+        subject: 'math',
+        difficulty: 'beginner',
+        content: 'What is 2 + 3?',
+        correctAnswer: 5,
+        explanationEN: '2 + 3 = 5. This is basic addition.',
+        explanationCN: '2 + 3 = 5。这是基本的加法。',
+        language: 'en',
+        ageGroups: ['preschool', 'young'],
+        tags: ['math', 'addition', 'beginner'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      // Math questions - Easy level
+      {
+        id: 'math_002',
+        type: 'calculation',
+        subject: 'math',
+        difficulty: 'easy',
+        content: 'What is 7 + 5?',
+        correctAnswer: 12,
+        explanationEN: '7 + 5 = 12. Count up from 7: 8, 9, 10, 11, 12.',
+        explanationCN: '7 + 5 = 12。从7开始数：8、9、10、11、12。',
+        language: 'en',
+        ageGroups: ['young'],
+        tags: ['math', 'addition', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      // Math questions - Medium level
+      {
+        id: 'math_003',
+        type: 'calculation',
+        subject: 'math',
+        difficulty: 'medium',
+        content: 'What is 18 ÷ 3?',
+        correctAnswer: 6,
+        explanationEN: '18 ÷ 3 = 6. Division means how many groups of 3 can we make from 18.',
+        explanationCN: '18 ÷ 3 = 6。除法意思是18可以分成多少个3。',
+        language: 'en',
+        ageGroups: ['young', 'older'],
+        tags: ['math', 'division', 'medium'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      // Math questions - Hard level
+      {
+        id: 'math_004',
+        type: 'calculation',
+        subject: 'math',
+        difficulty: 'hard',
+        content: 'What is 4 × 5 + 3?',
+        correctAnswer: 23,
+        explanationEN: '4 × 5 + 3 = 23. First multiply: 4 × 5 = 20, then add: 20 + 3 = 23.',
+        explanationCN: '4 × 5 + 3 = 23。先乘法：4 × 5 = 20，再加法：20 + 3 = 23。',
+        language: 'en',
+        ageGroups: ['older'],
+        tags: ['math', 'multiplication', 'addition', 'hard'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      // Math questions - Expert level
+      {
+        id: 'math_005',
+        type: 'multiple-choice',
+        subject: 'math',
+        difficulty: 'expert',
+        content: 'What is 3² + 4²?',
+        options: ['7', '12', '25', '49'],
+        correctAnswer: '25',
+        explanationEN: '3² + 4² = 9 + 16 = 25. This uses the Pythagorean theorem.',
+        explanationCN: '3² + 4² = 9 + 16 = 25。这使用了勾股定理。',
+        language: 'en',
+        ageGroups: ['older', 'teen'],
+        tags: ['math', 'squares', 'expert'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      // Chinese questions
+      {
+        id: 'chinese_001',
+        type: 'multiple-choice',
+        subject: 'chinese',
+        difficulty: 'easy',
+        content: '识别大写数字：壹',
+        options: ['1', '2', '3', '4'],
+        correctAnswer: '1',
+        explanationEN: '壹 = 1 (Chinese traditional number)',
+        explanationCN: '壹 = 1 (中文大写数字)',
+        language: 'zh',
+        ageGroups: ['young', 'older'],
+        tags: ['chinese', 'numbers', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      // English questions
+      {
+        id: 'english_001',
+        type: 'multiple-choice',
+        subject: 'english',
+        difficulty: 'easy',
+        content: 'What color is the sky?',
+        options: ['Blue', 'Green', 'Red', 'Yellow'],
+        correctAnswer: 'Blue',
+        explanationEN: 'The sky is usually blue during the day due to light scattering.',
+        explanationCN: '天空通常是蓝色的，因为光线散射。',
+        language: 'en',
+        ageGroups: ['preschool', 'young'],
+        tags: ['english', 'colors', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    mockDataDB.questionTemplates.push(...templates);
   }
 
   // Authentication
@@ -616,7 +829,7 @@ export class MockAPIHandler implements IAPIHandler {
         ageGroup: 'young',
         settings: {
           sessionTimeLimit: 20,
-          dailyTimeLimit: 120,
+          dailyTotalTimeLimit: 120,
           questionCount: 3,
           questionsPerDay: 15,
           subjects: [
@@ -624,29 +837,7 @@ export class MockAPIHandler implements IAPIHandler {
             { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
             { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
           ],
-          allowedUrls: [
-            {
-              platformName: 'Khan Academy Kids',
-              url: 'https://www.khanacademy.org/kids',
-              difficulty: 'easy' as const,
-              maxDailyTime: 30,
-              description: 'Educational games and videos for young learners',
-            },
-            {
-              platformName: 'National Geographic Kids',
-              url: 'https://kids.nationalgeographic.com/',
-              difficulty: 'medium' as const,
-              maxDailyTime: 45,
-              description: 'Explore nature, science, and world cultures',
-            },
-            {
-              platformName: 'YouTube Kids',
-              url: 'https://www.youtubekids.com/',
-              difficulty: 'medium' as const,
-              maxDailyTime: 35,
-              description: 'Safe, educational videos curated for children',
-            },
-          ],
+          platformIds: ['platform_001', 'platform_002', 'platform_003'],
         },
         statistics: {
           dailyUsage: [],
@@ -688,11 +879,10 @@ export class MockAPIHandler implements IAPIHandler {
 
       // Find the demo user or use hardcoded demo user
       let user = mockDataDB.users.find((u: any) => u.email === email && u.userType === 'PARENTAL');
-
       if (!user) {
         // Create demo user if not exists
         const parental_0: Parental = {
-          id: 'demo_parent_001',
+          id: 'person_01',
           email: DEMO_CREDENTIALS.email,
           phone: '+1234567890',
           name: 'Lyra Parent',
@@ -714,7 +904,7 @@ export class MockAPIHandler implements IAPIHandler {
           ageGroup: 'young',
           settings: {
             sessionTimeLimit: 20,
-            dailyTimeLimit: 120,
+            dailyTotalTimeLimit: 120,
             questionCount: 3,
             questionsPerDay: 15,
             subjects: [
@@ -722,29 +912,7 @@ export class MockAPIHandler implements IAPIHandler {
               { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
               { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
             ],
-            allowedUrls: [
-              {
-                platformName: 'Khan Academy Kids',
-                url: 'https://www.khanacademy.org/kids',
-                difficulty: 'easy' as const,
-                maxDailyTime: 30,
-                description: 'Educational games and videos for young learners',
-              },
-              {
-                platformName: 'National Geographic Kids',
-                url: 'https://kids.nationalgeographic.com/',
-                difficulty: 'medium' as const,
-                maxDailyTime: 45,
-                description: 'Explore nature, science, and world cultures',
-              },
-              {
-                platformName: 'YouTube Kids',
-                url: 'https://www.youtubekids.com/',
-                difficulty: 'medium' as const,
-                maxDailyTime: 35,
-                description: 'Safe, educational videos curated for children',
-              },
-            ],
+            platformIds: ['platform_001', 'platform_002', 'platform_003'],
           },
           statistics: {
             dailyUsage: [],
@@ -831,30 +999,8 @@ export class MockAPIHandler implements IAPIHandler {
         return createApiResponse('4001', 'Parental not found');
       }
 
-      // Update mock person settings
-      const defaultAllowedUrls = [
-        {
-          platformName: 'Khan Academy Kids',
-          url: 'https://www.khanacademy.org/kids',
-          difficulty: 'easy' as const,
-          maxDailyTime: 30,
-          description: 'Educational games and videos for young learners',
-        },
-        {
-          platformName: 'National Geographic Kids',
-          url: 'https://kids.nationalgeographic.com/',
-          difficulty: 'medium' as const,
-          maxDailyTime: 45,
-          description: 'Explore nature, science, and world cultures',
-        },
-        {
-          platformName: 'YouTube Kids',
-          url: 'https://www.youtubekids.com/',
-          difficulty: 'medium' as const,
-          maxDailyTime: 35,
-          description: 'Safe, educational videos curated for children',
-        },
-      ];
+      // Default platform IDs for new persons
+      const defaultPlatformIds = ['platform_001', 'platform_002', 'platform_003'];
 
       const newPerson: Person = {
         id: this.generateId(),
@@ -866,7 +1012,7 @@ export class MockAPIHandler implements IAPIHandler {
         ageGroup: personData.ageGroup || 'young',
         settings: {
           sessionTimeLimit: personData.settings?.sessionTimeLimit || 15,
-          dailyTimeLimit: personData.settings?.dailyTimeLimit || 120,
+          dailyTotalTimeLimit: personData.settings?.dailyTotalTimeLimit || 120,
           questionCount: personData.settings?.questionCount || 3,
           questionsPerDay: personData.settings?.questionsPerDay || 15,
           subjects: personData.settings?.subjects || [
@@ -874,7 +1020,7 @@ export class MockAPIHandler implements IAPIHandler {
             { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
             { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
           ],
-          allowedUrls: personData.settings?.allowedUrls || defaultAllowedUrls,
+          platformIds: personData.settings?.platformIds || defaultPlatformIds,
         },
         statistics: {
           dailyUsage: [],
@@ -926,6 +1072,31 @@ export class MockAPIHandler implements IAPIHandler {
       person.updatedAt = new Date();
 
       return createApiResponse('200', 'ok', person);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async deletePerson(personId: string): Promise<ApiResponse<void>> {
+    try {
+      const personIndex = mockDataDB.users.findIndex((u: any) => u.id === personId && u.userType === 'PERSON');
+
+      if (personIndex === -1) {
+        return createApiResponse('4001', 'Person not found');
+      }
+
+      const person = mockDataDB.users[personIndex] as Person;
+      const parentalIndex = mockDataDB.users.findIndex((u: any) => u.id === person.parentalId && u.userType === 'PARENTAL');
+
+      if (parentalIndex !== -1) {
+        const parental = mockDataDB.users[parentalIndex] as Parental;
+        parental.persons = parental.persons.filter(p => p.id !== personId);
+      }
+
+      // Remove person from users array
+      mockDataDB.users.splice(personIndex, 1);
+
+      return createApiResponse('200', 'ok');
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
@@ -1022,26 +1193,41 @@ export class MockAPIHandler implements IAPIHandler {
     }
   }
 
+  async getAppInfo(): Promise<ApiResponse<AppInfo>> {
+    try {
+      // Mock app information - in real implementation this would come from build process
+      const appInfo: AppInfo = {
+        version: '1.0.0',
+        buildType: 'development',
+        platform: typeof window !== 'undefined' && (window as any).electronAPI ? 'Electron' : 'Web',
+        buildDate: new Date().toISOString(),
+        commitHash: 'mock-commit-hash',
+      };
+
+      return createApiResponse('200', 'ok', appInfo);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
   // Parental control password verification
   async verifyParentalPassword(password: string): Promise<ApiResponse<boolean>> {
     return new Promise(resolve => {
       setTimeout(() => {
         // Mock implementation - in real app this would check against encrypted password
         const isValid = password === '123456'; // Default parental password
-        resolve(createApiResponse('200', 'ok', isValid));
+        resolve(createApiResponse('200', isValid ? 'ok' : 'Invalid parental password', isValid));
       }, 500);
     });
   }
 
-  // Child accessible URLs - get platform name, difficulty, max daily time etc.
-  // Child accessible URLs - get platform name, difficulty, max daily time etc.
-  async getPersonAccessibleUrls(personId: string): Promise<
+  // Load the accessible platforms - filtering by platformIds.
+  async getPersonPlatforms(personId: string): Promise<
     ApiResponse<
       {
-        platformName: string;
+        platformNameEN: string;
+        platformNameCN: string;
         url: string;
-        difficulty: string;
-        maxDailyTime: number;
         description?: string;
       }[]
     >
@@ -1053,15 +1239,18 @@ export class MockAPIHandler implements IAPIHandler {
         return createApiResponse('4001', 'Person not found');
       }
 
-      // Return only the platforms that are allowed for this person
-      const allowedPlatforms = person.data.settings.allowedUrls.map(platform => ({
-        platformName: platform.platformName,
-        url: platform.url,
-        difficulty: platform.difficulty,
-        maxDailyTime: platform.maxDailyTime,
-        description: platform.description,
-      }));
+      // Get platforms by IDs
+      const allowedPlatforms = mockDataDB.platforms
+        .filter(platform => person.data!.settings.platformIds.includes(platform.id))
+        .map(platform => ({
+          platformNameEN: platform.nameEN,
+          platformNameCN: platform.nameCN,
+          url: platform.url,
+          description: platform.description,
+        }));
 
+      // Mock real api cost time 200ms
+      await new Promise(resolve => setTimeout(resolve, 200));
       return createApiResponse('200', 'ok', allowedPlatforms);
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
@@ -1078,22 +1267,22 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       // Get platform specific settings
-      const platform = person.data.settings.allowedUrls.find(p => p.url === platformUrl);
-      if (!platform) {
+      const platform = mockDataDB.platforms.find(p => p.url === platformUrl);
+      if (!platform || !person.data.settings.platformIds.includes(platform.id)) {
         return createApiResponse('4002', 'Platform not allowed for this person');
       }
 
-      const sessionTimeLimit = person.data.settings.sessionTimeLimit * 60; // Convert to seconds
-      const expiresAt = Date.now() + sessionTimeLimit * 1000;
+      const sessionTimeLimit = person.data.settings.sessionTimeLimit; // seconds
+      const expiresAt = Date.now() / 1000 + sessionTimeLimit;
 
       // Calculate remaining daily time
       const today = new Date().toISOString().split('T')[0];
       const todayHistory = mockDataDB.watchingHistory.filter(h => h.date === today && h.personId === personId);
       const watchedToday = todayHistory.reduce((sum, h) => sum + h.watchedMinutes, 0);
-      const remainingDailyTime = Math.max(0, person.data.settings.dailyTimeLimit - watchedToday);
+      const remainingDailyTime = Math.max(0, person.data.settings.dailyTotalTimeLimit - watchedToday);
 
       if (remainingDailyTime <= 0) {
-        return createApiResponse('4017', 'Daily time limit exceeded');
+        return createApiResponse('4017', 'Daily total time limit exceeded');
       }
 
       mockDataDB.watchingTokens.set(token, {
@@ -1136,11 +1325,11 @@ export class MockAPIHandler implements IAPIHandler {
       const today = new Date().toISOString().split('T')[0];
       const todayHistory = mockDataDB.watchingHistory.filter(h => h.date === today && h.personId === watchingInfo.personId);
       const watchedToday = todayHistory.reduce((sum, h) => sum + h.watchedMinutes, 0) + watchedTime;
-      const remainingDailyTime = Math.max(0, person.data.settings.dailyTimeLimit - watchedToday);
+      const remainingDailyTime = Math.max(0, person.data.settings.dailyTotalTimeLimit - watchedToday);
 
       // Check if daily time exceeded
       if (remainingDailyTime <= 0) {
-        return createApiResponse('4017', 'Daily time limit exceeded', {
+        return createApiResponse('4017', 'Daily total time limit exceeded', {
           remainingTime: 0,
           remainingDailyTime: 0,
           dailyTimeExceeded: true,
@@ -1188,12 +1377,10 @@ export class MockAPIHandler implements IAPIHandler {
       // Find and verify question
       let correct = false;
       for (const subject of Object.keys(mockDataDB.questionBank)) {
-        for (const difficulty of Object.keys(mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank])) {
-          const questions =
-            mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank][
-              difficulty as keyof typeof mockDataDB.questionBank.math
-            ];
-          const foundQuestion = questions.find(q => q.content === questionId);
+        const subjectBank = mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank];
+        for (const difficulty of Object.keys(subjectBank)) {
+          const questions = subjectBank[difficulty as keyof typeof subjectBank];
+          const foundQuestion = questions.find((q: any) => q.content === questionId);
           if (foundQuestion) {
             correct = answer.toString() === foundQuestion.correctAnswer.toString();
             break;
@@ -1268,6 +1455,158 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       return createApiResponse('200', 'ok', history);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  // Platform management
+  async getPlatforms(): Promise<ApiResponse<Platform[]>> {
+    try {
+      return createApiResponse('200', 'ok', mockDataDB.platforms);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async createPlatform(platformData: Partial<Platform>): Promise<ApiResponse<Platform>> {
+    try {
+      const newPlatform: Platform = {
+        id: this.generateId(),
+        nameEN: platformData.nameEN || '',
+        nameCN: platformData.nameCN || '',
+        url: platformData.url || '',
+        description: platformData.description,
+        ageGroups: platformData.ageGroups || ['young'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockDataDB.platforms.push(newPlatform);
+      return createApiResponse('200', 'ok', newPlatform);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async updatePlatform(platformId: string, platformData: Partial<Platform>): Promise<ApiResponse<Platform>> {
+    try {
+      const platformIndex = mockDataDB.platforms.findIndex(p => p.id === platformId);
+
+      if (platformIndex === -1) {
+        return createApiResponse('4001', 'Platform not found');
+      }
+
+      mockDataDB.platforms[platformIndex] = {
+        ...mockDataDB.platforms[platformIndex],
+        ...platformData,
+        updatedAt: new Date(),
+      };
+
+      return createApiResponse('200', 'ok', mockDataDB.platforms[platformIndex]);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async deletePlatform(platformId: string): Promise<ApiResponse<void>> {
+    try {
+      const platformIndex = mockDataDB.platforms.findIndex(p => p.id === platformId);
+
+      if (platformIndex === -1) {
+        return createApiResponse('4001', 'Platform not found');
+      }
+
+      mockDataDB.platforms.splice(platformIndex, 1);
+      return createApiResponse('200', 'ok');
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  // Question template management
+  async getQuestionTemplates(filters?: {
+    subject?: string;
+    difficulty?: string;
+    ageGroup?: string;
+  }): Promise<ApiResponse<QuestionTemplate[]>> {
+    try {
+      let templates = [...mockDataDB.questionTemplates];
+
+      if (filters) {
+        if (filters.subject) {
+          templates = templates.filter(t => t.subject === filters.subject);
+        }
+        if (filters.difficulty) {
+          templates = templates.filter(t => t.difficulty === filters.difficulty);
+        }
+        if (filters.ageGroup) {
+          templates = templates.filter(t => t.ageGroups.includes(filters.ageGroup as any));
+        }
+      }
+
+      return createApiResponse('200', 'ok', templates);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async createQuestionTemplate(templateData: Partial<QuestionTemplate>): Promise<ApiResponse<QuestionTemplate>> {
+    try {
+      const newTemplate: QuestionTemplate = {
+        id: this.generateId(),
+        type: templateData.type || 'multiple-choice',
+        subject: templateData.subject || 'math',
+        difficulty: templateData.difficulty || 'medium',
+        content: templateData.content || '',
+        options: templateData.options,
+        correctAnswer: templateData.correctAnswer || '',
+        explanationEN: templateData.explanationEN,
+        explanationCN: templateData.explanationCN,
+        language: templateData.language || 'en',
+        ageGroups: templateData.ageGroups || ['young'],
+        tags: templateData.tags || [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockDataDB.questionTemplates.push(newTemplate);
+      return createApiResponse('200', 'ok', newTemplate);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async updateQuestionTemplate(templateId: string, templateData: Partial<QuestionTemplate>): Promise<ApiResponse<QuestionTemplate>> {
+    try {
+      const templateIndex = mockDataDB.questionTemplates.findIndex(t => t.id === templateId);
+
+      if (templateIndex === -1) {
+        return createApiResponse('4001', 'Question template not found');
+      }
+
+      mockDataDB.questionTemplates[templateIndex] = {
+        ...mockDataDB.questionTemplates[templateIndex],
+        ...templateData,
+        updatedAt: new Date(),
+      };
+
+      return createApiResponse('200', 'ok', mockDataDB.questionTemplates[templateIndex]);
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async deleteQuestionTemplate(templateId: string): Promise<ApiResponse<void>> {
+    try {
+      const templateIndex = mockDataDB.questionTemplates.findIndex(t => t.id === templateId);
+
+      if (templateIndex === -1) {
+        return createApiResponse('4001', 'Question template not found');
+      }
+
+      mockDataDB.questionTemplates.splice(templateIndex, 1);
+      return createApiResponse('200', 'ok');
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }

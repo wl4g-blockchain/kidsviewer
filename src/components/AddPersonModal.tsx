@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../i18n/I18nProvider';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import { Platform } from '../types';
 
 interface AddPersonModalProps {
   isOpen: boolean;
@@ -14,47 +15,60 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
   const t = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [availablePlatforms, setAvailablePlatforms] = useState<Platform[]>([]);
   const [formData, setFormData] = useState({
     alias: '',
     ageGroup: 'young' as 'preschool' | 'young' | 'older',
     timeLimit: 15,
     questionCount: 3,
+    selectedPlatformIds: [] as string[],
     subjects: [
-      { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' as const },
-      { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' as const },
-      { id: 'english', name: 'English', enabled: true, difficulty: 'easy' as const }
-    ],
-    allowedUrls: ['']
+      { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+      { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+      { id: 'english', name: 'English', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+    ] as { id: string; name: string; enabled: boolean; difficulty: 'easy' | 'medium' | 'hard' }[],
   });
 
+  // Load available platforms
+  useEffect(() => {
+    if (isOpen) {
+      loadPlatforms();
+    }
+  }, [isOpen]);
+
+  const loadPlatforms = async () => {
+    try {
+      const response = await apiHandler.getPlatforms();
+      if (response.errcode === '200' && response.data) {
+        setAvailablePlatforms(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to load platforms:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     if (!currentUser || currentUser.userType !== 'PARENTAL') {
-      setError(t('parental.onlyParentCanAdd'))
-      return
+      setError(t('parental.onlyParentCanAdd'));
+      return;
     }
 
     if (!formData.alias.trim()) {
-      setError(t('parental.pleaseEnterPersonName'))
-      return
+      setError(t('parental.pleaseEnterPersonName'));
+      return;
     }
 
-    setIsLoading(true)
-    setError(null)
-    
+    if (formData.selectedPlatformIds.length === 0) {
+      setError('Please select at least one platform');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
     try {
-      // Filter out empty URLs and convert to new format
-      const filteredUrls = formData.allowedUrls
-        .filter(url => url.trim() !== '')
-        .map(url => ({
-          platformName: url.split('/')[2] || 'Unknown Platform',
-          url: url,
-          difficulty: 'easy' as const,
-          maxDailyTime: 30,
-          description: 'Custom platform'
-        }))
-      
       console.log('Creating person profile...', {
         parentalId: currentUser.id,
         personData: {
@@ -62,101 +76,98 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
           ageGroup: formData.ageGroup,
           settings: {
             sessionTimeLimit: formData.timeLimit,
-            dailyTimeLimit: formData.timeLimit * 4, // 4x session limit as daily limit
+            dailyTotalTimeLimit: formData.timeLimit * 4, // 4x session limit as daily limit
             questionCount: formData.questionCount,
             questionsPerDay: formData.questionCount * 3, // 3x session questions as daily limit
             subjects: formData.subjects.filter(subject => subject.enabled),
-            allowedUrls: filteredUrls
-          }
-        }
-      })
+            platformIds: formData.selectedPlatformIds,
+          },
+        },
+      });
 
       const response = await apiHandler.createPerson(currentUser.id, {
         alias: formData.alias,
         ageGroup: formData.ageGroup,
         settings: {
           sessionTimeLimit: formData.timeLimit,
-          dailyTimeLimit: formData.timeLimit * 4,
+          dailyTotalTimeLimit: formData.timeLimit * 4,
           questionCount: formData.questionCount,
           questionsPerDay: formData.questionCount * 3,
           subjects: formData.subjects.filter(subject => subject.enabled),
-          allowedUrls: filteredUrls
-        }
-      })
+          platformIds: formData.selectedPlatformIds,
+        },
+      });
 
-      console.log('API response:', response)
+      console.log('API response:', response);
 
-      if (response.errcode === "200" && response.data) {
-        console.log('Person profile created successfully:', response.data)
-        onSuccess(response.data)
-        onClose()
+      if (response.errcode === '200' && response.data) {
+        console.log('Person profile created successfully:', response.data);
+        onSuccess(response.data);
+        onClose();
         // Reset form
         setFormData({
           alias: '',
           ageGroup: 'young',
           timeLimit: 15,
           questionCount: 3,
+          selectedPlatformIds: [],
           subjects: [
-            { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
-            { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
-            { id: 'english', name: 'English', enabled: true, difficulty: 'easy' }
+            { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+            { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+            { id: 'english', name: 'English', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
           ],
-          allowedUrls: ['']
-        })
-        setError(null)
+        });
+        setError(null);
       } else {
-        console.error('Failed to create person profile:', response.errmsg)
-        setError(response.errmsg || t('parental.createPersonFailed'))
+        console.error('Failed to create person profile:', response.errmsg);
+        setError(response.errmsg || t('parental.createPersonFailed'));
       }
     } catch (error) {
-      console.error('Error occurred while creating person profile:', error)
-      setError(error instanceof Error ? error.message : t('parental.createPersonError'))
+      console.error('Error occurred while creating person profile:', error);
+      setError(error instanceof Error ? error.message : t('parental.createPersonError'));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSubjectToggle = (subjectId: string) => {
     setFormData(prev => ({
       ...prev,
-      subjects: prev.subjects.map(subject =>
-        subject.id === subjectId ? { ...subject, enabled: !subject.enabled } : subject
-      )
-    }))
-  }
+      subjects: prev.subjects.map(subject => (subject.id === subjectId ? { ...subject, enabled: !subject.enabled } : subject)),
+    }));
+  };
 
-  const handleUrlChange = (index: number, value: string) => {
+  const handleSubjectDifficultyChange = (subjectId: string, difficulty: 'easy' | 'medium' | 'hard') => {
     setFormData(prev => ({
       ...prev,
-      allowedUrls: prev.allowedUrls.map((url, i) => i === index ? value : url)
-    }))
-  }
+      subjects: prev.subjects.map(subject => (subject.id === subjectId ? { ...subject, difficulty } : subject)),
+    }));
+  };
 
-  const addUrlField = () => {
+  const handlePlatformToggle = (platformId: string) => {
     setFormData(prev => ({
       ...prev,
-      allowedUrls: [...prev.allowedUrls, '']
-    }))
-  }
+      selectedPlatformIds: prev.selectedPlatformIds.includes(platformId)
+        ? prev.selectedPlatformIds.filter(id => id !== platformId)
+        : [...prev.selectedPlatformIds, platformId]
+    }));
+  };
 
-  const removeUrlField = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      allowedUrls: prev.allowedUrls.filter((_, i) => i !== index)
-    }))
-  }
+  // Filter platforms by age group
+  const getFilteredPlatforms = () => {
+    return availablePlatforms.filter(platform => 
+      platform.ageGroups.includes(formData.ageGroup)
+    );
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">{t('parental.addPerson')}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -170,13 +181,11 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
 
           {/* Person Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('parental.personName')}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('parental.personName')}</label>
             <input
               type="text"
               value={formData.alias}
-              onChange={(e) => setFormData(prev => ({ ...prev, alias: e.target.value }))}
+              onChange={e => setFormData(prev => ({ ...prev, alias: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder={t('parental.personName')}
               required
@@ -185,12 +194,10 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
 
           {/* Age Group */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('parental.ageGroup')}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('parental.ageGroup')}</label>
             <select
               value={formData.ageGroup}
-              onChange={(e) => setFormData(prev => ({ ...prev, ageGroup: e.target.value as any }))}
+              onChange={e => setFormData(prev => ({ ...prev, ageGroup: e.target.value as any }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="preschool">{t('parental.ageGroups.preschool')}</option>
@@ -199,14 +206,14 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
             </select>
           </div>
 
-          {/* Time Limit */}
+          {/* Session Time Limit */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('parental.timeLimit')} ({t('time.minutes')})
+              {t('parental.sessionTimeLimit')} ({t('time.minutes')})
             </label>
             <select
               value={formData.timeLimit}
-              onChange={(e) => setFormData(prev => ({ ...prev, timeLimit: parseInt(e.target.value) }))}
+              onChange={e => setFormData(prev => ({ ...prev, timeLimit: parseInt(e.target.value) }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value={10}>10 {t('time.minutes')}</option>
@@ -219,12 +226,10 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
 
           {/* Question Count */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('parental.questionCount')}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('parental.questionCount')}</label>
             <select
               value={formData.questionCount}
-              onChange={(e) => setFormData(prev => ({ ...prev, questionCount: parseInt(e.target.value) }))}
+              onChange={e => setFormData(prev => ({ ...prev, questionCount: parseInt(e.target.value) }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value={1}>1 {t('questions.answer')}</option>
@@ -234,61 +239,104 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
             </select>
           </div>
 
-          {/* Subjects */}
+          {/* Subjects with Difficulty */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('parental.subjects')}
-            </label>
-            <div className="space-y-2">
-              {formData.subjects.map((subject) => (
-                <label key={subject.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={subject.enabled}
-                    onChange={() => handleSubjectToggle(subject.id)}
-                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <span className="text-sm text-gray-700">{subject.name}</span>
-                </label>
+            <label className="block text-sm font-medium text-gray-700 mb-3">{t('parental.subjects')}</label>
+            <div className="space-y-4">
+              {formData.subjects.map(subject => (
+                <div key={subject.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={subject.enabled}
+                        onChange={() => handleSubjectToggle(subject.id)}
+                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-700">{subject.name}</span>
+                    </label>
+                  </div>
+                  
+                  {subject.enabled && (
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-2">Difficulty Level</label>
+                      <div className="flex space-x-2">
+                        {(['easy', 'medium', 'hard'] as const).map(difficulty => (
+                          <button
+                            key={difficulty}
+                            type="button"
+                            onClick={() => handleSubjectDifficultyChange(subject.id, difficulty)}
+                            className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                              subject.difficulty === difficulty
+                                ? difficulty === 'easy' ? 'bg-green-500 text-white'
+                                : difficulty === 'medium' ? 'bg-yellow-500 text-white'
+                                : 'bg-red-500 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Allowed URLs */}
+          {/* Platform Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('parental.allowedUrls')}
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Available Platforms for {formData.ageGroup === 'preschool' ? 'Preschool (2-4)' : 
+                                      formData.ageGroup === 'young' ? 'Young (4-6)' : 'Older (6-12)'}
             </label>
-            <div className="space-y-2">
-              {formData.allowedUrls.map((url, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <input
-                    type="url"
-                    value={url}
-                    onChange={(e) => handleUrlChange(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="https://example.com"
-                  />
-                  {formData.allowedUrls.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeUrlField(index)}
-                      className="p-2 text-red-600 hover:text-red-800 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addUrlField}
-                className="flex items-center text-blue-600 hover:text-blue-800 transition-colors text-sm"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                {t('parental.addUrl')}
-              </button>
+            <div className="space-y-3 max-h-60 overflow-y-auto">
+              {getFilteredPlatforms().length === 0 ? (
+                <p className="text-gray-500 text-sm">No platforms available for this age group</p>
+              ) : (
+                getFilteredPlatforms().map(platform => (
+                  <div
+                    key={platform.id}
+                    className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                      formData.selectedPlatformIds.includes(platform.id)
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    onClick={() => handlePlatformToggle(platform.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
+                            formData.selectedPlatformIds.includes(platform.id)
+                              ? 'border-blue-500 bg-blue-500'
+                              : 'border-gray-300'
+                          }`}>
+                            {formData.selectedPlatformIds.includes(platform.id) && (
+                              <Check className="w-3 h-3 text-white" />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">{platform.nameEN}</h4>
+                            <p className="text-sm text-gray-600">{platform.nameCN}</p>
+                          </div>
+                        </div>
+                        {/* Platform difficulty and time limits are now managed at Person level */}
+                        {platform.description && (
+                          <p className="text-xs text-gray-500 mt-1">{platform.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
+            {formData.selectedPlatformIds.length > 0 && (
+              <p className="text-sm text-blue-600 mt-2">
+                {formData.selectedPlatformIds.length} platform(s) selected
+              </p>
+            )}
           </div>
 
           {/* Submit Button */}
@@ -311,5 +359,5 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
         </form>
       </div>
     </div>
-  )
-}
+  );
+};

@@ -19,50 +19,70 @@ export interface Person extends User {
   userType: 'PERSON';
   parentalId: string;
   alias: string;
-  ageGroup: 'preschool' | 'young' | 'older'; // 2-4, 4-6, 6-12
+  ageGroup: 'preschool' | 'young' | 'older' | 'teen'; // 2-4, 4-6, 6-12, 12-14
   settings: PersonSettings;
   statistics: PersonStatistics;
+}
+
+// Platform management
+export interface Platform {
+  id: string;
+  nameEN: string;
+  nameCN: string;
+  url: string;
+  description?: string;
+  ageGroups: ('preschool' | 'young' | 'older' | 'teen')[]; // Suitable age groups
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Base question interface - shared properties
+export interface BaseQuestion {
+  id: string;
+  type: QuestionType;
+  subject: string;
+  difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert'; // Expanded to 5 levels
+  content: string;
+  options?: string[];
+  correctAnswer: string | number;
+  language: string;
+}
+
+// Question template - stored in database with i18n explanations
+export interface QuestionTemplate extends BaseQuestion {
+  explanationEN?: string; // English explanation
+  explanationCN?: string; // Chinese explanation
+  ageGroups: ('preschool' | 'young' | 'older' | 'teen')[]; // Suitable age groups
+  tags: string[]; // Additional tags for filtering
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Person settings
 export interface PersonSettings {
   // Time limits
   sessionTimeLimit: number; // Minutes per watching session (e.g., 15, 30, 45)
-  dailyTimeLimit: number; // Total minutes allowed per day (e.g., 120, 180)
-  
+  dailyTotalTimeLimit: number; // Total minutes allowed per day (e.g., 120, 180)
+
   // Question settings
   questionCount: number; // Number of questions to unlock per session
   questionsPerDay: number; // Maximum questions per day
-  
-  // Subject and content settings
+
+  // Platform and question settings
+  platformIds: string[]; // IDs of allowed platforms
   subjects: Subject[];
-  allowedUrls: {
-    platformName: string;
-    url: string;
-    difficulty: 'easy' | 'medium' | 'hard';
-    maxDailyTime: number; // Platform-specific daily time limit
-    description?: string;
-  }[];
 }
 
 export interface Subject {
   id: string;
   name: string;
   enabled: boolean;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 }
 
-// Question types
-export interface Question {
-  id: string;
-  type: QuestionType;
-  subject: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  content: string;
-  options?: string[];
-  correctAnswer: string | number;
-  explanation?: string;
-  language: string;
+// Question instance - used during quiz sessions with dynamic explanation
+export interface Question extends BaseQuestion {
+  explanation?: string; // Dynamic explanation based on current language
 }
 
 export type QuestionType = 'multiple-choice' | 'true-false' | 'fill-blank' | 'calculation';
@@ -137,7 +157,7 @@ export interface WatchingStatusResponse {
   remainingTime: number; // Minutes remaining in current session
   remainingDailyTime: number; // Minutes remaining today
   questions?: Question[]; // Questions if needed
-  dailyTimeExceeded?: boolean; // Whether daily time limit is exceeded
+  dailyTimeExceeded?: boolean; // Whether daily total time limit is exceeded
 }
 
 // App state types
@@ -173,4 +193,13 @@ export interface AppSettings {
     autoUpdate: boolean;
     betaChannel: boolean;
   };
+}
+
+// App information types
+export interface AppInfo {
+  version: string;
+  buildType: 'development' | 'production';
+  platform: string;
+  buildDate: string;
+  commitHash?: string;
 }
