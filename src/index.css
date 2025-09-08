@@ -12,7 +12,7 @@
     @apply antialiased;
   }
 
-  /* iOS 安全区域支持 */
+  /* iOS safe area support */
   @supports (padding-top: env(safe-area-inset-top)) {
     .ios-safe-area {
       padding-top: env(safe-area-inset-top);
@@ -37,17 +37,17 @@
     @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
   }
 
-  /* 简洁的卡片样式 */
+  /* Clean card styles */
   .card-modern {
     @apply bg-white rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-200;
   }
 
-  /* 渐变按钮 */
+  /* Gradient buttons */
   .btn-gradient {
     @apply bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium rounded-xl px-4 py-2 transition-all duration-200 shadow-lg transform hover:scale-105;
   }
 
-  /* 统计卡片 */
+  /* Statistics cards */
   .stat-card {
     @apply text-center rounded-xl p-4 border transition-all duration-200 hover:shadow-lg;
   }
@@ -66,7 +66,7 @@
     box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
   }
 
-  /* 简洁的渐变背景 */
+  /* Clean gradient background */
   .bg-gradient-clean {
     @apply bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50;
   }
@@ -75,7 +75,7 @@
     @apply bg-gradient-to-br from-green-50 via-emerald-50 to-cyan-50;
   }
   
-  /* iOS 安全区域内边距工具类 */
+  /* iOS safe area padding utility classes */
   .pt-safe {
     padding-top: env(safe-area-inset-top, 0);
   }
@@ -205,7 +205,7 @@
   animation: kidsSpin 3s linear infinite;
 }
 
-/* 彩虹渐变文字 */
+/* Rainbow gradient text */
 .kids-text-rainbow {
   background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3);
   background-size: 400% 400%;
@@ -224,7 +224,7 @@
   }
 }
 
-/* 儿童友好的彩虹背景样式 */
+/* Child-friendly rainbow background styles */
 .kids-bg-rainbow {
   background: linear-gradient(135deg, 
     #e0f2fe 0%,   /* light cyan */
@@ -239,14 +239,14 @@
   background: linear-gradient(to bottom right, #a5f3fc, #e0f2fe, #ddd6fe);
 }
 
-/* 彩色边框 */
+/* Colorful borders */
 .kids-border-rainbow {
   border: 3px solid;
   border-image: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3) 1;
   border-radius: 20px;
 }
 
-/* 彩色阴影 */
+/* Colorful shadows */
 .kids-shadow-colorful {
   box-shadow: 0 8px 32px rgba(255, 107, 107, 0.2), 
               0 8px 32px rgba(78, 205, 196, 0.2),

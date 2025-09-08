@@ -13,7 +13,10 @@
         "next": "Next",
         "previous": "Previous",
         "submit": "Submit",
+        "submitting": "Submitting...",
         "close": "Close",
+        "incorrectPassword": "Incorrect password",
+        "passwordError": "Password verification failed",
         "yes": "Yes",
         "no": "No",
         "switchUser": "Switch User",
@@ -370,8 +373,11 @@
         "dailyTimeLimitMessage": "For your health, today's viewing time has been used up. Come back tomorrow to continue learning!",
         "back": "Back",
         "watching": "Watching",
+        "watchingActive": "Active",
         "platform": "Platform",
         "remainingTime": "Remaining Time",
+        "sessionTime": "Session Time",
+        "dailyTime": "Daily Time",
         "answerQuestionsToContinue": "Answer questions to continue watching",
         "answerQuestionsRemaining": "Please answer {count} questions to continue watching",
         "enjoyWatching": "Enjoy your viewing time!",
@@ -480,5 +486,21 @@
             "fill-blank": "Fill in the Blank",
             "calculation": "Calculation"
         }
+    },
+    "questionModal": {
+        "title": "Answer Questions to Continue Watching",
+        "subtitle": "Please answer the following questions to continue watching content",
+        "correct": "Correct!",
+        "incorrect": "Incorrect",
+        "yourAnswer": "Your answer",
+        "correctAnswerWillShow": "Correct answer will be shown in 3 seconds",
+        "pleaseSelectCorrectAnswer": "Please select the correct answer",
+        "instruction": "Select the correct answer and click submit",
+        "clickToSelectAnswer": "Click to select your answer",
+        "selectAnswerFirst": "Please select an answer first",
+        "submitAnswer": "Submit Answer",
+        "questionProgress": "Question Progress",
+        "questionOf": "Question {current} of {total}",
+        "skipQuestions": "Skip Questions"
     }
 }

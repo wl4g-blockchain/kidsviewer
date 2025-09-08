@@ -31,7 +31,7 @@ export const ParentalPasswordModal: React.FC<ParentalPasswordModalProps> = ({ is
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100000]">
       <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">

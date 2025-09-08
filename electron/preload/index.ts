@@ -37,6 +37,12 @@ const exposeAPI = () => {
       openVideoWindow: (params: { url: string; title?: string }) => ipcRenderer.invoke('open-video-window', params),
       closeVideoWindow: (windowId: number) => ipcRenderer.invoke('close-video-window', windowId),
       closeAllVideoWindows: () => ipcRenderer.invoke('close-all-video-windows'),
+
+      // Video visibility control for questions
+      hideVideoView: () => ipcRenderer.invoke('hide-video-view'),
+      showVideoView: () => ipcRenderer.invoke('show-video-view'),
+      minimizeVideoWindow: (windowId: number) => ipcRenderer.invoke('minimize-video-window', windowId),
+      restoreVideoWindow: (windowId: number) => ipcRenderer.invoke('restore-video-window', windowId),
     };
 
     // Test if IPC channel is working
@@ -64,18 +70,18 @@ const waitForDOM = () => {
   try {
     if (typeof document !== 'undefined') {
       document.addEventListener('DOMContentLoaded', () => {
-        // 检查API是否已经成功暴露
+        // Checking APIs exposed in the window object
         const win = window as any;
         if (!win.electronAPI) {
-          console.warn('DOMContentLoaded事件触发，但electronAPI不存在，尝试重新暴露');
+          console.warn('DOMContentLoadedEvent: but electronAPI is not exist, trying to expose again');
           exposeAPI();
         } else {
-          console.log('DOMContentLoaded事件触发，electronAPI已存在');
+          console.info('DOMContentLoadedEvent: electronAPI is exist');
         }
       });
     }
   } catch (e) {
-    console.error('等待DOM事件错误:', e);
+    console.error('Waiting DOM event error:', e);
   }
 };
 

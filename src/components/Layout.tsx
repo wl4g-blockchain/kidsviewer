@@ -14,7 +14,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const t = useTranslation();
   const [isIOS, setIsIOS] = useState(false);
 
-  // 检测是否在iOS环境中运行
+  // Detect if running in iOS environment
   useEffect(() => {
     const checkPlatform = () => {
       const userAgent = window.navigator.userAgent.toLowerCase();
@@ -29,7 +29,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     checkPlatform();
   }, []);
 
-  // 为iOS设备添加安全区域类名
+  // Add safe area class names for iOS devices
   const safeAreaClass = isIOS ? 'ios-safe-area' : '';
 
   return (

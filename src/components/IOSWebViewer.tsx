@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from '../i18n/I18nProvider';
 import { AlertCircle, Loader2, Bug, X, Maximize2, Monitor } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
@@ -7,11 +7,14 @@ import { QuestionsContainer, Question as QuestionType } from './QuestionModal';
 import { useWatchingSession } from '../hooks/useWatchingSession';
 
 interface IOSWebViewerProps {
-  url: string;
+  platformId: string;
   platformName: string;
+  platformUrl: string;
   personId: string;
   onLoadError?: (error: string) => void;
   onLoadSuccess?: () => void;
+  onCountdownUpdate?: (sessionTime: number, dailyTime: number) => void;
+  onRefreshRef?: React.MutableRefObject<(() => void) | null>;
   className?: string;
 }
 
@@ -20,7 +23,17 @@ interface IOSWebViewerProps {
  * Features hidden address bar and bottom area in popup mode
  * Supports i18n with English comments
  */
-export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, personId, onLoadError, onLoadSuccess, className = '' }) => {
+export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({
+  platformId,
+  platformName,
+  platformUrl,
+  personId,
+  onLoadError,
+  onLoadSuccess,
+  onCountdownUpdate,
+  onRefreshRef,
+  className = '',
+}) => {
   // Use common watching session hook
   const {
     watchingToken,
@@ -29,17 +42,25 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
     errorMessage: sessionErrorMessage,
     showQuestions,
     questions: sessionQuestions,
+    remainingTime,
+    remainingDailyTime,
     startWatching,
     handleAnswerQuestion,
+    setShowQuestions,
     clearError,
-  } = useWatchingSession(personId, url, onLoadError, onLoadSuccess);
+    resetWatchingSession,
+  } = useWatchingSession(personId, platformId, onLoadError, onLoadSuccess);
 
   // Convert session questions to component format
-  const questions: QuestionType[] = sessionQuestions.map(q => ({
-    id: q.id,
-    question: q.question,
-    options: q.options,
-  }));
+  const questions: QuestionType[] = useMemo(
+    () =>
+      sessionQuestions.map(q => ({
+        id: q.id,
+        question: q.question,
+        options: q.options,
+      })),
+    [sessionQuestions]
+  );
 
   // Local component state
   const [popupWindow, setPopupWindow] = useState<Window | null>(null);
@@ -60,11 +81,11 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
 
   // Initialize component on mount
   useEffect(() => {
-    addLog(`Component mounted - URL: ${url}`);
+    addLog(`Component mounted - platformId: ${platformId}`);
     addLog(`Capacitor environment: ${Capacitor.isNativePlatform() ? 'Yes' : 'No'}`);
     addLog(`Platform: ${Capacitor.getPlatform()}`);
 
-    // Start watching session
+    // Start watching session when component mounts or personId/platformId changes
     startWatching().then(() => {
       setShowStartButton(true);
     });
@@ -75,7 +96,39 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
         popupWindow.close();
       }
     };
-  }, [startWatching]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personId, platformId]); // Re-start when personId or platformId changes
+
+  // Handle refresh - reset and restart watching session
+  const handleRefresh = useCallback(() => {
+    console.log('IOSWebViewer: Refreshing watching session...');
+    resetWatchingSession();
+    // Small delay to ensure state is reset before restarting
+    setTimeout(() => {
+      startWatching().then(() => {
+        setShowStartButton(true);
+      });
+    }, 100);
+  }, [resetWatchingSession, startWatching]);
+
+  // Set refresh function to ref for parent component
+  useEffect(() => {
+    if (onRefreshRef) {
+      onRefreshRef.current = handleRefresh;
+    }
+    return () => {
+      if (onRefreshRef) {
+        onRefreshRef.current = null;
+      }
+    };
+  }, [onRefreshRef, handleRefresh]);
+
+  // Notify parent component of countdown updates
+  useEffect(() => {
+    if (onCountdownUpdate && remainingTime > 0 && remainingDailyTime > 0) {
+      onCountdownUpdate(remainingTime, remainingDailyTime);
+    }
+  }, [remainingTime, remainingDailyTime, onCountdownUpdate]);
 
   // Computed states based on session and local state
   const isLoading = sessionLoading || localLoading;
@@ -87,12 +140,12 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
     addLog('Attempting to open content in app browser...');
     try {
       setLocalLoading(true);
-      addLog(`Opening URL: ${url}`);
+      addLog(`Opening platformId: ${platformId}`);
 
       // Use Capacitor Browser plugin to open URL in app
       if (Capacitor.isNativePlatform()) {
         await Browser.open({
-          url,
+          url: platformUrl,
           presentationStyle: 'fullscreen',
           toolbarColor: '#000000',
           windowName: 'webViewer',
@@ -138,7 +191,7 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
           'fullscreen=no',
         ].join(',');
 
-        const newWindow = window.open(url, 'webViewer', popupFeatures);
+        const newWindow = window.open(platformUrl, 'webViewer', popupFeatures);
 
         if (!newWindow) {
           throw new Error('Popup blocked by browser');
@@ -205,21 +258,25 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
     addLog(`Submitting answer for question ${questionId}: ${answer}`);
 
     try {
-      await handleAnswerQuestion(questionId, answer);
+      const result = await handleAnswerQuestion(questionId, answer);
+      addLog(`Answer result: ${result}`);
 
       // Reopen popup if it was closed and questions are no longer showing
       if (!popupActive && !showQuestions) {
         openPopupWindow();
       }
+
+      return result; // Return the result to QuestionModal
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : 'Unknown error';
       addLog(`Error verifying question: ${errMsg}`);
+      return false; // Return false on error
     }
   };
 
   return (
     <div className={`relative webViewer-container ${className}`}>
-      <div className="w-full h-full min-h-[400px] bg-black rounded-lg overflow-hidden">
+      <div className="w-full aspect-video bg-black rounded-lg overflow-hidden">
         {/* Popup active interface */}
         {popupActive && !showQuestions && !showDebug && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white p-6">
@@ -243,7 +300,19 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
         )}
 
         {/* Questions interface */}
-        <QuestionsContainer questions={questions} onAnswer={handleAnswerQuestionWithLog} isVisible={showQuestions} />
+        <QuestionsContainer
+          questions={questions}
+          onAnswer={handleAnswerQuestionWithLog}
+          isVisible={showQuestions}
+          onAllQuestionsCompleted={() => {
+            // Hide questions when all completed
+            setShowQuestions(false);
+          }}
+          onSkipQuestions={() => {
+            // Hide questions when skipped
+            setShowQuestions(false);
+          }}
+        />
 
         {/* Error state */}
         {hasError && !showDebug && (
@@ -310,7 +379,7 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
 
             <div className="grid grid-cols-2 gap-2 mb-2 text-sm">
               <div className="bg-gray-800 p-2 rounded">
-                <span className="font-bold">URL:</span> {url.substring(0, 30)}...
+                <span className="font-bold">URL:</span> {platformUrl.substring(0, 30)}...
               </div>
               <div className="bg-gray-800 p-2 rounded">
                 <span className="font-bold">Capacitor:</span> {Capacitor.isNativePlatform() ? 'Yes' : 'No'}
@@ -337,7 +406,10 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({ url, platformName, p
 
             {/* Safari debug button */}
             <div className="flex mb-2">
-              <button onClick={() => window.open(url, '_blank')} className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-sm rounded flex-1">
+              <button
+                onClick={() => window.open(platformUrl, '_blank')}
+                className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-sm rounded flex-1"
+              >
                 Open in Safari (Debug Only)
               </button>
             </div>

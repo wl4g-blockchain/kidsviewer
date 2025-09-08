@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from '../i18n/I18nProvider';
 import { AlertCircle, ExternalLink, Loader2, RefreshCw, Maximize2 } from 'lucide-react';
 import { isIOS, isElectron as checkIsElectron } from '../utils/platformUtil';
@@ -7,26 +7,32 @@ import { QuestionsContainer, Question as QuestionType } from './QuestionModal';
 import { useWatchingSession } from '../hooks/useWatchingSession';
 
 interface ElectronWebViewerProps {
-  url: string;
+  platformId: string;
   platformName: string;
+  platformUrl: string;
   personId: string;
   onLoadError?: (error: string) => void;
   onLoadSuccess?: () => void;
+  onCountdownUpdate?: (sessionTime: number, dailyTime: number) => void;
+  onRefreshRef?: React.MutableRefObject<(() => void) | null>;
   className?: string;
 }
 
 export const ElectronWebViewer: React.FC<ElectronWebViewerProps> = props => {
-  const { url, platformName, personId, onLoadError, onLoadSuccess, className = '' } = props;
+  const { platformId, platformName, platformUrl, personId, onLoadError, onLoadSuccess, onCountdownUpdate, onRefreshRef, className = '' } = props;
 
   // Choose appropriate viewer implementation based on platform
   if (isIOS()) {
     return (
       <IOSWebViewer
-        url={url}
+        platformId={platformId}
         platformName={platformName}
+        platformUrl={platformUrl}
         personId={personId}
         onLoadError={onLoadError}
         onLoadSuccess={onLoadSuccess}
+        onCountdownUpdate={onCountdownUpdate}
+        onRefreshRef={onRefreshRef}
         className={className}
       />
     );
@@ -38,11 +44,14 @@ export const ElectronWebViewer: React.FC<ElectronWebViewerProps> = props => {
 
 // Electron implementation
 const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
-  url,
+  platformId,
   platformName,
+  platformUrl,
   personId,
   onLoadError,
   onLoadSuccess,
+  onCountdownUpdate,
+  onRefreshRef,
   className = '',
 }) => {
   // Use common watching session hook
@@ -53,18 +62,24 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
     errorMessage: sessionErrorMessage,
     showQuestions,
     questions: sessionQuestions,
+    remainingTime,
+    remainingDailyTime,
     startWatching,
     handleAnswerQuestion,
-    // setShowQuestions, // Not used in ElectronWebViewer
+    setShowQuestions,
     clearError,
-  } = useWatchingSession(personId, url, onLoadError, onLoadSuccess);
+    resetWatchingSession,
+  } = useWatchingSession(personId, platformId, onLoadError, onLoadSuccess);
 
   // Convert session questions to component format
-  const questions: QuestionType[] = sessionQuestions.map(q => ({
-    id: q.id,
-    question: q.question,
-    options: q.options,
-  }));
+  const questions: QuestionType[] = useMemo(() => 
+    sessionQuestions.map(q => ({
+      id: q.id,
+      question: q.question,
+      options: q.options,
+    })), [sessionQuestions]
+  );
+
 
   // Local component state
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,7 +107,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
       // Check if preload script was executed
       const isPreloadExecuted = win.__ELECTRON_PRELOAD_EXECUTED__ === true;
 
-      console.log('Electron environment check:', {
+      console.info('Electron environment check:', {
         isElectronEnv,
         hasElectronAPI: typeof window !== 'undefined' && !!window.electronAPI,
         preloadExecuted: isPreloadExecuted,
@@ -100,7 +115,17 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         windowKeys: Object.keys(window).filter(k => k.includes('electron') || k.includes('ELECTRON')),
       });
 
-      setIsElectron(isElectronEnv);
+      // Only set isElectron if we're confident it's Electron environment
+      // Don't change state if we're already in Electron mode to avoid re-renders
+      if (isElectronEnv && !isElectron) {
+        setIsElectron(true);
+      } else if (!isElectronEnv && isElectron) {
+        // Only change to false if we're absolutely sure it's not Electron
+        const userAgent = window.navigator?.userAgent || '';
+        if (!userAgent.includes('Electron')) {
+          setIsElectron(false);
+        }
+      }
 
       // If detected Electron but electronAPI is undefined, log error
       if (isElectronEnv && !window.electronAPI) {
@@ -120,9 +145,10 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
     if (!window.electronAPI && isElectron) {
       timer = window.setInterval(() => {
         if (window.electronAPI) {
-          console.log('electronAPI successfully loaded');
+          console.info('electronAPI successfully loaded');
           clearInterval(timer!);
-          window.location.reload(); // Refresh page to reload component
+          // Don't reload the page, just update the state
+          setIsElectron(true);
         }
       }, 1000);
     }
@@ -130,21 +156,98 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
     return () => {
       if (timer !== null) clearInterval(timer);
     };
-  }, []);
+  }, [isElectron, onLoadError]);
 
-  // Start watching session when component mounts
+  // Start watching session when component mounts or personId/platformId changes
   useEffect(() => {
     startWatching();
-  }, [startWatching]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personId, platformId]); // Re-start when personId or platformId changes
+
+  // Handle refresh - reset and restart watching session
+  const handleRefresh = useCallback(() => {
+    console.log('ElectronWebViewer: Refreshing watching session...');
+    
+    // Clean up existing webview first
+    if (isElectron && window.electronAPI) {
+      if (webViewMode === 'embedded') {
+        window.electronAPI.destroyVideoView();
+      } else if (webViewWindowId !== null) {
+        window.electronAPI.closeVideoWindow(webViewWindowId);
+        setWebViewWindowId(null);
+      }
+    }
+    
+    // Reset watching session
+    resetWatchingSession();
+    
+    // Small delay to ensure state is reset before restarting
+    setTimeout(() => {
+      startWatching();
+    }, 100);
+  }, [resetWatchingSession, startWatching, isElectron, webViewMode, webViewWindowId]);
+
+  // Set refresh function to ref for parent component
+  useEffect(() => {
+    if (onRefreshRef) {
+      onRefreshRef.current = handleRefresh;
+    }
+    return () => {
+      if (onRefreshRef) {
+        onRefreshRef.current = null;
+      }
+    };
+  }, [onRefreshRef, handleRefresh]);
+
+  // Notify parent component of countdown updates
+  useEffect(() => {
+    if (onCountdownUpdate && remainingTime > 0 && remainingDailyTime > 0) {
+      onCountdownUpdate(remainingTime, remainingDailyTime);
+    }
+  }, [remainingTime, remainingDailyTime, onCountdownUpdate]);
 
   // Handle questions showing - pause content when questions appear
   useEffect(() => {
     if (showQuestions) {
-      // Pause content viewing when questions are shown
+      // Hide content when questions are shown
       if (webViewMode === 'embedded') {
-        // Hide or pause embedded content
+        // Hide embedded BrowserView when questions are shown
+        if (window.electronAPI && window.electronAPI.hideVideoView) {
+          window.electronAPI.hideVideoView();
+        }
       } else if (webViewWindowId !== null) {
-        // Minimize or pause window content
+        // Minimize window when questions are shown
+        if (window.electronAPI && window.electronAPI.minimizeVideoWindow) {
+          window.electronAPI.minimizeVideoWindow(webViewWindowId);
+        }
+      }
+    } else {
+      // Show content again when questions are hidden
+      if (webViewMode === 'embedded') {
+        if (window.electronAPI && window.electronAPI.showVideoView) {
+          window.electronAPI.showVideoView();
+        }
+      } else if (webViewWindowId !== null) {
+        // Restore window when questions are hidden
+        if (window.electronAPI && window.electronAPI.restoreVideoWindow) {
+          window.electronAPI.restoreVideoWindow(webViewWindowId);
+          
+          // Try to resize window after a short delay to ensure it's restored
+          setTimeout(() => {
+            const container = containerRef.current;
+            if (container && window.electronAPI && window.electronAPI.updateVideoBounds) {
+              const rect = container.getBoundingClientRect();
+              const bounds = {
+                x: Math.round(rect.left),
+                y: Math.round(rect.top),
+                width: Math.round(rect.width),
+                height: Math.round(rect.height),
+              };
+              console.log('Updating video window bounds after restore:', bounds);
+              window.electronAPI.updateVideoBounds(bounds);
+            }
+          }, 100);
+        }
       }
     }
   }, [showQuestions, webViewMode, webViewWindowId]);
@@ -169,6 +272,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
   // Initialize BrowserView when component mounts
   useEffect(() => {
     if (!isElectron || !containerRef.current || webViewMode !== 'embedded') return;
+    console.debug('>>> Initializing WebViewer with URL:', platformUrl);
 
     const initializeWebView = async () => {
       try {
@@ -189,14 +293,12 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
           height: Math.round(rect.height),
         };
 
-        console.log('Creating web view with bounds:', bounds);
-        console.log('Loading URL:', url);
+        console.info('Creating WebViewer with URL:', platformUrl, 'and bounds:', bounds);
 
         // Create BrowserView
-        const result = await window.electronAPI.createVideoView({ url, bounds });
-
+        const result = await window.electronAPI.createVideoView({ url: platformUrl, bounds });
         if (result.success) {
-          console.debug('Web view created successfully');
+          console.debug('WebViewer created successfully');
           setIsRetrying(false);
         } else {
           throw new Error(result.error || 'Failed to create web view');
@@ -232,14 +334,13 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
 
     // Initialize with a small delay to ensure DOM is ready
     const timer = setTimeout(initializeWebView, 100);
-
     return () => {
       clearTimeout(timer);
       if (window.electronAPI) {
         window.electronAPI.removeVideoListeners();
       }
     };
-  }, [isElectron, url, onLoadError, onLoadSuccess, webViewMode]);
+  }, [isElectron, webViewMode, platformUrl, onLoadError, onLoadSuccess]);
 
   // Initialize window mode when selected
   useEffect(() => {
@@ -255,7 +356,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         }
 
         const result = await window.electronAPI.openVideoWindow({
-          url,
+          url: platformUrl,
           title: `${platformName} - ${t('webViewer.windowTitle')}`,
         });
 
@@ -282,7 +383,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         setWebViewWindowId(null);
       }
     };
-  }, [isElectron, url, platformName, webViewMode, t, onLoadError, onLoadSuccess]);
+  }, [isElectron, platformUrl, platformName, webViewMode, t, onLoadError, onLoadSuccess]);
 
   // Handle window resize and update BrowserView bounds
   useEffect(() => {
@@ -338,7 +439,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
       // Prefer our standalone window functionality
       window.electronAPI
         .openVideoWindow({
-          url,
+          url: platformUrl,
           title: `${platformName} - ${t('webViewer.windowTitle')}`,
         })
         .then(result => {
@@ -351,16 +452,16 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
           console.error('Error opening window:', error);
           // Fallback to regular openUrl
           if (window.electronAPI?.openUrl) {
-            window.electronAPI.openUrl(url);
+            window.electronAPI.openUrl(platformUrl);
           } else {
-            window.open(url, '_blank', 'width=1200,height=800');
+            window.open(platformUrl, '_blank', 'width=1200,height=800');
           }
         });
     } else if (isElectron && window.electronAPI?.openUrl) {
-      window.electronAPI.openUrl(url);
+      window.electronAPI.openUrl(platformUrl);
     } else {
       console.error('Electron API not available, falling back to window.open');
-      window.open(url, '_blank', 'width=1200,height=800');
+      window.open(platformUrl, '_blank', 'width=1200,height=800');
     }
   };
 
@@ -385,7 +486,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
 
         console.log(`Retry ${retryCount + 1}: Creating web view with bounds:`, bounds);
 
-        const result = await window.electronAPI.createVideoView({ url, bounds });
+        const result = await window.electronAPI.createVideoView({ url: platformUrl, bounds });
 
         if (!result.success) {
           throw new Error(result.error || 'Failed to create web view');
@@ -400,7 +501,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
       // Retry in window mode
       try {
         const result = await window.electronAPI.openVideoWindow({
-          url,
+          url: platformUrl,
           title: `${platformName} - ${t('webViewer.windowTitle')}`,
         });
 
@@ -438,7 +539,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
   };
 
   useEffect(() => {
-    console.log('Debug: Electron detection state:', {
+    console.debug('Electron detection state:', {
       isElectron,
       hasElectronAPI: !!window.electronAPI,
       apis: window.electronAPI ? Object.keys(window.electronAPI) : [],
@@ -447,7 +548,10 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
 
   return (
     <div className={`relative ${className}`}>
-      <div ref={containerRef} className="w-full h-full min-h-[400px] bg-black rounded-lg overflow-hidden webViewer-container">
+      <div 
+        ref={containerRef} 
+        className={`w-full aspect-video bg-black rounded-lg webViewer-container ${showQuestions ? 'opacity-0 pointer-events-none' : ''}`}
+      >
         {/* Loading state */}
         {isLoading && !hasError && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 text-white">
@@ -493,12 +597,11 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
           </div>
         )}
 
-        {/* Questions interface */}
-        <QuestionsContainer questions={questions} onAnswer={handleAnswerQuestion} isVisible={showQuestions} />
-
         {/* Success state for embedded mode */}
         {!isLoading && !hasError && isElectron && webViewMode === 'embedded' && (
-          <div className="absolute inset-0 pointer-events-none">{/* This div serves as a placeholder for the BrowserView */}</div>
+          <div className="absolute inset-0 pointer-events-none">
+            {/* This div serves as a placeholder for the BrowserView */}
+          </div>
         )}
 
         {/* Success state for window mode */}
@@ -549,6 +652,27 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
           </button>
         )}
       </div>
+
+      {/* Questions interface - moved outside containerRef to ensure proper positioning */}
+      <QuestionsContainer 
+        questions={questions} 
+        onAnswer={handleAnswerQuestion} 
+        isVisible={showQuestions}
+        onAllQuestionsCompleted={() => {
+          // Hide questions when all completed
+          // The useEffect will automatically handle showing the webview
+          setShowQuestions(false);
+        }}
+        onSkipQuestions={() => {
+          // Hide questions when skipped
+          setShowQuestions(false);
+        }}
+      />
+      
+      {/* Overlay to ensure questions are always on top when visible */}
+      {showQuestions && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 pointer-events-auto z-[9998]"></div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,16 @@
 import { IAPIHandler } from './IAPIHandler';
-import { User, Person, Question, ApiResponse, AppSettings, AppInfo, Platform, QuestionTemplate, WatchingSessionResponse, WatchingStatusResponse } from '../types';
+import {
+  User,
+  Person,
+  Question,
+  ApiResponse,
+  AppSettings,
+  AppInfo,
+  Platform,
+  QuestionTemplate,
+  WatchingSessionResponse,
+  WatchingStatusResponse,
+} from '../types';
 
 /**
  * Standard API Handler for Production Environment
@@ -17,10 +28,7 @@ export class StandardAPIHandler implements IAPIHandler {
   /**
    * Helper method to make authenticated API calls
    */
-  private async apiCall<T>(
-    endpoint: string, 
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
+  private async apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     try {
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
@@ -141,6 +149,7 @@ export class StandardAPIHandler implements IAPIHandler {
   async getPersonPlatforms(personId: string): Promise<
     ApiResponse<
       {
+        platformId: string;
         platformNameEN: string;
         platformNameCN: string;
         url: string;
@@ -152,10 +161,10 @@ export class StandardAPIHandler implements IAPIHandler {
   }
 
   // Watching control APIs
-  async startWatching(personId: string, platformUrl: string): Promise<ApiResponse<WatchingSessionResponse>> {
+  async startWatching(personId: string, platformId: string): Promise<ApiResponse<WatchingSessionResponse>> {
     return this.apiCall('/watching/start', {
       method: 'POST',
-      body: JSON.stringify({ personId, platformUrl }),
+      body: JSON.stringify({ personId: personId, platformId: platformId }),
     });
   }
 
@@ -273,12 +282,16 @@ export class StandardAPIHandler implements IAPIHandler {
     return this.apiCall(`/platforms/${platformId}`, { method: 'DELETE' });
   }
 
-  async getQuestionTemplates(filters?: { subject?: string; difficulty?: string; ageGroup?: string }): Promise<ApiResponse<QuestionTemplate[]>> {
+  async getQuestionTemplates(filters?: {
+    subject?: string;
+    difficulty?: string;
+    ageGroup?: string;
+  }): Promise<ApiResponse<QuestionTemplate[]>> {
     const queryParams = new URLSearchParams();
     if (filters?.subject) queryParams.append('subject', filters.subject);
     if (filters?.difficulty) queryParams.append('difficulty', filters.difficulty);
     if (filters?.ageGroup) queryParams.append('ageGroup', filters.ageGroup);
-    
+
     const url = `/questions/templates${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
     return this.apiCall(url);
   }

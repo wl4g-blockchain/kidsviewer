@@ -118,7 +118,7 @@ export const ParentalHome: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to update settings:', error);
-      alert(t('parental.updateSettingsFailed'));
+      //alert(t('parental.updateSettingsFailed'));
     }
   };
 
@@ -143,7 +143,7 @@ export const ParentalHome: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to delete person:', error);
-      alert(t('parental.deletePersonFailed'));
+      //alert(t('parental.deletePersonFailed'));
     }
   };
 

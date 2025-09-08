@@ -39,6 +39,7 @@ export interface IAPIHandler {
   getPersonPlatforms(personId: string): Promise<
     ApiResponse<
       {
+        platformId: string;
         platformNameEN: string;
         platformNameCN: string;
         url: string;
@@ -48,7 +49,7 @@ export interface IAPIHandler {
   >;
 
   // Watching control APIs
-  startWatching(personId: string, platformUrl: string): Promise<ApiResponse<WatchingSessionResponse>>;
+  startWatching(personId: string, platformId: string): Promise<ApiResponse<WatchingSessionResponse>>;
   checkWatching(watchingToken: string): Promise<ApiResponse<WatchingStatusResponse>>;
   verifyQuestion(
     watchingToken: string,

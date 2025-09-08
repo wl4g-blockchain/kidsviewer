@@ -1,26 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
 import { Video, Trophy, Crown, Baby, Play, AlertCircle, RefreshCw, Clock, Lock, BookOpen, ArrowLeft, Loader2 } from 'lucide-react';
 import { ParentalPasswordModal } from '../components/ParentalPasswordModal';
-import { Question } from '../types';
+import { Question, Platform } from '../types';
 import { ElectronWebViewer } from '../components/ElectronWebViewer';
 import { IOSWebViewer } from '../components/IOSWebViewer';
 import { isPlatformIOS } from '../utils/platformUtil';
 
-interface AccessibleUrl {
-  platformNameEN: string;
-  platformNameCN: string;
-  url: string;
-  description?: string;
-}
+// Note: Using Platform interface from types instead of PersonPlatformInfo
 
 interface WatchingSession {
   watchingToken: string;
+  platformId: string;
   platformName: string;
   platformUrl: string;
   description?: string;
-  sessionTimeLimit?: number;
+  sessionTimeLimit: number;
   remainingDailyTime?: number;
 }
 
@@ -30,16 +26,15 @@ export const PersonHome: React.FC = () => {
   const { currentLanguage } = useLanguage();
 
   // Platform list states
-  const [accessibleUrls, setAccessibleUrls] = useState<AccessibleUrl[]>([]);
+  const [personPlatforms, setPersonPlatforms] = useState<Platform[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false); // Separate loading state for refresh
   const [error, setError] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordError, setPasswordError] = useState('');
 
-  // Watching states
+  // Watching states - simplified, watching logic moved to WebViewer components
   const [watchingSession, setWatchingSession] = useState<WatchingSession | null>(null);
-  const [remainingTime, setRemainingTime] = useState(0);
   const [currentQuestions, setCurrentQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState('');
@@ -48,58 +43,72 @@ export const PersonHome: React.FC = () => {
   const [isCorrect, setIsCorrect] = useState(false);
   const [dailyTimeExceeded, setDailyTimeExceeded] = useState(false);
   const [webViewerError, setWebViewerError] = useState<string | null>(null);
-  const [watchingError, setWatchingError] = useState<string | null>(null); // Separate error for watching
-  const [isCheckingWatching, setIsCheckingWatching] = useState(false); // Prevent concurrent checks
-  const [errorCount, setErrorCount] = useState(0); // Track consecutive errors
+  const [watchingError, setWatchingError] = useState<string | null>(null);
 
-  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Countdown states - will be updated by WebViewer components
+  const [remainingTime, setRemainingTime] = useState(0);
+  const [remainingDailyTime, setRemainingDailyTime] = useState(0);
 
   // Helper function to get platform name based on current language
-  const getPlatformName = (platform: AccessibleUrl): string => {
-    return currentLanguage === 'zh' ? platform.platformNameCN : platform.platformNameEN;
+  const getPlatformName = (platform: Platform): string => {
+    return currentLanguage === 'zh' ? platform.nameCN : platform.nameEN;
+  };
+
+  // Adapter function to convert API response to Platform interface
+  const adaptApiPlatformToPlatform = (apiPlatform: {
+    platformId: string;
+    platformNameEN: string;
+    platformNameCN: string;
+    url: string;
+    description?: string;
+  }): Platform => {
+    return {
+      id: apiPlatform.platformId,
+      nameEN: apiPlatform.platformNameEN,
+      nameCN: apiPlatform.platformNameCN,
+      url: apiPlatform.url,
+      description: apiPlatform.description,
+      ageGroups: ['preschool', 'young', 'older'], // Default age groups
+      createdAt: new Date(), // Default to current date
+      updatedAt: new Date(), // Default to current date
+    };
   };
 
   // Load child accessible URLs
   useEffect(() => {
     if (activePerson) {
-      loadPersonAccessibles();
+      loadPersonPlatforms();
     }
   }, [activePerson]);
 
-  // Clean up interval on unmount
-  useEffect(() => {
-    return () => {
-      if (checkIntervalRef.current) {
-        clearInterval(checkIntervalRef.current);
-      }
-    };
-  }, []);
+  // Note: Question handling and watching status checking is now managed by WebViewer components
+  // PersonHome only manages the session creation and UI state
 
-  const loadPersonAccessibles = async () => {
+  const loadPersonPlatforms = async () => {
     if (!activePerson) {
       setError(t('person.noActivePersonFound'));
       return;
     }
-
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log(`Loading accessible URLs for person ${activePerson.alias} (ID: ${activePerson.id})...`);
+      console.log(`Loading person platforms for person ${activePerson.alias} (ID: ${activePerson.id})...`);
 
       const response = await apiHandler.getPersonPlatforms(activePerson.id);
-
-      console.log('API response:', response);
+      console.info('Loaded the person person platforms response:', response);
 
       if (response.errcode === '200' && response.data) {
-        console.log(`Successfully loaded ${response.data.length} accessible platforms:`, response.data);
-        setAccessibleUrls(response.data);
+        console.log(`Successfully loaded ${response.data.length} person platforms:`, response.data);
+        // Convert API response to Platform interface
+        const adaptedPlatforms = response.data.map(adaptApiPlatformToPlatform);
+        setPersonPlatforms(adaptedPlatforms);
       } else {
-        console.error('Failed to load accessible URLs:', response.errmsg);
+        console.error('Failed to load person Platforms:', response.errmsg);
         setError(response.errmsg || t('person.loadAccessibleUrlsFailed'));
       }
     } catch (error) {
-      console.error('Error occurred while loading person accessible URLs:', error);
+      console.error('Error occurred while loading person platforms:', error);
       setError(error instanceof Error ? error.message : t('person.loadContentError'));
     } finally {
       setIsLoading(false);
@@ -109,21 +118,13 @@ export const PersonHome: React.FC = () => {
   // Reload data with proper loading state
   const handleRefresh = async () => {
     if (watchingSession) {
-      // If watching, refresh watching status
+      // If watching, just clear local errors (WebViewer handles its own refresh)
       setIsRefreshing(true);
       setWatchingError(null);
-      setErrorCount(0); // Reset error count on manual refresh
-      try {
-        await checkWatchingStatus(watchingSession.watchingToken);
-      } catch (error) {
-        console.error('Error refreshing watching status:', error);
-        setWatchingError(t('errors.networkError'));
-      } finally {
-        setIsRefreshing(false);
-      }
+      setIsRefreshing(false);
     } else {
       // If not watching, refresh platform list
-      await loadPersonAccessibles();
+      await loadPersonPlatforms();
     }
   };
 
@@ -152,131 +153,41 @@ export const PersonHome: React.FC = () => {
     }
   };
 
-  // Start periodic checking of watching status
-  const startWatchingCheck = (token: string) => {
-    // Clear any existing interval
-    if (checkIntervalRef.current) {
-      clearInterval(checkIntervalRef.current);
-    }
-
-    // Reset error count when starting new session
-    setErrorCount(0);
-    setWatchingError(null);
-
-    // Initial check
-    checkWatchingStatus(token);
-
-    // Set up interval to check every 3 seconds
-    checkIntervalRef.current = setInterval(() => {
-      checkWatchingStatus(token);
-    }, 3000);
-  };
-
-  // Check watching status with API - with error handling to prevent infinite loops
-  const checkWatchingStatus = async (token: string) => {
-    // Prevent concurrent checks
-    if (isCheckingWatching) {
-      return;
-    }
-
-    setIsCheckingWatching(true);
-
-    try {
-      const response = await apiHandler.checkWatching(token);
-      if (response.errcode === '200' && response.data) {
-        const { remainingTime, questions, dailyTimeExceeded } = response.data;
-
-        // Reset error count on successful response
-        setErrorCount(0);
-        setWatchingError(null);
-
-        // Update remaining time from API response (in minutes, convert to seconds for display)
-        if (remainingTime !== undefined) {
-          setRemainingTime(remainingTime); // seconds
-        }
-
-        if (dailyTimeExceeded) {
-          setDailyTimeExceeded(true);
-          setShowQuestions(false);
-          if (checkIntervalRef.current) {
-            clearInterval(checkIntervalRef.current);
-          }
-          return;
-        }
-
-        if (questions && questions.length > 0) {
-          setCurrentQuestions(questions);
-          setCurrentQuestionIndex(0);
-          setUserAnswer('');
-          setShowQuestions(true);
-          setShowResult(false);
-        } else {
-          setShowQuestions(false);
-          setDailyTimeExceeded(false);
-        }
-      } else {
-        // Handle specific error codes
-        if (response.errcode === '4018') {
-          // Session time limit exceeded - this is expected behavior, show questions
-          const { questions } = response.data || {};
-          if (questions && questions.length > 0) {
-            setCurrentQuestions(questions);
-            setCurrentQuestionIndex(0);
-            setUserAnswer('');
-            setShowQuestions(true);
-            setShowResult(false);
-          }
-          // Reset error count since this is expected behavior
-          setErrorCount(0);
-          setWatchingError(null);
-        } else {
-          // Other errors - increment error count and handle accordingly
-          const newErrorCount = errorCount + 1;
-          setErrorCount(newErrorCount);
-
-          console.error('Watching status check failed:', response.errmsg);
-
-          // WARNING: If too many consecutive errors, stop the interval and show error
-          if (newErrorCount >= 3) {
-            setWatchingError(response.errmsg || t('errors.unknownError'));
-            if (checkIntervalRef.current) {
-              clearInterval(checkIntervalRef.current);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      // Increment error count and handle accordingly
-      const newErrorCount = errorCount + 1;
-      setErrorCount(newErrorCount);
-
-      console.error('Error checking watching status:', error);
-
-      // If too many consecutive errors, stop the interval and show error
-      if (newErrorCount >= 3) {
-        setWatchingError(t('errors.networkError'));
-        if (checkIntervalRef.current) {
-          clearInterval(checkIntervalRef.current);
-        }
-      }
-    } finally {
-      setIsCheckingWatching(false);
-    }
-  };
+  // Note: Watching status checking is now handled by WebViewer components
 
   // Handle web viewer load error
-  const handleWebViewerLoadError = (errorMessage: string) => {
+  const handleWebViewerLoadError = useCallback((errorMessage: string) => {
     console.error('Video load error:', errorMessage);
     setWebViewerError(errorMessage);
-  };
+  }, []);
 
   // Handle web viewer load success
-  const handleWebViewerLoadSuccess = () => {
+  const handleWebViewerLoadSuccess = useCallback(() => {
     console.log('WebViewer loaded successfully');
     setWebViewerError(null);
-  };
+  }, []);
 
-  // Handle answer submission
+  // Handle countdown updates from WebViewer components
+  const handleCountdownUpdate = useCallback((sessionTime: number, dailyTime: number) => {
+    setRemainingTime(sessionTime);
+    setRemainingDailyTime(dailyTime);
+  }, []);
+
+  // Ref to store WebViewer refresh function
+  const webViewerRefreshRef = useRef<(() => void) | null>(null);
+
+  // Handle refresh button click
+  const handleRefreshClick = useCallback(() => {
+    if (watchingSession && webViewerRefreshRef.current) {
+      // If watching, call WebViewer refresh function
+      webViewerRefreshRef.current();
+    } else {
+      // If not watching, refresh platform list
+      handleRefresh();
+    }
+  }, [watchingSession, handleRefresh]);
+
+  // Handle answer submission - simplified, most logic moved to WebViewer
   const handleAnswerSubmit = async () => {
     if (!watchingSession || !currentQuestions[currentQuestionIndex]) return;
 
@@ -286,44 +197,24 @@ export const PersonHome: React.FC = () => {
       const response = await apiHandler.verifyQuestion(watchingSession.watchingToken, question.content, userAnswer);
 
       if (response.errcode === '200' && response.data) {
-        const { correct, newWatchingToken } = response.data;
-
+        const { correct } = response.data;
         setIsCorrect(correct);
         setShowResult(true);
 
-        if (correct && newWatchingToken) {
-          // Update session with new token
-          const updatedSession = {
-            ...watchingSession,
-            watchingToken: newWatchingToken,
-          };
-          setWatchingSession(updatedSession);
-          sessionStorage.setItem('currentWatchingSession', JSON.stringify(updatedSession));
-
-          // Continue watching after a brief delay
-          setTimeout(() => {
-            if (currentQuestionIndex < currentQuestions.length - 1) {
-              setCurrentQuestionIndex(prev => prev + 1);
-              setUserAnswer('');
-              setShowResult(false);
-            } else {
-              setShowQuestions(false);
-              setShowResult(false);
-              setCurrentQuestions([]);
-              setCurrentQuestionIndex(0);
-
-              if (checkIntervalRef.current) {
-                clearInterval(checkIntervalRef.current);
-              }
-              startWatchingCheck(newWatchingToken);
-            }
-          }, 2000);
-        } else {
-          setTimeout(() => {
+        // Continue to next question or finish after delay
+        setTimeout(() => {
+          if (currentQuestionIndex < currentQuestions.length - 1) {
+            setCurrentQuestionIndex(prev => prev + 1);
             setUserAnswer('');
             setShowResult(false);
-          }, 2000);
-        }
+          } else {
+            // All questions answered, reset UI
+            setShowQuestions(false);
+            setCurrentQuestionIndex(0);
+            setUserAnswer('');
+            setShowResult(false);
+          }
+        }, 2000);
       } else {
         setWatchingError(response.errmsg || t('errors.unknownError'));
       }
@@ -333,60 +224,69 @@ export const PersonHome: React.FC = () => {
     }
   };
 
-  // Format time display - shows seconds countdown for real-time updates
+  // Format time display - shows minutes and seconds for real-time updates
   const formatTime = (milliseconds: number) => {
-    const mins = Math.floor(milliseconds / 1000 / 60);
-    const secs = Math.floor(milliseconds / 1000) % 60;
-    console.debug(`Calculated remaining time: ${milliseconds}ms, ${mins}m, ${secs}s`);
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Handle opening a URL - start watching session
-  const handleOpenUrl = async (urlData: AccessibleUrl) => {
-    if (!activePerson) return;
+  // Note: Time display formatting removed as it's now handled by the hook
 
-    try {
-      setIsLoading(true);
-      setWatchingError(null);
-      setErrorCount(0); // Reset error count when starting new session
-      const response = await apiHandler.startWatching(activePerson.id, urlData.url);
+  // Handle opening a URL - create session info and start watching
+  const handleOpenUrl = useCallback(
+    async (plat: Platform) => {
+      if (!activePerson) return;
 
-      if (response.errcode === '200' && response.data) {
+      try {
+        setWatchingError(null);
+
+        // Create session info for UI
         const session: WatchingSession = {
-          watchingToken: response.data.watchingToken,
-          platformName: getPlatformName(urlData),
-          platformUrl: urlData.url,
-          description: urlData.description,
+          watchingToken: '', // Will be set by WebViewer
+          platformId: plat.id,
+          platformName: getPlatformName(plat),
+          platformUrl: plat.url,
+          description: plat.description,
+          sessionTimeLimit: 300, // 5 minutes
+          remainingDailyTime: 300, // 5 minutes
         };
         setWatchingSession(session);
-        startWatchingCheck(session.watchingToken);
-      } else {
-        setWatchingError(response.errmsg || t('errors.unknownError'));
+      } catch (error) {
+        console.error('Error starting watching session:', error);
+        setWatchingError(t('errors.networkError'));
       }
-    } catch (error) {
-      console.error('Error starting watching session:', error);
-      setWatchingError(t('errors.networkError'));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [activePerson, t]
+  );
+
+  // Memoize the watching session to prevent unnecessary re-renders
+  const memoizedWatchingSession = useMemo(() => {
+    if (!watchingSession) return null;
+
+    return {
+      ...watchingSession,
+      // Ensure platformName is stable
+      platformName: watchingSession.platformName,
+    };
+  }, [watchingSession?.platformId, watchingSession?.platformUrl, watchingSession?.platformName, watchingSession?.description]);
 
   // Handle stopping watching session
   const handleStopWatching = () => {
-    if (checkIntervalRef.current) {
-      clearInterval(checkIntervalRef.current);
-    }
+    // Clear all session state
     setWatchingSession(null);
-    setShowQuestions(false);
     setCurrentQuestions([]);
     setCurrentQuestionIndex(0);
     setUserAnswer('');
+    setShowQuestions(false);
     setShowResult(false);
     setDailyTimeExceeded(false);
     setWebViewerError(null);
     setWatchingError(null);
+    // Reset countdown states
     setRemainingTime(0);
-    setErrorCount(0); // Reset error count
+    setRemainingDailyTime(0);
   };
 
   // If no active person, show error state
@@ -433,7 +333,7 @@ export const PersonHome: React.FC = () => {
   return (
     <>
       <div className="flex flex-col gap-8 py-8">
-        {watchingSession ? (
+        {memoizedWatchingSession ? (
           // Watching View
           <div className="space-y-6">
             {/* Header */}
@@ -447,15 +347,28 @@ export const PersonHome: React.FC = () => {
                   {t('personViewer.back')}
                 </button>
                 <div className="text-center">
-                  <h1 className="text-xl font-bold text-gray-900">{watchingSession.platformName}</h1>
+                  <h1 className="text-xl font-bold text-gray-900">{memoizedWatchingSession.platformName}</h1>
                   <div className="flex items-center justify-center space-x-2 mt-1">
                     <Clock className="w-4 h-4 text-blue-600" />
-                    <span className="text-lg font-medium text-blue-600">{formatTime(remainingTime)}</span>
+                    <span className="text-lg font-medium text-blue-600">{t('personViewer.watchingActive')}</span>
                   </div>
+                  {/* Countdown timer display */}
+                  {memoizedWatchingSession && (
+                    <div className="mt-2 flex items-center justify-center space-x-4 text-sm text-gray-600">
+                      <div className="flex items-center space-x-1">
+                        <span className="font-medium">{t('personViewer.sessionTime')}:</span>
+                        <span className="text-blue-600 font-bold">{formatTime(remainingTime)}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span className="font-medium">{t('personViewer.dailyTime')}:</span>
+                        <span className="text-green-600 font-bold">{formatTime(remainingDailyTime)}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={handleRefresh}
+                    onClick={handleRefreshClick}
                     disabled={isRefreshing}
                     className="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title={t('common.refresh')}
@@ -490,28 +403,34 @@ export const PersonHome: React.FC = () => {
               <div className="bg-white rounded-lg shadow-md p-6">
                 <div className="mb-4">
                   <h3 className="text-xl font-medium text-gray-800 mb-2">
-                    {t('personViewer.watching')} {watchingSession.platformName}
+                    {t('personViewer.watching')} {memoizedWatchingSession.platformName}
                   </h3>
-                  <p className="text-gray-600">{watchingSession.description || t('personViewer.enjoyWatching')}</p>
+                  <p className="text-gray-600">{memoizedWatchingSession.description || t('personViewer.enjoyWatching')}</p>
                 </div>
 
                 {/* Video Player - Conditionally render based on platform */}
                 {isPlatformIOS() ? (
                   <IOSWebViewer
-                    url={watchingSession.platformUrl}
-                    platformName={watchingSession.platformName}
+                    platformId={memoizedWatchingSession.platformId}
+                    platformName={memoizedWatchingSession.platformName}
+                    platformUrl={memoizedWatchingSession.platformUrl}
                     personId={activePerson.id}
                     onLoadError={handleWebViewerLoadError}
                     onLoadSuccess={handleWebViewerLoadSuccess}
+                    onCountdownUpdate={handleCountdownUpdate}
+                    onRefreshRef={webViewerRefreshRef}
                     className="aspect-video"
                   />
                 ) : (
                   <ElectronWebViewer
-                    url={watchingSession.platformUrl}
-                    platformName={watchingSession.platformName}
+                    platformId={memoizedWatchingSession.platformId}
+                    platformName={memoizedWatchingSession.platformName}
+                    platformUrl={memoizedWatchingSession.platformUrl}
                     personId={activePerson.id}
                     onLoadError={handleWebViewerLoadError}
                     onLoadSuccess={handleWebViewerLoadSuccess}
+                    onCountdownUpdate={handleCountdownUpdate}
+                    onRefreshRef={webViewerRefreshRef}
                     className="aspect-video"
                   />
                 )}
@@ -524,11 +443,7 @@ export const PersonHome: React.FC = () => {
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <span>
-                      {t('personViewer.platform')}: {watchingSession.platformName}
-                    </span>
-                    <span>•</span>
-                    <span>
-                      {t('personViewer.remainingTime')}: {formatTime(remainingTime)}
+                      {t('personViewer.platform')}: {memoizedWatchingSession.platformName}
                     </span>
                   </div>
                 </div>
@@ -694,9 +609,9 @@ export const PersonHome: React.FC = () => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">{t('person.loadingAccessiblePlatforms')}</p>
                   </div>
-                ) : accessibleUrls.length > 0 ? (
+                ) : personPlatforms.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {accessibleUrls.map((urlData, index) => (
+                    {personPlatforms.map((plat, index) => (
                       <div
                         key={index}
                         className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200 hover:shadow-lg transition-all duration-200 group"
@@ -707,15 +622,15 @@ export const PersonHome: React.FC = () => {
                               <Play className="w-6 h-6" />
                             </div>
                             <div>
-                              <h3 className="font-bold text-gray-800 text-lg">{getPlatformName(urlData)}</h3>
+                              <h3 className="font-bold text-gray-800 text-lg">{getPlatformName(plat)}</h3>
                               {/* Difficulty and time limits are now managed at Person level */}
-                              {urlData.description && <div className="text-xs text-gray-600 mt-2">{urlData.description}</div>}
+                              {plat.description && <div className="text-xs text-gray-600 mt-2">{plat.description}</div>}
                             </div>
                           </div>
                         </div>
-                        {urlData.description && <p className="text-sm text-gray-600 mb-4 leading-relaxed">{urlData.description}</p>}
+                        {plat.description && <p className="text-sm text-gray-600 mb-4 leading-relaxed">{plat.description}</p>}
                         <button
-                          onClick={() => handleOpenUrl(urlData)}
+                          onClick={() => handleOpenUrl(plat)}
                           className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg py-3 px-4 font-bold hover:scale-105 transition-transform flex items-center justify-center text-lg shadow-lg"
                         >
                           <Play className="w-5 h-5 mr-2" />

@@ -20,6 +20,12 @@ export interface ElectronAPI {
   openVideoWindow: (params: { url: string; title?: string }) => Promise<{ success: boolean; windowId?: number; error?: string }>;
   closeVideoWindow: (windowId: number) => Promise<{ success: boolean; error?: string }>;
   closeAllVideoWindows: () => Promise<{ success: boolean; error?: string }>;
+
+  // Video visibility control for questions
+  hideVideoView: () => Promise<{ success: boolean; error?: string }>;
+  showVideoView: () => Promise<{ success: boolean; error?: string }>;
+  minimizeVideoWindow: (windowId: number) => Promise<{ success: boolean; error?: string }>;
+  restoreVideoWindow: (windowId: number) => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {

@@ -58,23 +58,6 @@ function getCurrentDayAnswer(): string {
   return days[new Date().getDay()];
 }
 
-function getCurrentMonthAnswer(): string {
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  return months[new Date().getMonth()];
-}
-
-function isWeekday(): boolean {
-  const day = new Date().getDay();
-  return day >= 1 && day <= 5;
-}
-
-function getCurrentSeasonAnswer(): string {
-  const month = new Date().getMonth();
-  if (month >= 2 && month <= 4) return 'Spring';
-  if (month >= 5 && month <= 7) return 'Summer';
-  if (month >= 8 && month <= 10) return 'Autumn';
-  return 'Winter';
-}
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -119,12 +102,13 @@ const mockDataDB = {
     string,
     {
       personId: string;
-      platformUrl: string;
+      platformId: string;
       createdAt: number;
       expiresAt: number;
       startTime: number;
       todayWatchedTime: number; // in minutes
       questionsAsked: number;
+      currentQuestions?: Question[]; // Store current questions for verification
     }
   >(),
   // Watching history
@@ -137,339 +121,6 @@ const mockDataDB = {
     questionsAnswered: number;
     questionsCorrect: number;
   }[],
-  questionBank: {
-    math: {
-      beginner: [
-        {
-          type: 'calculation' as const,
-          content: 'What is 2 + 3?',
-          correctAnswer: 5,
-          explanationEN: '2 + 3 = 5',
-          explanationCN: '2 + 3 = 5',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 4 - 1?',
-          correctAnswer: 3,
-          explanationEN: '4 - 1 = 3',
-          explanationCN: '4 - 1 = 3',
-        },
-      ],
-      easy: [
-        {
-          type: 'calculation' as const,
-          content: 'What is 7 + 5?',
-          correctAnswer: 12,
-          explanation: '7 + 5 = 12',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 9 - 3?',
-          correctAnswer: 6,
-          explanation: '9 - 3 = 6',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 4 × 6?',
-          correctAnswer: 24,
-          explanation: '4 × 6 = 24',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'Which number comes after 15?',
-          options: ['14', '16', '17', '18'],
-          correctAnswer: '16',
-          explanation: 'The number after 15 is 16',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 10 + 2?',
-          correctAnswer: 12,
-          explanation: '10 + 2 = 12',
-        },
-      ],
-      medium: [
-        {
-          type: 'calculation' as const,
-          content: 'What is 18 ÷ 3?',
-          correctAnswer: 6,
-          explanation: '18 ÷ 3 = 6',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 25 - 8?',
-          correctAnswer: 17,
-          explanation: '25 - 8 = 17',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 5 × 7?',
-          correctAnswer: 35,
-          explanation: '5 × 7 = 35',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 12 + 15?',
-          correctAnswer: 27,
-          explanation: '12 + 15 = 27',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 32 ÷ 4?',
-          correctAnswer: 8,
-          explanation: '32 ÷ 4 = 8',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'What is half of 26?',
-          options: ['12', '13', '14', '15'],
-          correctAnswer: '13',
-          explanation: 'Half of 26 is 13',
-        },
-      ],
-      hard: [
-        {
-          type: 'calculation' as const,
-          content: 'What is 4 × 5 + 3?',
-          correctAnswer: 23,
-          explanation: '4 × 5 = 20, then 20 + 3 = 23',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 36 ÷ 4 + 2?',
-          correctAnswer: 11,
-          explanation: '36 ÷ 4 = 9, then 9 + 2 = 11',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 15 × 3 - 7?',
-          correctAnswer: 38,
-          explanation: '15 × 3 = 45, then 45 - 7 = 38',
-        },
-        {
-          type: 'calculation' as const,
-          content: 'What is 48 ÷ 6 + 5?',
-          correctAnswer: 13,
-          explanation: '48 ÷ 6 = 8, then 8 + 5 = 13',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'What is 3² + 4?',
-          options: ['7', '9', '13', '15'],
-          correctAnswer: '13',
-          explanation: '3² = 9, then 9 + 4 = 13',
-        },
-      ],
-    },
-    chinese: {
-      easy: [
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：壹',
-          options: ['1', '2', '3', '4'],
-          correctAnswer: '1',
-          explanation: '壹 = 1 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：贰',
-          options: ['1', '2', '3', '4'],
-          correctAnswer: '2',
-          explanation: '贰 = 2 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：叁',
-          options: ['1', '2', '3', '4'],
-          correctAnswer: '3',
-          explanation: '叁 = 3 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：肆',
-          options: ['3', '4', '5', '6'],
-          correctAnswer: '4',
-          explanation: '肆 = 4 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：伍',
-          options: ['3', '4', '5', '6'],
-          correctAnswer: '5',
-          explanation: '伍 = 5 (大写数字)',
-        },
-      ],
-      medium: [
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：陆',
-          options: ['4', '5', '6', '7'],
-          correctAnswer: '6',
-          explanation: '陆 = 6 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：柒',
-          options: ['5', '6', '7', '8'],
-          correctAnswer: '7',
-          explanation: '柒 = 7 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：捌',
-          options: ['6', '7', '8', '9'],
-          correctAnswer: '8',
-          explanation: '捌 = 8 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：玖',
-          options: ['7', '8', '9', '10'],
-          correctAnswer: '9',
-          explanation: '玖 = 9 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：拾',
-          options: ['8', '9', '10', '11'],
-          correctAnswer: '10',
-          explanation: '拾 = 10 (大写数字)',
-        },
-      ],
-      hard: [
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：佰',
-          options: ['50', '100', '150', '200'],
-          correctAnswer: '100',
-          explanation: '佰 = 100 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：仟',
-          options: ['500', '1000', '1500', '2000'],
-          correctAnswer: '1000',
-          explanation: '仟 = 1000 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：万',
-          options: ['5000', '10000', '15000', '20000'],
-          correctAnswer: '10000',
-          explanation: '万 = 10000 (大写数字)',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: '识别大写数字：亿',
-          options: ['100000', '1000000', '100000000', '1000000000'],
-          correctAnswer: '100000000',
-          explanation: '亿 = 100000000 (大写数字)',
-        },
-      ],
-    },
-    english: {
-      easy: [
-        {
-          type: 'multiple-choice' as const,
-          content: 'What time is it now?',
-          options: ['Morning', 'Afternoon', 'Evening', 'Night'],
-          correctAnswer: getCurrentTimeAnswer(),
-          explanation: 'Based on current time',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'What day is today?',
-          options: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-          correctAnswer: getCurrentDayAnswer(),
-          explanation: 'Based on current day',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'What color is the sky?',
-          options: ['Blue', 'Green', 'Red', 'Yellow'],
-          correctAnswer: 'Blue',
-          explanation: 'The sky is usually blue during the day',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'How many fingers do you have?',
-          options: ['8', '9', '10', '11'],
-          correctAnswer: '10',
-          explanation: 'You have 10 fingers (5 on each hand)',
-        },
-      ],
-      medium: [
-        {
-          type: 'multiple-choice' as const,
-          content: 'What month is it now?',
-          options: [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December',
-          ],
-          correctAnswer: getCurrentMonthAnswer(),
-          explanation: 'Based on current month',
-        },
-        {
-          type: 'true-false' as const,
-          content: 'Is it a weekday today?',
-          correctAnswer: isWeekday(),
-          explanation: 'Weekdays are Monday to Friday',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'What is the opposite of "big"?',
-          options: ['Large', 'Small', 'Huge', 'Giant'],
-          correctAnswer: 'Small',
-          explanation: 'The opposite of "big" is "small"',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'How many days are in a week?',
-          options: ['5', '6', '7', '8'],
-          correctAnswer: '7',
-          explanation: 'There are 7 days in a week',
-        },
-      ],
-      hard: [
-        {
-          type: 'fill-blank' as const,
-          content: 'Complete: "Today is ___"',
-          correctAnswer: getCurrentDayAnswer(),
-          explanation: 'Fill in the current day',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'What season is it now?',
-          options: ['Spring', 'Summer', 'Autumn', 'Winter'],
-          correctAnswer: getCurrentSeasonAnswer(),
-          explanation: 'Based on current season',
-        },
-        {
-          type: 'multiple-choice' as const,
-          content: 'What is the capital of England?',
-          options: ['Manchester', 'Liverpool', 'London', 'Birmingham'],
-          correctAnswer: 'London',
-          explanation: 'London is the capital of England',
-        },
-        {
-          type: 'true-false' as const,
-          content: 'The sun rises in the east',
-          correctAnswer: true,
-          explanation: 'Yes, the sun rises in the east and sets in the west',
-        },
-      ],
-    },
-  },
 };
 
 // Generate questions based on subjects, difficulty, and count
@@ -493,7 +144,7 @@ function generateQuestions(subjects: string[], difficulty: string, count: number
       subject: template.subject,
       difficulty: template.difficulty,
       content: template.content,
-      options: template.options,
+      options: template.options || (template.type === 'calculation' ? generateCalculationOptions(Number(template.correctAnswer)) : []),
       correctAnswer: template.correctAnswer,
       explanation: language === 'zh' ? template.explanationCN : template.explanationEN,
       language: template.language,
@@ -502,6 +153,24 @@ function generateQuestions(subjects: string[], difficulty: string, count: number
   });
 
   return questions;
+}
+
+// Generate options for calculation questions
+function generateCalculationOptions(correctAnswer: number): string[] {
+  const options = [correctAnswer.toString()];
+  const wrongAnswers = new Set<string>();
+  
+  // Generate 3 wrong answers
+  while (wrongAnswers.size < 3) {
+    const variation = Math.floor(Math.random() * 4) + 1; // 1-4
+    const wrongAnswer = correctAnswer + (Math.random() > 0.5 ? variation : -variation);
+    if (wrongAnswer > 0 && !options.includes(wrongAnswer.toString())) {
+      wrongAnswers.add(wrongAnswer.toString());
+    }
+  }
+  
+  options.push(...Array.from(wrongAnswers));
+  return options.sort(() => Math.random() - 0.5); // Shuffle
 }
 
 // Helper function to create standard API response
@@ -550,9 +219,9 @@ export class MockAPIHandler implements IAPIHandler {
       alias: 'Barry',
       ageGroup: 'young',
       settings: {
-        perTimeLimitMinutes: 20,
+        perTimeLimitMinutes: 1,
         dailyTimeLimitMinutes: 120,
-        questionCount: 3,
+        questionCount: 5,
         questionsPerDay: 15,
         platformIds: ['platform_001', 'platform_002', 'platform_003', 'platform_004'],
         subjects: [
@@ -786,6 +455,166 @@ export class MockAPIHandler implements IAPIHandler {
         language: 'en',
         ageGroups: ['preschool', 'young'],
         tags: ['english', 'colors', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      // Additional math questions
+      {
+        id: 'math_006',
+        type: 'calculation',
+        subject: 'math',
+        difficulty: 'easy',
+        content: 'What is 9 - 3?',
+        correctAnswer: 6,
+        explanationEN: '9 - 3 = 6. Subtraction means taking away.',
+        explanationCN: '9 - 3 = 6。减法意思是拿走。',
+        language: 'en',
+        ageGroups: ['young'],
+        tags: ['math', 'subtraction', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'math_007',
+        type: 'calculation',
+        subject: 'math',
+        difficulty: 'easy',
+        content: 'What is 4 × 6?',
+        correctAnswer: 24,
+        explanationEN: '4 × 6 = 24. Multiplication means repeated addition.',
+        explanationCN: '4 × 6 = 24。乘法意思是重复加法。',
+        language: 'en',
+        ageGroups: ['young'],
+        tags: ['math', 'multiplication', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'math_008',
+        type: 'multiple-choice',
+        subject: 'math',
+        difficulty: 'easy',
+        content: 'Which number comes after 15?',
+        options: ['14', '16', '17', '18'],
+        correctAnswer: '16',
+        explanationEN: 'The number after 15 is 16.',
+        explanationCN: '15后面的数字是16。',
+        language: 'en',
+        ageGroups: ['young'],
+        tags: ['math', 'counting', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'math_009',
+        type: 'calculation',
+        subject: 'math',
+        difficulty: 'easy',
+        content: 'What is 10 + 2?',
+        correctAnswer: 12,
+        explanationEN: '10 + 2 = 12. Adding 2 to 10 gives 12.',
+        explanationCN: '10 + 2 = 12。10加2等于12。',
+        language: 'en',
+        ageGroups: ['young'],
+        tags: ['math', 'addition', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      // Chinese questions
+      {
+        id: 'chinese_001',
+        type: 'multiple-choice',
+        subject: 'chinese',
+        difficulty: 'easy',
+        content: '识别大写数字：壹',
+        options: ['1', '2', '3', '4'],
+        correctAnswer: '1',
+        explanationEN: '壹 = 1 (Chinese traditional number)',
+        explanationCN: '壹 = 1 (中文大写数字)',
+        language: 'zh',
+        ageGroups: ['young', 'older'],
+        tags: ['chinese', 'numbers', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'chinese_002',
+        type: 'multiple-choice',
+        subject: 'chinese',
+        difficulty: 'easy',
+        content: '识别大写数字：贰',
+        options: ['1', '2', '3', '4'],
+        correctAnswer: '2',
+        explanationEN: '贰 = 2 (Chinese traditional number)',
+        explanationCN: '贰 = 2 (中文大写数字)',
+        language: 'zh',
+        ageGroups: ['young', 'older'],
+        tags: ['chinese', 'numbers', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'chinese_003',
+        type: 'multiple-choice',
+        subject: 'chinese',
+        difficulty: 'easy',
+        content: '识别大写数字：叁',
+        options: ['1', '2', '3', '4'],
+        correctAnswer: '3',
+        explanationEN: '叁 = 3 (Chinese traditional number)',
+        explanationCN: '叁 = 3 (中文大写数字)',
+        language: 'zh',
+        ageGroups: ['young', 'older'],
+        tags: ['chinese', 'numbers', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      // English questions
+      {
+        id: 'english_002',
+        type: 'multiple-choice',
+        subject: 'english',
+        difficulty: 'easy',
+        content: 'What time is it now?',
+        options: ['Morning', 'Afternoon', 'Evening', 'Night'],
+        correctAnswer: getCurrentTimeAnswer(),
+        explanationEN: 'Based on current time',
+        explanationCN: '根据当前时间',
+        language: 'en',
+        ageGroups: ['young'],
+        tags: ['english', 'time', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'english_003',
+        type: 'multiple-choice',
+        subject: 'english',
+        difficulty: 'easy',
+        content: 'What day is today?',
+        options: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        correctAnswer: getCurrentDayAnswer(),
+        explanationEN: 'Based on current day',
+        explanationCN: '根据当前日期',
+        language: 'en',
+        ageGroups: ['young'],
+        tags: ['english', 'days', 'easy'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'english_004',
+        type: 'multiple-choice',
+        subject: 'english',
+        difficulty: 'easy',
+        content: 'How many fingers do you have?',
+        options: ['8', '9', '10', '11'],
+        correctAnswer: '10',
+        explanationEN: 'You have 10 fingers (5 on each hand)',
+        explanationCN: '你有10个手指（每只手5个）',
+        language: 'en',
+        ageGroups: ['preschool', 'young'],
+        tags: ['english', 'counting', 'easy'],
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -1225,6 +1054,7 @@ export class MockAPIHandler implements IAPIHandler {
   async getPersonPlatforms(personId: string): Promise<
     ApiResponse<
       {
+        platformId: string;
         platformNameEN: string;
         platformNameCN: string;
         url: string;
@@ -1240,9 +1070,10 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       // Get platforms by IDs
-      const allowedPlatforms = mockDataDB.platforms
+      const personPlatforms = mockDataDB.platforms
         .filter(platform => person.data!.settings.platformIds.includes(platform.id))
         .map(platform => ({
+          platformId: platform.id,
           platformNameEN: platform.nameEN,
           platformNameCN: platform.nameCN,
           url: platform.url,
@@ -1251,13 +1082,13 @@ export class MockAPIHandler implements IAPIHandler {
 
       // Mock real api cost time 200ms
       await new Promise(resolve => setTimeout(resolve, 200));
-      return createApiResponse('200', 'ok', allowedPlatforms);
+      return createApiResponse('200', 'ok', personPlatforms);
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
   }
   // Watching control APIs
-  async startWatching(personId: string, platformUrl: string): Promise<ApiResponse<WatchingSessionResponse>> {
+  async startWatching(personId: string, platformId: string): Promise<ApiResponse<WatchingSessionResponse>> {
     try {
       const token = this.generateId();
       const person = await this.getPerson(personId);
@@ -1267,7 +1098,7 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       // Get platform specific settings
-      const platform = mockDataDB.platforms.find(p => p.url === platformUrl);
+      const platform = mockDataDB.platforms.find(p => p.id === platformId);
       if (!platform || !person.data.settings.platformIds.includes(platform.id)) {
         return createApiResponse('4002', 'Platform not allowed for this person');
       }
@@ -1277,7 +1108,9 @@ export class MockAPIHandler implements IAPIHandler {
       const todayHistories = mockDataDB.watchingHistories.filter(h => h.date === todayDate && h.personId === personId);
       const todayWatchedTime = todayHistories.reduce((sum, h) => sum + h.watchedTime, 0);
       const todayRemainingTime = Math.max(0, person.data.settings.dailyTimeLimitMinutes - todayWatchedTime);
-      const expiresAt = Date.now() + person.data.settings.perTimeLimitMinutes * 60 * 1000;
+      //const expiresAt = Date.now() + person.data.settings.perTimeLimitMinutes * 60 * 1000;
+      // TODO: for testing
+      const expiresAt = Date.now() + 5000;
 
       if (todayRemainingTime <= 0) {
         return createApiResponse('4017', 'Daily total time limit exceeded');
@@ -1285,7 +1118,7 @@ export class MockAPIHandler implements IAPIHandler {
 
       mockDataDB.watchingTokens.set(token, {
         personId,
-        platformUrl,
+        platformId: platformId,
         createdAt: Date.now(),
         expiresAt: expiresAt,
         startTime: Date.now(),
@@ -1317,7 +1150,7 @@ export class MockAPIHandler implements IAPIHandler {
 
       const currentTime = Date.now();
       const currentWatchedTime = currentTime - watchingInfo.startTime; // milliseconds
-      const remainingTime = Math.max(0, watchingInfo.expiresAt - currentTime); // milliseconds
+      let remainingTime = Math.max(0, watchingInfo.expiresAt - currentTime); // milliseconds
 
       // Calculate remaining daily time
       const todayDate = new Date().toISOString().split('T')[0]; // yyyy-MM-dd
@@ -1338,6 +1171,13 @@ export class MockAPIHandler implements IAPIHandler {
       if (remainingTime <= 0) {
         const enabledSubjects = person.data.settings.subjects.filter(subject => subject.enabled).map(subject => subject.id);
         const questions = generateQuestions(enabledSubjects, 'easy', person.data.settings.questionCount);
+
+        // Store questions in the watching token for verification
+        const tokenData = mockDataDB.watchingTokens.get(watchingToken);
+        if (tokenData) {
+          tokenData.currentQuestions = questions;
+          mockDataDB.watchingTokens.set(watchingToken, tokenData);
+        }
 
         return createApiResponse('4018', 'Session time limit exceeded', {
           remainingTime: 0,
@@ -1372,19 +1212,23 @@ export class MockAPIHandler implements IAPIHandler {
         return createApiResponse('4001', 'Person not found');
       }
 
-      // Find and verify question
+      // Find and verify question by ID
       let correct = false;
-      for (const subject of Object.keys(mockDataDB.questionBank)) {
-        const subjectBank = mockDataDB.questionBank[subject as keyof typeof mockDataDB.questionBank];
-        for (const difficulty of Object.keys(subjectBank)) {
-          const questions = subjectBank[difficulty as keyof typeof subjectBank];
-          const foundQuestion = questions.find((q: any) => q.content === questionId);
-          if (foundQuestion) {
-            correct = answer.toString() === foundQuestion.correctAnswer.toString();
-            break;
-          }
-        }
-        if (correct) break;
+      let foundQuestion = null;
+      
+      // First try to find in question templates by ID
+      foundQuestion = mockDataDB.questionTemplates.find((q: any) => q.id === questionId);
+      
+      // If not found in templates, check the current questions stored in the token
+      if (!foundQuestion && tokenData.currentQuestions) {
+        foundQuestion = tokenData.currentQuestions.find((q: any) => q.id === questionId);
+      }
+      
+      if (foundQuestion) {
+        correct = answer.toString() === foundQuestion.correctAnswer.toString();
+      } else {
+        console.warn('Question not found:', questionId);
+        return createApiResponse('4004', 'Question not found');
       }
 
       if (correct) {
