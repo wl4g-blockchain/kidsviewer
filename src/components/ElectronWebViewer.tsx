@@ -107,7 +107,9 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         console.error('Running in Electron environment, but electronAPI is undefined. Please check preload script.');
 
         // Add more detailed error information - these states are managed by useWatchingSession hook
-        onLoadError?.('Electron API not loaded. This is usually caused by the preload script not executing correctly. Please try restarting the application.');
+        onLoadError?.(
+          'Electron API not loaded. This is usually caused by the preload script not executing correctly. Please try restarting the application.'
+        );
       }
     };
 
@@ -194,7 +196,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         const result = await window.electronAPI.createVideoView({ url, bounds });
 
         if (result.success) {
-          console.log('Web view created successfully');
+          console.debug('Web view created successfully');
           setIsRetrying(false);
         } else {
           throw new Error(result.error || 'Failed to create web view');
@@ -216,7 +218,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
     };
 
     const handleWebViewLoadSuccess = (data: { url: string }) => {
-      console.log('Web view loaded successfully:', data.url);
+      console.info('Web view loaded successfully:', data.url);
       setLocalLoading(false);
       setIsRetrying(false);
       onLoadSuccess?.();
@@ -297,7 +299,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         height: Math.round(rect.height),
       };
 
-      console.log('Updating web view bounds:', bounds);
+      console.debug('Updating web view bounds:', bounds);
       window.electronAPI.updateVideoBounds(bounds);
     };
 

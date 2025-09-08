@@ -61,8 +61,8 @@ export interface QuestionTemplate extends BaseQuestion {
 // Person settings
 export interface PersonSettings {
   // Time limits
-  sessionTimeLimit: number; // Minutes per watching session (e.g., 15, 30, 45)
-  dailyTotalTimeLimit: number; // Total minutes allowed per day (e.g., 120, 180)
+  perTimeLimitMinutes: number; // Per watching session (e.g., 15, 30, 45)
+  dailyTimeLimitMinutes: number; // Total allowed per day (e.g., 120, 180)
 
   // Question settings
   questionCount: number; // Number of questions to unlock per session

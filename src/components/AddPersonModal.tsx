@@ -19,7 +19,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
   const [formData, setFormData] = useState({
     alias: '',
     ageGroup: 'young' as 'preschool' | 'young' | 'older',
-    timeLimit: 15,
+    perTimeLimitMinutes: 15,
     questionCount: 3,
     selectedPlatformIds: [] as string[],
     subjects: [
@@ -75,8 +75,8 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
           alias: formData.alias,
           ageGroup: formData.ageGroup,
           settings: {
-            sessionTimeLimit: formData.timeLimit,
-            dailyTotalTimeLimit: formData.timeLimit * 4, // 4x session limit as daily limit
+            sessionTimeLimit: formData.perTimeLimitMinutes,
+            dailyTotalTimeLimit: formData.perTimeLimitMinutes * 4, // 4x session limit as daily limit
             questionCount: formData.questionCount,
             questionsPerDay: formData.questionCount * 3, // 3x session questions as daily limit
             subjects: formData.subjects.filter(subject => subject.enabled),
@@ -89,8 +89,8 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
         alias: formData.alias,
         ageGroup: formData.ageGroup,
         settings: {
-          sessionTimeLimit: formData.timeLimit,
-          dailyTotalTimeLimit: formData.timeLimit * 4,
+          perTimeLimitMinutes: formData.perTimeLimitMinutes,
+          dailyTimeLimitMinutes: formData.perTimeLimitMinutes * 4, // by Default
           questionCount: formData.questionCount,
           questionsPerDay: formData.questionCount * 3,
           subjects: formData.subjects.filter(subject => subject.enabled),
@@ -108,7 +108,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
         setFormData({
           alias: '',
           ageGroup: 'young',
-          timeLimit: 15,
+          perTimeLimitMinutes: 15,
           questionCount: 3,
           selectedPlatformIds: [],
           subjects: [
@@ -149,15 +149,13 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
       ...prev,
       selectedPlatformIds: prev.selectedPlatformIds.includes(platformId)
         ? prev.selectedPlatformIds.filter(id => id !== platformId)
-        : [...prev.selectedPlatformIds, platformId]
+        : [...prev.selectedPlatformIds, platformId],
     }));
   };
 
   // Filter platforms by age group
   const getFilteredPlatforms = () => {
-    return availablePlatforms.filter(platform => 
-      platform.ageGroups.includes(formData.ageGroup)
-    );
+    return availablePlatforms.filter(platform => platform.ageGroups.includes(formData.ageGroup));
   };
 
   if (!isOpen) return null;
@@ -212,8 +210,8 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
               {t('parental.sessionTimeLimit')} ({t('time.minutes')})
             </label>
             <select
-              value={formData.timeLimit}
-              onChange={e => setFormData(prev => ({ ...prev, timeLimit: parseInt(e.target.value) }))}
+              value={formData.perTimeLimitMinutes}
+              onChange={e => setFormData(prev => ({ ...prev, perTimeLimitMinutes: parseInt(e.target.value) }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value={10}>10 {t('time.minutes')}</option>
@@ -256,7 +254,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
                       <span className="text-sm font-medium text-gray-700">{subject.name}</span>
                     </label>
                   </div>
-                  
+
                   {subject.enabled && (
                     <div>
                       <label className="block text-xs text-gray-600 mb-2">Difficulty Level</label>
@@ -268,9 +266,11 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
                             onClick={() => handleSubjectDifficultyChange(subject.id, difficulty)}
                             className={`px-3 py-1 text-xs rounded-full transition-colors ${
                               subject.difficulty === difficulty
-                                ? difficulty === 'easy' ? 'bg-green-500 text-white'
-                                : difficulty === 'medium' ? 'bg-yellow-500 text-white'
-                                : 'bg-red-500 text-white'
+                                ? difficulty === 'easy'
+                                  ? 'bg-green-500 text-white'
+                                  : difficulty === 'medium'
+                                  ? 'bg-yellow-500 text-white'
+                                  : 'bg-red-500 text-white'
                                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                             }`}
                           >
@@ -288,8 +288,8 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
           {/* Platform Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-3">
-              Available Platforms for {formData.ageGroup === 'preschool' ? 'Preschool (2-4)' : 
-                                      formData.ageGroup === 'young' ? 'Young (4-6)' : 'Older (6-12)'}
+              Available Platforms for{' '}
+              {formData.ageGroup === 'preschool' ? 'Preschool (2-4)' : formData.ageGroup === 'young' ? 'Young (4-6)' : 'Older (6-12)'}
             </label>
             <div className="space-y-3 max-h-60 overflow-y-auto">
               {getFilteredPlatforms().length === 0 ? (
@@ -308,14 +308,12 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center">
-                          <div className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
-                            formData.selectedPlatformIds.includes(platform.id)
-                              ? 'border-blue-500 bg-blue-500'
-                              : 'border-gray-300'
-                          }`}>
-                            {formData.selectedPlatformIds.includes(platform.id) && (
-                              <Check className="w-3 h-3 text-white" />
-                            )}
+                          <div
+                            className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
+                              formData.selectedPlatformIds.includes(platform.id) ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
+                            }`}
+                          >
+                            {formData.selectedPlatformIds.includes(platform.id) && <Check className="w-3 h-3 text-white" />}
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-900">{platform.nameEN}</h4>
@@ -323,9 +321,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
                           </div>
                         </div>
                         {/* Platform difficulty and time limits are now managed at Person level */}
-                        {platform.description && (
-                          <p className="text-xs text-gray-500 mt-1">{platform.description}</p>
-                        )}
+                        {platform.description && <p className="text-xs text-gray-500 mt-1">{platform.description}</p>}
                       </div>
                     </div>
                   </div>
@@ -333,9 +329,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
               )}
             </div>
             {formData.selectedPlatformIds.length > 0 && (
-              <p className="text-sm text-blue-600 mt-2">
-                {formData.selectedPlatformIds.length} platform(s) selected
-              </p>
+              <p className="text-sm text-blue-600 mt-2">{formData.selectedPlatformIds.length} platform(s) selected</p>
             )}
           </div>
 

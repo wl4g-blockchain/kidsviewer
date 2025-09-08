@@ -232,7 +232,7 @@ export const UserSwitcher: React.FC = () => {
                         <div className="flex-1 text-left">
                           <div className="font-semibold text-gray-800 text-sm">{person.alias}</div>
                           <div className="text-xs text-gray-500">
-                            {t('parental.ageGroups.' + person.ageGroup)} • {person.settings.sessionTimeLimit}
+                            {t('parental.ageGroups.' + person.ageGroup)} • {person.settings.perTimeLimitMinutes}
                             {t('time.minutes')}
                           </div>
                         </div>

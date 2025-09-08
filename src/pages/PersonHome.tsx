@@ -333,10 +333,11 @@ export const PersonHome: React.FC = () => {
     }
   };
 
-  // Format time display - shows seconds for real-time updates
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+  // Format time display - shows seconds countdown for real-time updates
+  const formatTime = (milliseconds: number) => {
+    const mins = Math.floor(milliseconds / 1000 / 60);
+    const secs = Math.floor(milliseconds / 1000) % 60;
+    console.debug(`Calculated remaining time: ${milliseconds}ms, ${mins}m, ${secs}s`);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -708,11 +709,7 @@ export const PersonHome: React.FC = () => {
                             <div>
                               <h3 className="font-bold text-gray-800 text-lg">{getPlatformName(urlData)}</h3>
                               {/* Difficulty and time limits are now managed at Person level */}
-                              {urlData.description && (
-                                <div className="text-xs text-gray-600 mt-2">
-                                  {urlData.description}
-                                </div>
-                              )}
+                              {urlData.description && <div className="text-xs text-gray-600 mt-2">{urlData.description}</div>}
                             </div>
                           </div>
                         </div>

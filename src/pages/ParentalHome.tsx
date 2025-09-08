@@ -245,7 +245,7 @@ export const ParentalHome: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-medium text-gray-900">{person.alias}</h3>
                       <p className="text-sm text-gray-500">
-                        {t(`parental.ageGroups.${person.ageGroup}`)} • {person.settings.sessionTimeLimit} {t('time.minutes')}
+                        {t(`parental.ageGroups.${person.ageGroup}`)} • {person.settings.perTimeLimitMinutes} {t('time.minutes')}
                       </p>
                     </div>
                   </div>
@@ -437,7 +437,7 @@ export const ParentalHome: React.FC = () => {
                 <input
                   type="number"
                   name="timeLimit"
-                  defaultValue={selectedPerson.settings.sessionTimeLimit}
+                  defaultValue={selectedPerson.settings.perTimeLimitMinutes}
                   min="5"
                   max="120"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

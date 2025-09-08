@@ -123,17 +123,17 @@ const mockDataDB = {
       createdAt: number;
       expiresAt: number;
       startTime: number;
-      dailyWatchedTime: number; // in minutes
+      todayWatchedTime: number; // in minutes
       questionsAsked: number;
     }
   >(),
   // Watching history
-  watchingHistory: [] as {
+  watchingHistories: [] as {
     id: string;
     personId: string;
     date: string;
     platform: string;
-    watchedMinutes: number;
+    watchedTime: number;
     questionsAnswered: number;
     questionsCorrect: number;
   }[],
@@ -550,8 +550,8 @@ export class MockAPIHandler implements IAPIHandler {
       alias: 'Barry',
       ageGroup: 'young',
       settings: {
-        sessionTimeLimit: 20,
-        dailyTotalTimeLimit: 120,
+        perTimeLimitMinutes: 20,
+        dailyTimeLimitMinutes: 120,
         questionCount: 3,
         questionsPerDay: 15,
         platformIds: ['platform_001', 'platform_002', 'platform_003', 'platform_004'],
@@ -828,8 +828,8 @@ export class MockAPIHandler implements IAPIHandler {
         alias: 'Barry',
         ageGroup: 'young',
         settings: {
-          sessionTimeLimit: 20,
-          dailyTotalTimeLimit: 120,
+          perTimeLimitMinutes: 20,
+          dailyTimeLimitMinutes: 120,
           questionCount: 3,
           questionsPerDay: 15,
           subjects: [
@@ -903,8 +903,8 @@ export class MockAPIHandler implements IAPIHandler {
           alias: 'Barry',
           ageGroup: 'young',
           settings: {
-            sessionTimeLimit: 20,
-            dailyTotalTimeLimit: 120,
+            perTimeLimitMinutes: 20,
+            dailyTimeLimitMinutes: 120,
             questionCount: 3,
             questionsPerDay: 15,
             subjects: [
@@ -1011,8 +1011,8 @@ export class MockAPIHandler implements IAPIHandler {
         alias: personData.alias || 'Person',
         ageGroup: personData.ageGroup || 'young',
         settings: {
-          sessionTimeLimit: personData.settings?.sessionTimeLimit || 15,
-          dailyTotalTimeLimit: personData.settings?.dailyTotalTimeLimit || 120,
+          perTimeLimitMinutes: personData.settings?.perTimeLimitMinutes || 15,
+          dailyTimeLimitMinutes: personData.settings?.dailyTimeLimitMinutes || 120,
           questionCount: personData.settings?.questionCount || 3,
           questionsPerDay: personData.settings?.questionsPerDay || 15,
           subjects: personData.settings?.subjects || [
@@ -1272,16 +1272,14 @@ export class MockAPIHandler implements IAPIHandler {
         return createApiResponse('4002', 'Platform not allowed for this person');
       }
 
-      const sessionTimeLimit = person.data.settings.sessionTimeLimit; // seconds
-      const expiresAt = Date.now() / 1000 + sessionTimeLimit;
+      // Calculate expiresAt and remaining daily time
+      const todayDate = new Date().toISOString().split('T')[0]; // yyyy-MM-dd
+      const todayHistories = mockDataDB.watchingHistories.filter(h => h.date === todayDate && h.personId === personId);
+      const todayWatchedTime = todayHistories.reduce((sum, h) => sum + h.watchedTime, 0);
+      const todayRemainingTime = Math.max(0, person.data.settings.dailyTimeLimitMinutes - todayWatchedTime);
+      const expiresAt = Date.now() + person.data.settings.perTimeLimitMinutes * 60 * 1000;
 
-      // Calculate remaining daily time
-      const today = new Date().toISOString().split('T')[0];
-      const todayHistory = mockDataDB.watchingHistory.filter(h => h.date === today && h.personId === personId);
-      const watchedToday = todayHistory.reduce((sum, h) => sum + h.watchedMinutes, 0);
-      const remainingDailyTime = Math.max(0, person.data.settings.dailyTotalTimeLimit - watchedToday);
-
-      if (remainingDailyTime <= 0) {
+      if (todayRemainingTime <= 0) {
         return createApiResponse('4017', 'Daily total time limit exceeded');
       }
 
@@ -1289,16 +1287,16 @@ export class MockAPIHandler implements IAPIHandler {
         personId,
         platformUrl,
         createdAt: Date.now(),
-        expiresAt,
+        expiresAt: expiresAt,
         startTime: Date.now(),
-        dailyWatchedTime: watchedToday,
+        todayWatchedTime: todayWatchedTime,
         questionsAsked: 0,
       });
 
       return createApiResponse('200', 'ok', {
         watchingToken: token,
-        sessionTimeLimit: person.data.settings.sessionTimeLimit,
-        remainingDailyTime,
+        sessionTimeLimit: person.data.settings.perTimeLimitMinutes,
+        remainingDailyTime: todayRemainingTime,
       });
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
@@ -1318,17 +1316,17 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       const currentTime = Date.now();
-      const watchedTime = Math.floor((currentTime - watchingInfo.startTime) / 60000); // Convert to minutes
-      const remainingTime = Math.max(0, Math.floor((watchingInfo.expiresAt - currentTime) / 60000));
+      const currentWatchedTime = currentTime - watchingInfo.startTime; // milliseconds
+      const remainingTime = Math.max(0, watchingInfo.expiresAt - currentTime); // milliseconds
 
       // Calculate remaining daily time
-      const today = new Date().toISOString().split('T')[0];
-      const todayHistory = mockDataDB.watchingHistory.filter(h => h.date === today && h.personId === watchingInfo.personId);
-      const watchedToday = todayHistory.reduce((sum, h) => sum + h.watchedMinutes, 0) + watchedTime;
-      const remainingDailyTime = Math.max(0, person.data.settings.dailyTotalTimeLimit - watchedToday);
+      const todayDate = new Date().toISOString().split('T')[0]; // yyyy-MM-dd
+      const todayHistories = mockDataDB.watchingHistories.filter(h => h.date === todayDate && h.personId === watchingInfo.personId);
+      const todayWatchedTime = todayHistories.reduce((sum, h) => sum + h.watchedTime, 0) + currentWatchedTime;
+      const todayRemainingTime = Math.max(0, person.data.settings.dailyTimeLimitMinutes * 60 * 1000 - todayWatchedTime);
 
       // Check if daily time exceeded
-      if (remainingDailyTime <= 0) {
+      if (todayRemainingTime <= 0) {
         return createApiResponse('4017', 'Daily total time limit exceeded', {
           remainingTime: 0,
           remainingDailyTime: 0,
@@ -1343,7 +1341,7 @@ export class MockAPIHandler implements IAPIHandler {
 
         return createApiResponse('4018', 'Session time limit exceeded', {
           remainingTime: 0,
-          remainingDailyTime,
+          remainingDailyTime: todayRemainingTime,
           questions,
         });
       }
@@ -1351,7 +1349,7 @@ export class MockAPIHandler implements IAPIHandler {
       // Normal watching state
       return createApiResponse('200', 'ok', {
         remainingTime,
-        remainingDailyTime,
+        remainingDailyTime: todayRemainingTime,
       });
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
@@ -1392,8 +1390,8 @@ export class MockAPIHandler implements IAPIHandler {
       if (correct) {
         // Generate new token with extended time
         const newToken = this.generateId();
-        const timeLimit = person.data.settings.sessionTimeLimit * 60 * 1000;
-        const newExpiresAt = Date.now() + timeLimit;
+        const timeLimitMs = person.data.settings.perTimeLimitMinutes * 60 * 1000; // Convert to milliseconds
+        const newExpiresAt = Date.now() + timeLimitMs;
 
         mockDataDB.watchingTokens.set(newToken, {
           ...tokenData,

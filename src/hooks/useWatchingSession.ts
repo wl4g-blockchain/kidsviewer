@@ -42,7 +42,14 @@ export const useWatchingSession = (
   const [questions, setQuestions] = useState<WatchingQuestion[]>([]);
 
   const checkIntervalRef = useRef<number | null>(null);
+  const showQuestionsRef = useRef<boolean>(false);
   const api = APIFactory.createAPIHandler();
+
+  // Wrapper for setShowQuestions to keep ref in sync
+  const setShowQuestionsWrapper = useCallback((show: boolean) => {
+    setShowQuestions(show);
+    showQuestionsRef.current = show;
+  }, []);
 
   // Convert API questions to common format
   const convertAPIQuestionToCommon = useCallback((apiQuestions: APIQuestion[]): WatchingQuestion[] => {
@@ -89,9 +96,11 @@ export const useWatchingSession = (
       checkIntervalRef.current = window.setInterval(async () => {
         if (!token) return;
 
-        alert(showQuestions);
+        // Use ref to get current state to avoid stale closure issues
+        const currentShowQuestions = showQuestionsRef.current;
+        
         // Pause checking when questions are visible to avoid interrupting user interaction
-        if (showQuestions) {
+        if (currentShowQuestions) {
           return;
         }
 
@@ -100,9 +109,10 @@ export const useWatchingSession = (
 
           if (response.errcode === '200' && response.data) {
             // Check if questions need to be shown - only update if not already showing questions
-            if (response.data.questions && response.data.questions.length > 0 && !showQuestions) {
+            // Double check with ref to ensure we don't override user's current question interaction
+            if (response.data.questions && response.data.questions.length > 0 && !showQuestionsRef.current) {
               setQuestions(convertAPIQuestionToCommon(response.data.questions));
-              setShowQuestions(true);
+              setShowQuestionsWrapper(true);
             }
 
             // Check if daily time exceeded or session expired
@@ -118,9 +128,9 @@ export const useWatchingSession = (
         } catch (error) {
           console.error('Error checking watching status:', error);
         }
-      }, 3000); // Check every 3 seconds
+      }, 1000); // Check every 3 seconds
     },
-    [convertAPIQuestionToCommon, showQuestions]
+    [convertAPIQuestionToCommon, setShowQuestionsWrapper]
   );
 
   // Handle answering questions
@@ -135,7 +145,7 @@ export const useWatchingSession = (
           if (response.data.correct && response.data.newWatchingToken) {
             // Update token and continue watching
             setWatchingToken(response.data.newWatchingToken);
-            setShowQuestions(false);
+            setShowQuestionsWrapper(false);
             startCheckingWatchingStatus(response.data.newWatchingToken);
           } else {
             // Incorrect answer - keep questions visible for user to try again
@@ -146,7 +156,7 @@ export const useWatchingSession = (
         console.error('Error verifying question:', error);
       }
     },
-    [watchingToken, startCheckingWatchingStatus]
+    [watchingToken, startCheckingWatchingStatus, setShowQuestionsWrapper]
   );
 
   // Clear error state
@@ -154,6 +164,11 @@ export const useWatchingSession = (
     setHasError(false);
     setErrorMessage('');
   }, []);
+
+  // Keep ref in sync with state on mount and updates
+  useEffect(() => {
+    showQuestionsRef.current = showQuestions;
+  }, [showQuestions]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -173,7 +188,7 @@ export const useWatchingSession = (
     questions,
     startWatching,
     handleAnswerQuestion,
-    setShowQuestions,
+    setShowQuestions: setShowQuestionsWrapper,
     clearError,
   };
 };
