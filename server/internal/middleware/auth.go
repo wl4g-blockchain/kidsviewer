@@ -3,10 +3,10 @@ package middleware
 import (
 	"kidsviewer-server/internal/services"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 // AuthRequired middleware validates JWT tokens and adds user info to context
@@ -37,7 +37,7 @@ func AuthRequired(authService *services.AuthService) gin.HandlerFunc {
 		tokenString := tokenParts[1]
 
 		// Validate token
-		token, err := authService.ValidateToken(tokenString)
+		claims, err := authService.ValidateToken(tokenString)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"success": false,
@@ -48,29 +48,10 @@ func AuthRequired(authService *services.AuthService) gin.HandlerFunc {
 			return
 		}
 
-		// Extract claims
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			userID, ok := claims["user_id"].(string)
-			if !ok {
-				c.JSON(http.StatusUnauthorized, gin.H{
-					"success": false,
-					"message": "Invalid token claims",
-				})
-				c.Abort()
-				return
-			}
-
-			// Set user ID in context
-			c.Set("user_id", userID)
-			c.Set("jwt_claims", claims)
-		} else {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"success": false,
-				"message": "Invalid token claims",
-			})
-			c.Abort()
-			return
-		}
+		// Set user ID in context (convert uint to string)
+		userIDStr := strconv.FormatUint(uint64(claims.UserID), 10)
+		c.Set("user_id", userIDStr)
+		c.Set("jwt_claims", claims)
 
 		c.Next()
 	})
@@ -95,19 +76,16 @@ func OptionalAuth(authService *services.AuthService) gin.HandlerFunc {
 		tokenString := tokenParts[1]
 
 		// Validate token
-		token, err := authService.ValidateToken(tokenString)
+		claims, err := authService.ValidateToken(tokenString)
 		if err != nil {
 			c.Next()
 			return
 		}
 
-		// Extract claims
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			if userID, ok := claims["user_id"].(string); ok {
-				c.Set("user_id", userID)
-				c.Set("jwt_claims", claims)
-			}
-		}
+		// Set user ID in context (convert uint to string)
+		userIDStr := strconv.FormatUint(uint64(claims.UserID), 10)
+		c.Set("user_id", userIDStr)
+		c.Set("jwt_claims", claims)
 
 		c.Next()
 	})

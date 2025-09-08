@@ -30,7 +30,7 @@ type MemoryCache struct {
 
 // RedisCache implements Cache using Redis
 type RedisCache struct {
-	client *redis.Client
+	client redis.Cmdable
 }
 
 // NewCache creates a new cache instance based on configuration
@@ -59,7 +59,7 @@ func NewMemoryCache(cfg *config.Config) *MemoryCache {
 
 // NewRedisCache creates a new Redis cache
 func NewRedisCache(cfg *config.Config) (*RedisCache, error) {
-	var client *redis.Client
+	var client redis.Cmdable
 
 	if len(cfg.Cache.Redis.Servers) == 1 {
 		// Single Redis instance
@@ -79,7 +79,7 @@ func NewRedisCache(cfg *config.Config) (*RedisCache, error) {
 			Password:     cfg.Cache.Redis.Password,
 			PoolSize:     cfg.Cache.Redis.PoolSize,
 			MinIdleConns: cfg.Cache.Redis.MinIdleConns,
-		}).(*redis.Client)
+		})
 	}
 
 	// Test connection
@@ -229,7 +229,11 @@ func (r *RedisCache) Health(ctx context.Context) error {
 }
 
 func (r *RedisCache) Close() error {
-	return r.client.Close()
+	// Check if client is a closeable type
+	if closer, ok := r.client.(interface{ Close() error }); ok {
+		return closer.Close()
+	}
+	return nil
 }
 
 // Utility functions for common cache patterns

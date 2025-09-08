@@ -31,7 +31,8 @@ func (s *PersonService) GetPersons(userID string) ([]models.Person, error) {
 	cacheKey := fmt.Sprintf("user:%s:persons", userID)
 
 	// Try to get from cache first
-	cached, err := s.cache.Get(context.Background(), cacheKey)
+	var cached string
+	err := s.cache.Get(context.Background(), cacheKey, &cached)
 	if err == nil && cached != "" {
 		var persons []models.Person
 		if json.Unmarshal([]byte(cached), &persons) == nil {
@@ -58,7 +59,8 @@ func (s *PersonService) GetPerson(userID, personID string) (*models.Person, erro
 	cacheKey := fmt.Sprintf("person:%s", personID)
 
 	// Try to get from cache first
-	cached, err := s.cache.Get(context.Background(), cacheKey)
+	var cached string
+	err := s.cache.Get(context.Background(), cacheKey, &cached)
 	if err == nil && cached != "" {
 		var person models.Person
 		if json.Unmarshal([]byte(cached), &person) == nil {
@@ -216,8 +218,8 @@ func (s *PersonService) GetPersonPlatforms(userID, personID string) ([]models.Pl
 	cacheKey := fmt.Sprintf("person:%s:platforms", personID)
 
 	// Try to get from cache first
-	cached, err := s.cache.Get(context.Background(), cacheKey)
-	if err == nil && cached != "" {
+	var cached string
+	if err := s.cache.Get(context.Background(), cacheKey, &cached); err == nil && cached != "" {
 		var platforms []models.Platform
 		if json.Unmarshal([]byte(cached), &platforms) == nil {
 			return platforms, nil
@@ -249,8 +251,8 @@ func (s *PersonService) GetPersonStatistics(userID, personID string) (*models.Pe
 	cacheKey := fmt.Sprintf("person:%s:statistics", personID)
 
 	// Try to get from cache first
-	cached, err := s.cache.Get(context.Background(), cacheKey)
-	if err == nil && cached != "" {
+	var cached string
+	if err := s.cache.Get(context.Background(), cacheKey, &cached); err == nil && cached != "" {
 		var stats models.PersonStatistics
 		if json.Unmarshal([]byte(cached), &stats) == nil {
 			return &stats, nil
@@ -282,8 +284,8 @@ func (s *PersonService) GetLearningProgress(userID, personID string) (*models.Le
 	cacheKey := fmt.Sprintf("person:%s:progress", personID)
 
 	// Try to get from cache first
-	cached, err := s.cache.Get(context.Background(), cacheKey)
-	if err == nil && cached != "" {
+	var cached string
+	if err := s.cache.Get(context.Background(), cacheKey, &cached); err == nil && cached != "" {
 		var progress models.LearningProgress
 		if json.Unmarshal([]byte(cached), &progress) == nil {
 			return &progress, nil

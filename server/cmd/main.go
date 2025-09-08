@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"kidsviewer-server/internal/config"
 	"kidsviewer-server/internal/server"
+	"kidsviewer-server/internal/utils"
 	"log"
 	"net/http"
 	"os"
@@ -13,11 +14,11 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var (
-	cfgFile string
+	cfgFile      string
+	viperConfig  *utils.ViperConfigurer
 	rootCmd = &cobra.Command{
 		Use:   "kidsviewer-server",
 		Short: "KidsViewer Server - A safe content viewing platform for children",
@@ -30,95 +31,95 @@ for children with parental controls, learning questions, and progress tracking.`
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Global flags
+	// Global flags - only essential ones, detailed config should be in config file
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./config.yaml)")
 	rootCmd.PersistentFlags().String("server.address", "0.0.0.0", "server listen address")
 	rootCmd.PersistentFlags().Int("server.port", 9988, "server listen port")
 	rootCmd.PersistentFlags().String("logging.root-level", "INFO", "root logging level")
-	rootCmd.PersistentFlags().String("database.type", "sqlite", "database type (sqlite|postgres)")
-	rootCmd.PersistentFlags().String("database.dsn", "./data/kidsviewer.db", "database connection string")
-	rootCmd.PersistentFlags().String("cache.type", "memory", "cache type (memory|redis)")
-	rootCmd.PersistentFlags().String("jwt.secret-key", "", "JWT secret key")
-	rootCmd.PersistentFlags().Int("jwt.expiration-hours", 24, "JWT token expiration in hours")
-
-	// Bind flags to viper
-	viper.BindPFlag("server.address", rootCmd.PersistentFlags().Lookup("server.address"))
-	viper.BindPFlag("server.port", rootCmd.PersistentFlags().Lookup("server.port"))
-	viper.BindPFlag("logging.root-level", rootCmd.PersistentFlags().Lookup("logging.root-level"))
-	viper.BindPFlag("database.type", rootCmd.PersistentFlags().Lookup("database.type"))
-	viper.BindPFlag("database.dsn", rootCmd.PersistentFlags().Lookup("database.dsn"))
-	viper.BindPFlag("cache.type", rootCmd.PersistentFlags().Lookup("cache.type"))
-	viper.BindPFlag("jwt.secret-key", rootCmd.PersistentFlags().Lookup("jwt.secret-key"))
-	viper.BindPFlag("jwt.expiration-hours", rootCmd.PersistentFlags().Lookup("jwt.expiration-hours"))
 }
 
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Search config in current directory
-		viper.AddConfigPath(".")
-		viper.AddConfigPath("./config")
-		viper.SetConfigType("yaml")
-		viper.SetConfigName("config")
+	// Initialize ViperConfigurer
+	viperConfig = utils.NewViperConfigurer()
+	viperConfig.SetEnvPrefix("KIDSVIEWER")
+
+	// Define default config file if not specified
+	defaultConfigFile := "./config.yaml"
+	if cfgFile == "" {
+		cfgFile = defaultConfigFile
 	}
 
-	// Environment variables
-	viper.SetEnvPrefix("KIDSVIEWER")
-	viper.AutomaticEnv()
+	// Create default config if it doesn't exist
+	if !utils.ExistsFileOrDir(cfgFile) {
+		log.Printf("Config file %s not found, using defaults", cfgFile)
+		cfgFile = "" // Let the config loader use defaults
+	}
 
-	// Set defaults
-	setDefaults()
-
-	// Read config file
-	if err := viper.ReadInConfig(); err == nil {
-		log.Printf("Using config file: %s", viper.ConfigFileUsed())
+	if cfgFile != "" {
+		// Use the specified config file with default template
+		defineConfigContent := getDefaultConfigTemplate()
+		if err := viperConfig.SetConfig(defineConfigContent, cfgFile); err != nil {
+			log.Printf("Warning: Failed to load config file %s: %v", cfgFile, err)
+		} else {
+			log.Printf("Using config file: %s", cfgFile)
+		}
 	}
 }
 
-func setDefaults() {
-	// Server defaults
-	viper.SetDefault("server.address", "0.0.0.0")
-	viper.SetDefault("server.port", 9988)
-	viper.SetDefault("server.read-timeout", 30)
-	viper.SetDefault("server.write-timeout", 30)
-	viper.SetDefault("server.shutdown-timeout", 30)
+// getDefaultConfigTemplate returns the default configuration template
+func getDefaultConfigTemplate() string {
+	return `# KidsViewer Server Configuration
+server:
+  address: "0.0.0.0"
+  port: 9988
+  cors:
+    allow-origins: ["*"]
+    allow-methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow-headers: ["*"]
+    allow-credentials: true
+    max-age: 86400
 
-	// CORS defaults
-	viper.SetDefault("server.cors.allow-origins", []string{"*"})
-	viper.SetDefault("server.cors.allow-methods", []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
-	viper.SetDefault("server.cors.allow-headers", []string{"*"})
-	viper.SetDefault("server.cors.allow-credentials", true)
-	viper.SetDefault("server.cors.max-age", 12*3600)
+logging:
+  root-level: "INFO"
+  format: "json"
 
-	// Logging defaults
-	viper.SetDefault("logging.root-level", "INFO")
-	viper.SetDefault("logging.format", "json")
+database:
+  type: "sqlite"
+  sqlite:
+    path: "./data/kidsviewer.db"
+    pragma:
+      journal_mode: "WAL"
+      synchronous: "NORMAL"
+      foreign_keys: "ON"
+  pool:
+    max-open-conns: 25
+    max-idle-conns: 25
+    conn-max-lifetime: 300
 
-	// Database defaults
-	viper.SetDefault("database.type", "sqlite")
-	viper.SetDefault("database.dsn", "./data/kidsviewer.db")
-	viper.SetDefault("database.max-open-conns", 25)
-	viper.SetDefault("database.max-idle-conns", 5)
-	viper.SetDefault("database.conn-max-lifetime", "5m")
+cache:
+  type: "memory"
+  memory:
+    default-expiration: 60
+    cleanup-interval: 10
+    max-items: 1000
 
-	// Cache defaults
-	viper.SetDefault("cache.type", "memory")
-	viper.SetDefault("cache.memory.max-size", 100)
-	viper.SetDefault("cache.memory.default-expiration", "10m")
-	viper.SetDefault("cache.memory.cleanup-interval", "15m")
+jwt:
+  secret-key: "your-secret-key-change-in-production"
+  expiration-hours: 24
+  refresh-hours: 168
+  issuer: "kidsviewer-server"
 
-	// JWT defaults
-	viper.SetDefault("jwt.secret-key", "your-secret-key-change-in-production")
-	viper.SetDefault("jwt.expiration-hours", 24)
-	viper.SetDefault("jwt.issuer", "kidsviewer-server")
-
-	// Kids Viewer specific defaults
-	viper.SetDefault("kids-viewer.max-daily-time", 120)
-	viper.SetDefault("kids-viewer.question-interval", 15)
-	viper.SetDefault("kids-viewer.max-wrong-answers", 3)
-	viper.SetDefault("kids-viewer.session-timeout", 30)
+kids-viewer:
+  default-session-time-limit: 30
+  default-daily-time-limit: 120
+  default-question-count: 3
+  max-question-count: 10
+  watching-token-expiry: 60
+  features:
+    question-templates: true
+    platform-management: true
+    analytics: true
+`
 }
 
 func runServer(cmd *cobra.Command, args []string) {

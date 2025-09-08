@@ -19,9 +19,12 @@ type Config struct {
 
 // ServerConfig contains HTTP server configuration
 type ServerConfig struct {
-	Address string     `mapstructure:"address"`
-	Port    int        `mapstructure:"port"`
-	CORS    CORSConfig `mapstructure:"cors"`
+	Address         string     `mapstructure:"address"`
+	Port            int        `mapstructure:"port"`
+	ReadTimeout     int        `mapstructure:"read-timeout"`     // seconds
+	WriteTimeout    int        `mapstructure:"write-timeout"`    // seconds
+	ShutdownTimeout int        `mapstructure:"shutdown-timeout"` // seconds
+	CORS            CORSConfig `mapstructure:"cors"`
 }
 
 // CORSConfig contains CORS configuration
@@ -110,7 +113,10 @@ type KidsViewerConfig struct {
 	DefaultDailyTimeLimit   int              `mapstructure:"default-daily-time-limit"`   // minutes
 	DefaultQuestionCount    int              `mapstructure:"default-question-count"`
 	MaxQuestionCount        int              `mapstructure:"max-question-count"`
-	WatchingTokenExpiry     int              `mapstructure:"watching-token-expiry"` // minutes
+	WatchingTokenExpiry     int              `mapstructure:"watching-token-expiry"`     // minutes
+	SessionTimeoutMinutes   int              `mapstructure:"session-timeout-minutes"`   // minutes
+	QuestionIntervalMinutes int              `mapstructure:"question-interval-minutes"` // minutes
+	MaxQuestionsPerSession  int              `mapstructure:"max-questions-per-session"`
 	Features                map[string]bool  `mapstructure:"features"`
 	Platforms               []PlatformConfig `mapstructure:"platforms"`
 }
@@ -171,6 +177,9 @@ func setDefaults() {
 	// Server defaults
 	viper.SetDefault("server.address", "0.0.0.0")
 	viper.SetDefault("server.port", 9988)
+	viper.SetDefault("server.read-timeout", 30)
+	viper.SetDefault("server.write-timeout", 30)
+	viper.SetDefault("server.shutdown-timeout", 30)
 	viper.SetDefault("server.cors.allow-origins", []string{"*"})
 	viper.SetDefault("server.cors.allow-methods", []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
 	viper.SetDefault("server.cors.allow-headers", []string{"*"})
@@ -212,6 +221,9 @@ func setDefaults() {
 	viper.SetDefault("kids-viewer.default-question-count", 3)
 	viper.SetDefault("kids-viewer.max-question-count", 10)
 	viper.SetDefault("kids-viewer.watching-token-expiry", 60)
+	viper.SetDefault("kids-viewer.session-timeout-minutes", 60)
+	viper.SetDefault("kids-viewer.question-interval-minutes", 10)
+	viper.SetDefault("kids-viewer.max-questions-per-session", 5)
 	viper.SetDefault("kids-viewer.features.question-templates", true)
 	viper.SetDefault("kids-viewer.features.platform-management", true)
 	viper.SetDefault("kids-viewer.features.analytics", true)

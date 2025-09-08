@@ -2,32 +2,36 @@ package middleware
 
 import (
 	"context"
-	"strconv"
+	"crypto/rand"
+	"encoding/hex"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/metric"
+	otelmetric "go.opentelemetry.io/otel/metric"
 )
 
 // RequestID middleware adds a unique request ID to each request
 func RequestID() gin.HandlerFunc {
-	return gin.HandlerFunc(func(c *gin.Context) {
+	return func(c *gin.Context) {
+		// Check if request ID is already set (e.g., from load balancer)
 		requestID := c.GetHeader("X-Request-ID")
 		if requestID == "" {
-			requestID = uuid.New().String()
+			// Generate a new request ID
+			requestID = generateRequestID()
 		}
 
-		c.Header("X-Request-ID", requestID)
+		// Set request ID in context and response header
 		c.Set("request_id", requestID)
+		c.Header("X-Request-ID", requestID)
+
 		c.Next()
-	})
+	}
 }
 
-// Metrics middleware records HTTP request metrics using OpenTelemetry
-func Metrics(requestCounter metric.Int64Counter, requestDuration metric.Float64Histogram) gin.HandlerFunc {
-	return gin.HandlerFunc(func(c *gin.Context) {
+// Metrics middleware records HTTP metrics
+func Metrics(requestCounter otelmetric.Int64Counter, requestDuration otelmetric.Float64Histogram) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		start := time.Now()
 
 		// Process request
@@ -35,68 +39,28 @@ func Metrics(requestCounter metric.Int64Counter, requestDuration metric.Float64H
 
 		// Record metrics
 		duration := time.Since(start).Seconds()
-		statusCode := strconv.Itoa(c.Writer.Status())
 
-		// Common attributes
+		// Create attributes for metrics
 		attrs := []attribute.KeyValue{
 			attribute.String("method", c.Request.Method),
 			attribute.String("route", c.FullPath()),
-			attribute.String("status_code", statusCode),
+			attribute.Int("status_code", c.Writer.Status()),
 		}
 
-		// Record request count
-		requestCounter.Add(context.Background(), 1, metric.WithAttributes(attrs...))
+		// Record request counter
+		requestCounter.Add(context.Background(), 1, otelmetric.WithAttributes(attrs...))
 
 		// Record request duration
-		requestDuration.Record(context.Background(), duration, metric.WithAttributes(attrs...))
-	})
+		requestDuration.Record(context.Background(), duration, otelmetric.WithAttributes(attrs...))
+	}
 }
 
-// RateLimit middleware implements basic rate limiting
-func RateLimit(requests int, window time.Duration) gin.HandlerFunc {
-	// Simple in-memory rate limiter for demonstration
-	// In production, use Redis or a proper rate limiting library
-	clients := make(map[string][]time.Time)
-
-	return gin.HandlerFunc(func(c *gin.Context) {
-		clientIP := c.ClientIP()
-		now := time.Now()
-
-		// Clean old entries
-		if times, exists := clients[clientIP]; exists {
-			var validTimes []time.Time
-			for _, t := range times {
-				if now.Sub(t) < window {
-					validTimes = append(validTimes, t)
-				}
-			}
-			clients[clientIP] = validTimes
-		}
-
-		// Check rate limit
-		if len(clients[clientIP]) >= requests {
-			c.JSON(429, gin.H{
-				"success": false,
-				"message": "Rate limit exceeded",
-			})
-			c.Abort()
-			return
-		}
-
-		// Add current request
-		clients[clientIP] = append(clients[clientIP], now)
-		c.Next()
-	})
-}
-
-// SecurityHeaders middleware adds security headers to responses
-func SecurityHeaders() gin.HandlerFunc {
-	return gin.HandlerFunc(func(c *gin.Context) {
-		c.Header("X-Content-Type-Options", "nosniff")
-		c.Header("X-Frame-Options", "DENY")
-		c.Header("X-XSS-Protection", "1; mode=block")
-		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-		c.Header("Content-Security-Policy", "default-src 'self'")
-		c.Next()
-	})
+// generateRequestID generates a unique request ID
+func generateRequestID() string {
+	bytes := make([]byte, 8)
+	if _, err := rand.Read(bytes); err != nil {
+		// Fallback to timestamp-based ID if random generation fails
+		return hex.EncodeToString([]byte(time.Now().Format("20060102150405.000")))
+	}
+	return hex.EncodeToString(bytes)
 }

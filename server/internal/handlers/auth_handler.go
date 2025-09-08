@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"kidsviewer-server/internal/models"
 	"kidsviewer-server/internal/services"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +34,14 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.AuthService.Register(req.Username, req.Password, req.Email, req.IsParent)
+	// Convert to services.RegisterRequest
+	registerReq := &services.RegisterRequest{
+		Email:    req.Email,
+		Password: req.Password,
+		Name:     req.Username,
+	}
+
+	user, err := h.AuthService.Register(context.Background(), registerReq)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -61,7 +70,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	loginResponse, err := h.AuthService.Login(req.Username, req.Password)
+	// Convert to services.LoginRequest
+	loginReq := &services.LoginRequest{
+		Email:    req.Username, // Assuming username is email
+		Password: req.Password,
+	}
+
+	loginResponse, err := h.AuthService.Login(context.Background(), loginReq)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
@@ -80,8 +95,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 // Logout handles user logout
 func (h *AuthHandler) Logout(c *gin.Context) {
-	userID := c.GetString("user_id")
-	if userID == "" {
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
 			"message": "User not authenticated",
@@ -89,7 +104,17 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	err := h.AuthService.Logout(userID)
+	// Convert string to uint
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid user ID",
+		})
+		return
+	}
+
+	err = h.AuthService.Logout(context.Background(), uint(userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -107,8 +132,8 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 // GetCurrentUser returns the current authenticated user
 func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
-	userID := c.GetString("user_id")
-	if userID == "" {
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
 			"message": "User not authenticated",
@@ -116,7 +141,17 @@ func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.AuthService.GetCurrentUser(userID)
+	// Convert string to uint
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid user ID",
+		})
+		return
+	}
+
+	user, err := h.AuthService.GetCurrentUser(context.Background(), uint(userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -144,8 +179,8 @@ func (h *AuthHandler) VerifyParentalPassword(c *gin.Context) {
 		return
 	}
 
-	userID := c.GetString("user_id")
-	if userID == "" {
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
 			"message": "User not authenticated",
@@ -153,7 +188,17 @@ func (h *AuthHandler) VerifyParentalPassword(c *gin.Context) {
 		return
 	}
 
-	isValid, err := h.AuthService.VerifyParentalPassword(userID, req.Password)
+	// Convert string to uint
+	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid user ID",
+		})
+		return
+	}
+
+	isValid, err := h.AuthService.VerifyParentalPassword(context.Background(), uint(userID), req.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,

@@ -218,3 +218,64 @@ func (d *Database) SeedData() error {
 	log.Println("Database seeded successfully")
 	return nil
 }
+
+// Person-related database operations
+
+// GetPersonsByUserID retrieves all persons for a specific user
+func (d *Database) GetPersonsByUserID(userID string) ([]models.Person, error) {
+	var persons []models.Person
+	err := d.DB.Where("user_id = ?", userID).Find(&persons).Error
+	return persons, err
+}
+
+// GetPersonByID retrieves a person by ID
+func (d *Database) GetPersonByID(personID string) (*models.Person, error) {
+	var person models.Person
+	err := d.DB.Where("id = ?", personID).First(&person).Error
+	if err != nil {
+		return nil, err
+	}
+	return &person, nil
+}
+
+// CreatePerson creates a new person
+func (d *Database) CreatePerson(person *models.Person) error {
+	return d.DB.Create(person).Error
+}
+
+// UpdatePerson updates an existing person
+func (d *Database) UpdatePerson(person *models.Person) error {
+	return d.DB.Save(person).Error
+}
+
+// DeletePerson deletes a person by ID
+func (d *Database) DeletePerson(personID string) error {
+	return d.DB.Delete(&models.Person{}, "id = ?", personID).Error
+}
+
+// GetPlatformsByAgeGroup retrieves platforms suitable for an age group
+func (d *Database) GetPlatformsByAgeGroup(ageGroup string) ([]models.Platform, error) {
+	var platforms []models.Platform
+	err := d.DB.Where("JSON_EXTRACT(age_groups, '$') LIKE ? AND enabled = ?", "%\""+ageGroup+"\"%", true).Find(&platforms).Error
+	return platforms, err
+}
+
+// GetPersonStatistics retrieves statistics for a person
+func (d *Database) GetPersonStatistics(personID string) (*models.PersonStatistics, error) {
+	var person models.Person
+	err := d.DB.Select("statistics").Where("id = ?", personID).First(&person).Error
+	if err != nil {
+		return nil, err
+	}
+	return &person.Statistics, nil
+}
+
+// GetLearningProgress retrieves learning progress for a person
+func (d *Database) GetLearningProgress(personID string) (*models.LearningProgress, error) {
+	var person models.Person
+	err := d.DB.Select("statistics").Where("id = ?", personID).First(&person).Error
+	if err != nil {
+		return nil, err
+	}
+	return &person.Statistics.LearningProgress, nil
+}

@@ -17,8 +17,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
-	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/sdk/metric"
+	otelmetric "go.opentelemetry.io/otel/metric"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
 // Server represents the HTTP server
@@ -55,9 +55,9 @@ type Handlers struct {
 
 // Metrics contains OpenTelemetry metrics
 type Metrics struct {
-	RequestCounter  metric.Int64Counter
-	RequestDuration metric.Float64Histogram
-	ActiveSessions  metric.Int64UpDownCounter
+	RequestCounter  otelmetric.Int64Counter
+	RequestDuration otelmetric.Float64Histogram
+	ActiveSessions  otelmetric.Int64UpDownCounter
 }
 
 // New creates a new server instance
@@ -262,7 +262,7 @@ func initMetrics() (*Metrics, error) {
 	}
 
 	// Create a meter provider
-	provider := metric.NewMeterProvider(metric.WithReader(exporter))
+	provider := sdkmetric.NewMeterProvider(sdkmetric.WithReader(exporter))
 	otel.SetMeterProvider(provider)
 
 	// Create a meter
@@ -271,7 +271,7 @@ func initMetrics() (*Metrics, error) {
 	// Create metrics
 	requestCounter, err := meter.Int64Counter(
 		"http_requests_total",
-		metric.WithDescription("Total number of HTTP requests"),
+		otelmetric.WithDescription("Total number of HTTP requests"),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request counter: %w", err)
@@ -279,7 +279,7 @@ func initMetrics() (*Metrics, error) {
 
 	requestDuration, err := meter.Float64Histogram(
 		"http_request_duration_seconds",
-		metric.WithDescription("Duration of HTTP requests in seconds"),
+		otelmetric.WithDescription("Duration of HTTP requests in seconds"),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request duration histogram: %w", err)
@@ -287,7 +287,7 @@ func initMetrics() (*Metrics, error) {
 
 	activeSessions, err := meter.Int64UpDownCounter(
 		"active_sessions_total",
-		metric.WithDescription("Number of active user sessions"),
+		otelmetric.WithDescription("Number of active user sessions"),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create active sessions counter: %w", err)

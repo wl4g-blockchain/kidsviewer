@@ -36,20 +36,21 @@ type Parental struct {
 
 // Person represents a child/person user
 type Person struct {
-	BaseModel
-	ParentalID uint   `json:"parental_id" gorm:"not null;index"`
-	UserType   string `json:"user_type" gorm:"default:'PERSON'"`
-	Email      string `json:"email" gorm:"uniqueIndex;not null"`
-	Name       string `json:"name" gorm:"not null"`
-	Alias      string `json:"alias" gorm:"not null"`
-	AgeGroup   string `json:"age_group" gorm:"not null;check:age_group IN ('preschool', 'young', 'older', 'teen')"`
+	ID               string    `json:"id" gorm:"primaryKey"`
+	UserID           string    `json:"user_id" gorm:"not null;index"` // Reference to parent user
+	Name             string    `json:"name" gorm:"not null"`
+	AgeGroup         string    `json:"age_group" gorm:"not null;check:age_group IN ('preschool', 'young', 'older', 'teen')"`
+	Avatar           string    `json:"avatar,omitempty"`
+	Difficulty       string    `json:"difficulty,omitempty"`
+	MaxDailyTime     int       `json:"max_daily_time,omitempty"`
+	ParentalPassword string    `json:"parental_password,omitempty"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 
-	// Settings stored as JSON
-	Settings   PersonSettings   `json:"settings" gorm:"type:json"`
+	// Settings and statistics stored as JSON
 	Statistics PersonStatistics `json:"statistics" gorm:"type:json"`
 
 	// Relationships
-	Parental         Parental          `json:"parental,omitempty" gorm:"foreignKey:ParentalID"`
 	WatchingSessions []WatchingSession `json:"watching_sessions,omitempty" gorm:"foreignKey:PersonID"`
 }
 
@@ -160,7 +161,7 @@ type QuestionTemplate struct {
 // WatchingSession represents an active watching session
 type WatchingSession struct {
 	BaseModel
-	PersonID         uint      `json:"person_id" gorm:"not null;index"`
+	PersonID         string    `json:"person_id" gorm:"not null;index"`
 	PlatformURL      string    `json:"platform_url" gorm:"not null"`
 	WatchingToken    string    `json:"watching_token" gorm:"uniqueIndex;not null"`
 	StartTime        time.Time `json:"start_time" gorm:"not null"`
@@ -214,4 +215,54 @@ func (WatchingSession) TableName() string {
 
 func (AppSettings) TableName() string {
 	return "app_settings"
+}
+
+// Request/Response models for Person operations
+
+// CreatePersonRequest represents the request to create a new person
+type CreatePersonRequest struct {
+	Name             string `json:"name" binding:"required,min=1,max=100"`
+	AgeGroup         string `json:"age_group" binding:"required,oneof=preschool young older teen"`
+	Avatar           string `json:"avatar,omitempty"`
+	Difficulty       string `json:"difficulty,omitempty"`
+	MaxDailyTime     int    `json:"max_daily_time,omitempty"`
+	ParentalPassword string `json:"parental_password,omitempty"`
+}
+
+// UpdatePersonRequest represents the request to update a person
+type UpdatePersonRequest struct {
+	Name             *string `json:"name,omitempty"`
+	AgeGroup         *string `json:"age_group,omitempty"`
+	Avatar           *string `json:"avatar,omitempty"`
+	Difficulty       *string `json:"difficulty,omitempty"`
+	MaxDailyTime     *int    `json:"max_daily_time,omitempty"`
+	ParentalPassword *string `json:"parental_password,omitempty"`
+}
+
+// UpdatePersonSettingsRequest represents the request to update person settings
+type UpdatePersonSettingsRequest struct {
+	Difficulty       *string `json:"difficulty,omitempty"`
+	MaxDailyTime     *int    `json:"max_daily_time,omitempty"`
+	ParentalPassword *string `json:"parental_password,omitempty"`
+}
+
+// Auth-related request models
+
+// RegisterRequest represents the request to register a new user
+type RegisterRequest struct {
+	Username string `json:"username" binding:"required,min=2,max=50"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+	IsParent bool   `json:"is_parent"`
+}
+
+// LoginRequest represents the request to login
+type LoginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// VerifyPasswordRequest represents the request to verify parental password
+type VerifyPasswordRequest struct {
+	Password string `json:"password" binding:"required"`
 }
