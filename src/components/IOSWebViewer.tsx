@@ -49,7 +49,29 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({
     setShowQuestions,
     clearError,
     resetWatchingSession,
-  } = useWatchingSession(personId, platformId, onLoadError, onLoadSuccess);
+  } = useWatchingSession(
+    personId, 
+    platformId, 
+    onLoadError, 
+    onLoadSuccess, 
+    () => {
+      // 当会话真正结束时关闭 subwindow
+      addLog('Session ended, closing subwindow');
+      closePopupWindow();
+    },
+    () => {
+      // 当问题显示时隐藏 subwindow
+      addLog('Questions shown, hiding subwindow');
+      closePopupWindow();
+    },
+    () => {
+      // 当问题隐藏时重新显示 subwindow（如果用户回答了问题）
+      addLog('Questions hidden, reopening subwindow');
+      if (watchingToken) {
+        openPopupWindow();
+      }
+    }
+  );
 
   // Convert session questions to component format
   const questions: QuestionType[] = useMemo(

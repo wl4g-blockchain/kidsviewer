@@ -26,6 +26,9 @@ interface UseWatchingSessionReturn {
   setShowQuestions: (show: boolean) => void;
   clearError: () => void;
   resetWatchingSession: () => void;
+  onSessionEnd?: () => void; // Callback when session ends (time limit exceeded)
+  onQuestionsShown?: () => void; // Callback when questions are shown (hide subwindow)
+  onQuestionsHidden?: () => void; // Callback when questions are hidden (show subwindow)
 }
 
 /**
@@ -37,7 +40,10 @@ export const useWatchingSession = (
   personId: string,
   platformId: string,
   onLoadError?: (error: string) => void,
-  onLoadSuccess?: () => void
+  onLoadSuccess?: () => void,
+  onSessionEnd?: () => void,
+  onQuestionsShown?: () => void,
+  onQuestionsHidden?: () => void
 ): UseWatchingSessionReturn => {
   const [watchingToken, setWatchingToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,12 +60,23 @@ export const useWatchingSession = (
   const hasStartedRef = useRef<boolean>(false);
   const onLoadErrorRef = useRef(onLoadError);
   const onLoadSuccessRef = useRef(onLoadSuccess);
+  const onSessionEndRef = useRef(onSessionEnd);
+  const onQuestionsShownRef = useRef(onQuestionsShown);
+  const onQuestionsHiddenRef = useRef(onQuestionsHidden);
   const api = APIFactory.createAPIHandler();
 
   // Wrapper for setShowQuestions to keep ref in sync
   const setShowQuestionsWrapper = useCallback((show: boolean) => {
+    const wasShowing = showQuestionsRef.current;
     setShowQuestions(show);
     showQuestionsRef.current = show;
+    
+    // Call appropriate callbacks when question visibility changes
+    if (show && !wasShowing) {
+      onQuestionsShownRef.current?.();
+    } else if (!show && wasShowing) {
+      onQuestionsHiddenRef.current?.();
+    }
   }, []);
 
   // Convert API questions to common format
@@ -122,18 +139,17 @@ export const useWatchingSession = (
               if (checkIntervalRef.current) {
                 clearInterval(checkIntervalRef.current);
               }
+
+              // Notify parent component that session has ended
+              onSessionEndRef.current?.();
             }
 
             // Check if session time expired (remainingTime <= 0)
+            // Note: We don't immediately end the session here as the server might
+            // return questions for the user to answer (4018 error code)
             if (response.data.remainingTime <= 0) {
-              setHasError(true);
-              setErrorMessage('Session time limit exceeded');
-              setHasStarted(false); // Reset started flag
-              hasStartedRef.current = false;
-
-              if (checkIntervalRef.current) {
-                clearInterval(checkIntervalRef.current);
-              }
+              console.log('Session time limit reached, waiting for server response...');
+              // Don't immediately end session - let 4018 error code handle question display
             }
           } else if (response.errcode === '4018' && response.data) {
             // Session time limit exceeded - show questions
@@ -172,6 +188,9 @@ export const useWatchingSession = (
             if (checkIntervalRef.current) {
               clearInterval(checkIntervalRef.current);
             }
+
+            // Notify parent component that session has ended
+            onSessionEndRef.current?.();
           }
         } catch (error) {
           console.error('Error checking watching status:', error);
@@ -290,6 +309,18 @@ export const useWatchingSession = (
   }, [onLoadSuccess]);
 
   useEffect(() => {
+    onSessionEndRef.current = onSessionEnd;
+  }, [onSessionEnd]);
+
+  useEffect(() => {
+    onQuestionsShownRef.current = onQuestionsShown;
+  }, [onQuestionsShown]);
+
+  useEffect(() => {
+    onQuestionsHiddenRef.current = onQuestionsHidden;
+  }, [onQuestionsHidden]);
+
+  useEffect(() => {
     hasStartedRef.current = hasStarted;
   }, [hasStarted]);
 
@@ -323,5 +354,8 @@ export const useWatchingSession = (
     setShowQuestions: setShowQuestionsWrapper,
     clearError,
     resetWatchingSession,
+    onSessionEnd,
+    onQuestionsShown,
+    onQuestionsHidden,
   };
 };
