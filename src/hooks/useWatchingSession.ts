@@ -23,6 +23,7 @@ interface UseWatchingSessionReturn {
   remainingDailyTime: number; // Remaining daily time in milliseconds
   startWatching: () => Promise<void>;
   handleAnswerQuestion: (questionId: string, answer: string) => Promise<boolean>;
+  handleSkipQuestions: (password: string) => Promise<boolean>;
   setShowQuestions: (show: boolean) => void;
   clearError: () => void;
   resetWatchingSession: () => void;
@@ -236,6 +237,31 @@ export const useWatchingSession = (
     [watchingToken, startCheckingWatchingStatus, setShowQuestionsWrapper]
   );
 
+  // Handle skipping questions with parental password
+  const handleSkipQuestions = useCallback(
+    async (password: string): Promise<boolean> => {
+      if (!watchingToken) return false;
+
+      try {
+        const response = await api.skipQuestions(watchingToken, password);
+
+        if (response.errcode === '200' && response.data?.success) {
+          console.log('Questions skipped successfully');
+          // Hide questions immediately
+          setShowQuestionsWrapper(false);
+          return true;
+        } else {
+          console.error('Failed to skip questions:', response.data?.message);
+          return false;
+        }
+      } catch (error) {
+        console.error('Error skipping questions:', error);
+        return false;
+      }
+    },
+    [watchingToken, setShowQuestionsWrapper]
+  );
+
   // Start watching session
   const startWatching = useCallback(async () => {
     // Only start if not already started
@@ -351,6 +377,7 @@ export const useWatchingSession = (
     remainingDailyTime,
     startWatching,
     handleAnswerQuestion,
+    handleSkipQuestions,
     setShowQuestions: setShowQuestionsWrapper,
     clearError,
     resetWatchingSession,

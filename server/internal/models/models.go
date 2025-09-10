@@ -166,8 +166,9 @@ type WatchingSession struct {
 	WatchingToken    string    `json:"watching_token" gorm:"uniqueIndex;not null"`
 	StartTime        time.Time `json:"start_time" gorm:"not null"`
 	ExpiresAt        time.Time `json:"expires_at" gorm:"not null"`
-	DailyWatchedTime int       `json:"daily_watched_time"` // Minutes watched today before this session
-	QuestionsAsked   int       `json:"questions_asked"`    // Questions asked in this session
+	DailyWatchedTime int       `json:"daily_watched_time"`              // Minutes watched today before this session
+	QuestionsAsked   int       `json:"questions_asked"`                 // Questions asked in this session
+	ForceSkip        bool      `json:"force_skip" gorm:"default:false"` // Force skip questions (set by parental password)
 	Status           string    `json:"status" gorm:"default:'active';check:status IN ('active', 'expired', 'completed')"`
 
 	// Relationships

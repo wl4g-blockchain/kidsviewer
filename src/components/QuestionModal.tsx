@@ -3,6 +3,7 @@ import { useTranslation } from '../i18n/I18nProvider';
 import { X } from 'lucide-react';
 import { ParentalPasswordModal } from './ParentalPasswordModal';
 import AnswerFeedbackAnimation from './AnswerFeedbackAnimation';
+import { APIFactory } from '../api/APIFactory';
 
 export interface Question {
   id: string;
@@ -184,8 +185,9 @@ export const QuestionsContainer: React.FC<{
   onAnswer: (questionId: string, answer: string) => Promise<boolean>; // Return whether answer is correct
   isVisible: boolean;
   onAllQuestionsCompleted?: () => void;
-  onSkipQuestions?: () => void; // Callback for skipping questions
-}> = ({ questions, onAnswer, isVisible, onAllQuestionsCompleted, onSkipQuestions }) => {
+  onSkipQuestions?: (password: string) => Promise<void>; // Callback for skipping questions with password
+  watchingToken?: string; // Watching token for API calls
+}> = ({ questions, onAnswer, isVisible, onAllQuestionsCompleted, onSkipQuestions, watchingToken }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -297,12 +299,24 @@ export const QuestionsContainer: React.FC<{
   // Handle password submission for skipping questions
   const handlePasswordSubmit = async (password: string) => {
     try {
-      // For now, use a simple password check (you can integrate with your auth system)
-      if (password === '123456') { // Default parental password
+      if (onSkipQuestions) {
+        // Use the callback if provided
+        await onSkipQuestions(password);
         setShowPasswordModal(false);
-        onSkipQuestions?.();
+      } else if (watchingToken) {
+        // Fallback to direct API call
+        const apiHandler = APIFactory.createAPIHandler();
+        
+        // Use the API to verify parental password and skip questions
+        const response = await apiHandler.skipQuestions(watchingToken, password);
+        
+        if (response.errcode === '200' && response.data?.success) {
+          setShowPasswordModal(false);
+        } else {
+          setPasswordError(response.data?.message || t('common.incorrectPassword'));
+        }
       } else {
-        setPasswordError(t('common.incorrectPassword'));
+        setPasswordError('Watching token not available');
       }
     } catch (error) {
       setPasswordError(t('common.passwordError'));

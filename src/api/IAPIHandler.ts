@@ -56,6 +56,7 @@ export interface IAPIHandler {
     questionId: string,
     answer: string
   ): Promise<ApiResponse<{ code: number; correct: boolean; newWatchingToken?: string }>>;
+  skipQuestions(watchingToken: string, password: string): Promise<ApiResponse<{ success: boolean; message: string }>>;
 
   // Questions
   getQuestions(subjects: string[], difficulty: string, count: number): Promise<ApiResponse<Question[]>>;

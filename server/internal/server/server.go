@@ -237,6 +237,7 @@ func initRouter(cfg *config.Config, handlers *Handlers, metrics *Metrics) *gin.E
 				watching.POST("/start", handlers.Watching.StartWatching)
 				watching.POST("/check", handlers.Watching.CheckWatching)
 				watching.POST("/verify", handlers.Watching.VerifyQuestion)
+				watching.POST("/skip", handlers.Watching.SkipQuestions)
 				watching.GET("/history/:person_id", handlers.Watching.GetWatchingHistory)
 			}
 

@@ -1158,6 +1158,15 @@ export class MockAPIHandler implements IAPIHandler {
       const todayWatchedTime = todayHistories.reduce((sum, h) => sum + h.watchedTime, 0) + currentWatchedTime;
       const todayRemainingTime = Math.max(0, person.data.settings.dailyTimeLimitMinutes * 60 * 1000 - todayWatchedTime);
 
+      // Check if ForceSkip is enabled - if so, don't ask questions
+      if (watchingInfo.forceSkip) {
+        console.log('ForceSkip is enabled for token', watchingToken, ', skipping questions');
+        return createApiResponse('200', 'ok', {
+          remainingTime,
+          remainingDailyTime: todayRemainingTime,
+        });
+      }
+
       // Check if daily time exceeded
       if (todayRemainingTime <= 0) {
         return createApiResponse('4017', 'Daily total time limit exceeded', {
@@ -1258,6 +1267,28 @@ export class MockAPIHandler implements IAPIHandler {
       });
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async skipQuestions(watchingToken: string, password: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    try {
+      const tokenData = mockDataDB.watchingTokens.get(watchingToken);
+      if (!tokenData) {
+        return createApiResponse('4003', 'Invalid or expired token', { success: false, message: 'Invalid or expired token' });
+      }
+
+      // Simple password check for mock (in real implementation, this would verify against parental password)
+      if (password === '123456') {
+        // Set forceSkip flag in token data
+        tokenData.forceSkip = true;
+        mockDataDB.watchingTokens.set(watchingToken, tokenData);
+        
+        return createApiResponse('200', 'ok', { success: true, message: 'Questions skipped successfully' });
+      } else {
+        return createApiResponse('4001', 'Invalid parental password', { success: false, message: 'Invalid parental password' });
+      }
+    } catch (error) {
+      return createApiResponse('5000', error instanceof Error ? error.message : String(error), { success: false, message: 'Unknown error' });
     }
   }
 

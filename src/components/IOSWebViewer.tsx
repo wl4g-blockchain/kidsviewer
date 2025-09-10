@@ -46,6 +46,7 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({
     remainingDailyTime,
     startWatching,
     handleAnswerQuestion,
+    handleSkipQuestions,
     setShowQuestions,
     clearError,
     resetWatchingSession,
@@ -326,13 +327,18 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({
           questions={questions}
           onAnswer={handleAnswerQuestionWithLog}
           isVisible={showQuestions}
+          watchingToken={watchingToken}
           onAllQuestionsCompleted={() => {
             // Hide questions when all completed
             setShowQuestions(false);
           }}
-          onSkipQuestions={() => {
-            // Hide questions when skipped
-            setShowQuestions(false);
+          onSkipQuestions={async (password: string) => {
+            // Use the skip questions handler
+            const success = await handleSkipQuestions(password);
+            if (success) {
+              // Questions are already hidden by handleSkipQuestions
+              console.log('Questions skipped successfully');
+            }
           }}
         />
 

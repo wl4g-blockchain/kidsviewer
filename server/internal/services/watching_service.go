@@ -163,6 +163,12 @@ func (s *WatchingService) CheckWatching(ctx context.Context, req *CheckWatchingR
 		QuestionsAnswered: session.QuestionsAsked,
 	}
 
+	// Check if ForceSkip is set - if so, don't ask questions
+	if session.ForceSkip {
+		fmt.Printf("ForceSkip is enabled for session %s, skipping questions\n", req.WatchingToken)
+		return response, nil
+	}
+
 	// Check if it's time for a question
 	if s.shouldAskQuestion(ctx, &session) {
 		question, err := s.getQuestionForPerson(ctx, session.PersonID)
@@ -233,6 +239,79 @@ func (s *WatchingService) VerifyQuestion(ctx context.Context, req *VerifyQuestio
 	}
 
 	return response, nil
+}
+
+// SkipQuestionsRequest represents the request to skip questions with parental password
+type SkipQuestionsRequest struct {
+	WatchingToken string `json:"watching_token" binding:"required"`
+	Password      string `json:"password" binding:"required"`
+}
+
+// SkipQuestionsResponse represents the response for skipping questions
+type SkipQuestionsResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
+
+// SkipQuestions skips questions for a watching session with parental password verification
+func (s *WatchingService) SkipQuestions(ctx context.Context, req *SkipQuestionsRequest) (*SkipQuestionsResponse, error) {
+	// Get session
+	var session models.WatchingSession
+	if err := s.db.DB.Where("watching_token = ?", req.WatchingToken).First(&session).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return &SkipQuestionsResponse{
+				Success: false,
+				Message: "Watching session not found",
+			}, nil
+		}
+		return nil, fmt.Errorf("failed to get watching session: %w", err)
+	}
+
+	// Get person to verify parental password
+	var person models.Person
+	if err := s.db.DB.Where("id = ?", session.PersonID).First(&person).Error; err != nil {
+		return nil, fmt.Errorf("failed to get person: %w", err)
+	}
+
+	// Get user to verify parental password
+	var user models.User
+	if err := s.db.DB.Where("id = ?", person.UserID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	// Verify parental password
+	var parental models.Parental
+	if err := s.db.DB.Where("user_id = ?", user.ID).First(&parental).Error; err != nil {
+		return &SkipQuestionsResponse{
+			Success: false,
+			Message: "Parental control not found",
+		}, nil
+	}
+
+	// Check password
+	if parental.ControlPassword != req.Password {
+		return &SkipQuestionsResponse{
+			Success: false,
+			Message: "Invalid parental password",
+		}, nil
+	}
+
+	// Set ForceSkip to true
+	session.ForceSkip = true
+	if err := s.db.DB.Save(&session).Error; err != nil {
+		return nil, fmt.Errorf("failed to update session: %w", err)
+	}
+
+	// Update cache
+	cacheKey := cache.CacheKey(cache.SessionPrefix, req.WatchingToken)
+	if err := s.cache.Set(ctx, cacheKey, &session, time.Until(session.ExpiresAt)); err != nil {
+		fmt.Printf("Warning: failed to update cached session: %v\n", err)
+	}
+
+	return &SkipQuestionsResponse{
+		Success: true,
+		Message: "Questions skipped successfully",
+	}, nil
 }
 
 // GetWatchingHistory gets watching history for a person

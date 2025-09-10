@@ -152,3 +152,39 @@ func (h *WatchingHandler) GetWatchingHistory(c *gin.Context) {
 		"data":    sessions,
 	})
 }
+
+// SkipQuestions handles POST /watching/skip
+func (h *WatchingHandler) SkipQuestions(c *gin.Context) {
+	var req services.SkipQuestionsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"success": false,
+			"message": "Invalid request data",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	response, err := h.WatchingService.SkipQuestions(context.Background(), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Failed to skip questions",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	if !response.Success {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"message": response.Message,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": response.Message,
+	})
+}

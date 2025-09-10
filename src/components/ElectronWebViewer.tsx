@@ -56,7 +56,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
 }) => {
   // Use common watching session hook
   const {
-    // watchingToken, // Not used in ElectronWebViewer
+    watchingToken,
     isLoading: sessionLoading,
     hasError: sessionError,
     errorMessage: sessionErrorMessage,
@@ -66,6 +66,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
     remainingDailyTime,
     startWatching,
     handleAnswerQuestion,
+    handleSkipQuestions,
     setShowQuestions,
     clearError,
     resetWatchingSession,
@@ -658,14 +659,19 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         questions={questions} 
         onAnswer={handleAnswerQuestion} 
         isVisible={showQuestions}
+        watchingToken={watchingToken}
         onAllQuestionsCompleted={() => {
           // Hide questions when all completed
           // The useEffect will automatically handle showing the webview
           setShowQuestions(false);
         }}
-        onSkipQuestions={() => {
-          // Hide questions when skipped
-          setShowQuestions(false);
+        onSkipQuestions={async (password: string) => {
+          // Use the skip questions handler
+          const success = await handleSkipQuestions(password);
+          if (success) {
+            // Questions are already hidden by handleSkipQuestions
+            console.log('Questions skipped successfully');
+          }
         }}
       />
       

@@ -313,4 +313,37 @@ export class StandardAPIHandler implements IAPIHandler {
   async deleteQuestionTemplate(templateId: string): Promise<ApiResponse<void>> {
     return this.apiCall(`/questions/templates/${templateId}`, { method: 'DELETE' });
   }
+
+  // Watching control APIs
+  async startWatching(personId: string, platformId: string): Promise<ApiResponse<WatchingSessionResponse>> {
+    return this.apiCall('/watching/start', {
+      method: 'POST',
+      body: JSON.stringify({ personId, platformId }),
+    });
+  }
+
+  async checkWatching(watchingToken: string): Promise<ApiResponse<WatchingStatusResponse>> {
+    return this.apiCall('/watching/check', {
+      method: 'POST',
+      body: JSON.stringify({ watchingToken }),
+    });
+  }
+
+  async verifyQuestion(
+    watchingToken: string,
+    questionId: string,
+    answer: string
+  ): Promise<ApiResponse<{ code: number; correct: boolean; newWatchingToken?: string }>> {
+    return this.apiCall('/watching/verify', {
+      method: 'POST',
+      body: JSON.stringify({ watchingToken, questionId, answer }),
+    });
+  }
+
+  async skipQuestions(watchingToken: string, password: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return this.apiCall('/watching/skip', {
+      method: 'POST',
+      body: JSON.stringify({ watchingToken, password }),
+    });
+  }
 }
