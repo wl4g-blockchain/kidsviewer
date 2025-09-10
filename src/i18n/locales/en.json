@@ -501,6 +501,30 @@
         "submitAnswer": "Submit Answer",
         "questionProgress": "Question Progress",
         "questionOf": "Question {current} of {total}",
-        "skipQuestions": "Skip Questions"
+        "skipQuestions": "Skip Questions",
+        "encouragement": {
+            "incorrect": [
+                "Keep trying, believe in yourself!",
+                "You're awesome, try again!",
+                "You can do it, keep going!",
+                "Don't give up, keep trying!",
+                "Believe in yourself, you're smart!",
+                "Think again, the answer is there!",
+                "It's okay, learning is about trying!",
+                "You're doing great, try once more!"
+            ],
+            "correct": [
+                "I knew you could do it!",
+                "Amazing! You're a genius!",
+                "Wow! You're incredible!",
+                "Perfect! You did great!",
+                "So smart! Keep it up!",
+                "Fantastic! You're really awesome!",
+                "Outstanding! You learn so fast!",
+                "Brilliant! You impressed me!"
+            ],
+            "keepGoing": "Keep it up!",
+            "tryAgain": "Try again!"
+        }
     }
 }

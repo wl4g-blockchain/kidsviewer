@@ -1,0 +1,468 @@
+/* Answer feedback animation styles */
+
+/* Fireworks effect */
+.fireworks-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+}
+
+.firework {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+  border-radius: 50%;
+  animation: firework-burst 1.5s ease-out var(--delay) infinite;
+  transform-origin: center;
+}
+
+.firework-1 { top: 20%; left: 20%; }
+.firework-2 { top: 20%; left: 80%; }
+.firework-3 { top: 80%; left: 20%; }
+.firework-4 { top: 80%; left: 80%; }
+.firework-5 { top: 10%; left: 50%; }
+.firework-6 { top: 90%; left: 50%; }
+.firework-7 { top: 50%; left: 10%; }
+.firework-8 { top: 50%; left: 90%; }
+
+@keyframes firework-burst {
+  0% {
+    transform: scale(0) rotate(var(--angle));
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5) rotate(var(--angle));
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(3) rotate(var(--angle));
+    opacity: 0;
+  }
+}
+
+/* Cat celebration animation */
+.cat-celebration {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  animation: cat-bounce 0.6s ease-in-out infinite alternate;
+}
+
+.cat-face {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  background: #ff9a56;
+  border-radius: 50%;
+  margin: 20px auto 0;
+  animation: cat-wiggle 0.3s ease-in-out infinite alternate;
+}
+
+.cat-ears {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.cat-ear {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-bottom: 25px solid #ff9a56;
+  top: 0;
+}
+
+.cat-ear.left {
+  left: -20px;
+  transform: rotate(-15deg);
+}
+
+.cat-ear.right {
+  right: -20px;
+  transform: rotate(15deg);
+}
+
+.cat-eyes {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+}
+
+.cat-eye {
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  position: relative;
+  animation: cat-blink 2s ease-in-out infinite;
+}
+
+.cat-pupil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: #333;
+  border-radius: 50%;
+}
+
+.cat-nose {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid #ff6b6b;
+}
+
+.cat-mouth {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.cat-smile {
+  width: 20px;
+  height: 10px;
+  border: 2px solid #333;
+  border-top: none;
+  border-radius: 0 0 20px 20px;
+  animation: cat-smile 0.5s ease-in-out infinite alternate;
+}
+
+.cat-whiskers {
+  position: absolute;
+  top: 35px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 30px;
+}
+
+.whisker {
+  width: 20px;
+  height: 2px;
+  background: #333;
+  border-radius: 1px;
+  animation: cat-whisker 0.4s ease-in-out infinite alternate;
+}
+
+.whisker.left {
+  transform: rotate(-15deg);
+}
+
+.whisker.right {
+  transform: rotate(15deg);
+}
+
+@keyframes cat-bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+
+@keyframes cat-wiggle {
+  0% { transform: rotate(-2deg); }
+  100% { transform: rotate(2deg); }
+}
+
+@keyframes cat-blink {
+  0%, 90%, 100% { height: 12px; }
+  95% { height: 2px; }
+}
+
+@keyframes cat-smile {
+  0% { transform: scaleX(1); }
+  100% { transform: scaleX(1.1); }
+}
+
+@keyframes cat-whisker {
+  0% { transform: rotate(-15deg) scaleX(1); }
+  100% { transform: rotate(-15deg) scaleX(1.1); }
+}
+
+/* Stars effect */
+.stars-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+}
+
+.star {
+  position: absolute;
+  font-size: 20px;
+  animation: star-sparkle 1s ease-in-out var(--delay) infinite;
+  transform-origin: center;
+}
+
+.star-1 { top: 10%; left: 20%; }
+.star-2 { top: 20%; left: 80%; }
+.star-3 { top: 80%; left: 15%; }
+.star-4 { top: 90%; left: 85%; }
+.star-5 { top: 5%; left: 50%; }
+.star-6 { top: 95%; left: 50%; }
+.star-7 { top: 50%; left: 5%; }
+.star-8 { top: 50%; left: 95%; }
+.star-9 { top: 30%; left: 30%; }
+.star-10 { top: 70%; left: 70%; }
+.star-11 { top: 30%; left: 70%; }
+.star-12 { top: 70%; left: 30%; }
+
+@keyframes star-sparkle {
+  0%, 100% {
+    transform: scale(0.8) rotate(var(--angle));
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.2) rotate(var(--angle));
+    opacity: 1;
+  }
+}
+
+/* Success text */
+.success-text {
+  position: absolute;
+  top: 70%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10;
+  margin-top: 18px;
+}
+
+.success-message {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #ff6b6b;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  animation: success-bounce 0.6s ease-in-out infinite alternate;
+  margin-bottom: 10px;
+}
+
+.success-subtitle {
+  font-size: 1.2rem;
+  color: #4ecdc4;
+  font-weight: 600;
+  animation: success-fade 1s ease-in-out infinite alternate;
+}
+
+@keyframes success-bounce {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+@keyframes success-fade {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* Dog encouragement animation */
+.dog-encouragement {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  animation: dog-wag 0.5s ease-in-out infinite alternate;
+}
+
+.dog-face {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  background: #8b4513;
+  border-radius: 50%;
+  margin: 20px auto 0;
+}
+
+.dog-ears {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dog-ear {
+  position: absolute;
+  width: 20px;
+  height: 30px;
+  background: #654321;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  top: 0;
+  animation: dog-ear-flap 0.8s ease-in-out infinite alternate;
+}
+
+.dog-ear.left {
+  left: -15px;
+  transform: rotate(-20deg);
+}
+
+.dog-ear.right {
+  right: -15px;
+  transform: rotate(20deg);
+}
+
+.dog-eyes {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+}
+
+.dog-eye {
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  position: relative;
+  animation: dog-blink 3s ease-in-out infinite;
+}
+
+.dog-pupil {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: #333;
+  border-radius: 50%;
+}
+
+.dog-nose {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 8px;
+  height: 6px;
+  background: #333;
+  border-radius: 50%;
+}
+
+.dog-mouth {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dog-tongue {
+  width: 15px;
+  height: 10px;
+  background: #ff6b6b;
+  border-radius: 0 0 15px 15px;
+  animation: dog-tongue-pant 0.3s ease-in-out infinite alternate;
+}
+
+.dog-tail {
+  position: absolute;
+  top: 60px;
+  right: -20px;
+  width: 30px;
+  height: 8px;
+  background: #8b4513;
+  border-radius: 4px;
+  animation: dog-tail-wag 0.2s ease-in-out infinite alternate;
+  transform-origin: left center;
+}
+
+@keyframes dog-wag {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(5px); }
+}
+
+@keyframes dog-ear-flap {
+  0% { transform: rotate(-20deg); }
+  100% { transform: rotate(-10deg); }
+}
+
+@keyframes dog-blink {
+  0%, 90%, 100% { height: 12px; }
+  95% { height: 2px; }
+}
+
+@keyframes dog-tongue-pant {
+  0% { height: 10px; }
+  100% { height: 12px; }
+}
+
+@keyframes dog-tail-wag {
+  0% { transform: rotate(-20deg); }
+  100% { transform: rotate(20deg); }
+}
+
+/* Encouragement text */
+.encouragement-text {
+  position: absolute;
+  top: 70%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10;
+  margin-top: 18px;
+}
+
+.encouragement-message {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #4ecdc4;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  animation: encouragement-pulse 1s ease-in-out infinite alternate;
+  margin-bottom: 10px;
+}
+
+.encouragement-subtitle {
+  font-size: 1rem;
+  color: #ff9a56;
+  font-weight: 600;
+  animation: encouragement-fade 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes encouragement-pulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+
+@keyframes encouragement-fade {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Heartbeat effect */
+.heartbeat-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+}
+
+.heartbeat {
+  font-size: 2rem;
+  animation: heartbeat 0.8s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}

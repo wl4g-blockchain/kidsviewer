@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from '../i18n/I18nProvider';
 import { X } from 'lucide-react';
 import { ParentalPasswordModal } from './ParentalPasswordModal';
+import AnswerFeedbackAnimation from './AnswerFeedbackAnimation';
 
 export interface Question {
   id: string;
@@ -122,7 +123,7 @@ export const QuestionModal: React.FC<QuestionModalProps> = ({ question, onAnswer
         </div>
 
         {/* Submit Button */}
-        <div className="text-center mb-4">
+        <div className="flex justify-center mb-4">
           <button
             onClick={handleSubmit}
             disabled={!selectedAnswer}
@@ -192,6 +193,8 @@ export const QuestionsContainer: React.FC<{
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [showAnimation, setShowAnimation] = useState(false);
+  const [animationCorrect, setAnimationCorrect] = useState(false);
   const t = useTranslation();
 
   if (!isVisible || questions.length === 0) return null;
@@ -247,7 +250,11 @@ export const QuestionsContainer: React.FC<{
     try {
       const isAnswerCorrect = await onAnswer(questionId, answer);
       console.log('QuestionModal: Received answer result:', isAnswerCorrect);
-      //alert('QuestionModal: Answer result = ' + isAnswerCorrect);
+      
+      // 触发动画
+      setAnimationCorrect(isAnswerCorrect);
+      setShowAnimation(true);
+      
       setIsCorrect(isAnswerCorrect);
       setShowResult(true);
       
@@ -304,6 +311,13 @@ export const QuestionsContainer: React.FC<{
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 p-6 z-[99999]">
+      {/* 答题反馈动画 */}
+      <AnswerFeedbackAnimation
+        isCorrect={animationCorrect}
+        isVisible={showAnimation}
+        onAnimationComplete={() => setShowAnimation(false)}
+      />
+      
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative">
         {/* Close Button */}
         <button
@@ -367,7 +381,7 @@ export const QuestionsContainer: React.FC<{
         </div>
 
         {/* Submit Button */}
-        <div className="text-center mb-4">
+        <div className="flex justify-center mb-4">
           <button
             onClick={() => handleAnswer(currentQuestion.id, userAnswer)}
             disabled={!userAnswer || isSubmitting}
