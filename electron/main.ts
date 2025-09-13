@@ -236,6 +236,17 @@ function createVideoView(url: string, bounds: { x: number; y: number; width: num
         return { action: 'deny' };
     });
 
+    // Block bitbrowser protocol requests
+    try {
+        videoView.webContents.session.protocol.interceptStringProtocol('bitbrowser', (request, callback) => {
+            console.log('🚫 BrowserView blocked bitbrowser protocol request:', request.url);
+            callback('');
+        });
+        console.log('✅ BrowserView bitbrowser protocol interceptor registered');
+    } catch (error) {
+        console.error('❌ Failed to register BrowserView bitbrowser interceptor:', error);
+    }
+
     // Load the video URL
     try {
         videoView.webContents.loadURL(url, {
@@ -370,6 +381,12 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
 });
 
+// Handle external protocol requests to prevent system popups
+app.on('open-url', (event, url) => {
+    console.log('🚫 App intercepted external protocol request:', url);
+    // event.preventDefault();
+});
+
 // IPC handlers for video functionality - only register if not already registered
 if (!ipcMain.listenerCount('create-video-view')) {
     ipcMain.handle('create-video-view', async (_, { url, bounds }) => {
@@ -418,6 +435,7 @@ if (!ipcMain.listenerCount('update-video-bounds')) {
 if (!ipcMain.listenerCount('open-url')) {
     ipcMain.handle('open-url', async (_, url: string) => {
         try {
+            console.log('Opening URL in window:', url);
             // 使用与视频窗口相同的配置和CSP处理，确保安全策略一致
             const window = createVideoWindow(url, 'Web Content');
             return { success: true, windowId: window.id };

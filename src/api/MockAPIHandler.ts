@@ -58,7 +58,6 @@ function getCurrentDayAnswer(): string {
   return days[new Date().getDay()];
 }
 
-
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
   const shuffled = [...array];
@@ -1110,7 +1109,7 @@ export class MockAPIHandler implements IAPIHandler {
       const todayRemainingTime = Math.max(0, person.data.settings.dailyTimeLimitMinutes - todayWatchedTime);
       //const expiresAt = Date.now() + person.data.settings.perTimeLimitMinutes * 60 * 1000;
       // TODO: for testing
-      const expiresAt = Date.now() + 5000;
+      const expiresAt = Date.now() + 8000;
 
       if (todayRemainingTime <= 0) {
         return createApiResponse('4017', 'Daily total time limit exceeded');
