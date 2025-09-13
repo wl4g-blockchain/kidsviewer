@@ -160,37 +160,6 @@ export class StandardAPIHandler implements IAPIHandler {
     return this.apiCall(`/persons/${personId}/accessible-urls`);
   }
 
-  // Watching control APIs
-  async startWatching(personId: string, platformId: string): Promise<ApiResponse<WatchingSessionResponse>> {
-    return this.apiCall('/watching/start', {
-      method: 'POST',
-      body: JSON.stringify({ personId: personId, platformId: platformId }),
-    });
-  }
-
-  async checkWatching(watchingToken: string): Promise<ApiResponse<WatchingStatusResponse>> {
-    return this.apiCall('/watching/check', {
-      method: 'POST',
-      body: JSON.stringify({ watchingToken }),
-    });
-  }
-
-  async verifyQuestion(
-    watchingToken: string,
-    questionId: string,
-    answer: string
-  ): Promise<
-    ApiResponse<{
-      code: number;
-      correct: boolean;
-      newWatchingToken?: string;
-    }>
-  > {
-    return this.apiCall('/watching/verify-question', {
-      method: 'POST',
-      body: JSON.stringify({ watchingToken, questionId, answer }),
-    });
-  }
 
   // Questions
   async getQuestions(subjects: string[], difficulty: string, count: number): Promise<ApiResponse<Question[]>> {
@@ -334,7 +303,7 @@ export class StandardAPIHandler implements IAPIHandler {
     questionId: string,
     answer: string
   ): Promise<ApiResponse<{ code: number; correct: boolean; newWatchingToken?: string }>> {
-    return this.apiCall('/watching/verify', {
+    return this.apiCall('/watching/verify-question', {
       method: 'POST',
       body: JSON.stringify({ watchingToken, questionId, answer }),
     });
