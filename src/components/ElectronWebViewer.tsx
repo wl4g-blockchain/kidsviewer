@@ -659,7 +659,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
         questions={questions} 
         onAnswer={handleAnswerQuestion} 
         isVisible={showQuestions}
-        watchingToken={watchingToken}
+        watchingToken={watchingToken || undefined}
         onAllQuestionsCompleted={() => {
           // Hide questions when all completed
           // The useEffect will automatically handle showing the webview

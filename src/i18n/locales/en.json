@@ -526,5 +526,69 @@
             "keepGoing": "Keep it up!",
             "tryAgain": "Try again!"
         }
+    },
+    "web3": {
+        "wallet": {
+            "connect": "Connect Wallet",
+            "disconnect": "Disconnect",
+            "connected": "Wallet Connected",
+            "notConnected": "Wallet Not Connected",
+            "connectFailed": "Failed to connect wallet",
+            "noWalletFound": "No wallet found. Please install a compatible wallet.",
+            "experimentalNotice": "Experimental Feature",
+            "experimentalDesc": "Web3 integration is in beta. Please use with caution and only with small amounts."
+        },
+        "rewards": {
+            "title": "Reward Vault",
+            "subtitle": "Manage rewards and incentives for your child's learning",
+            "enableRewards": "Enable Rewards",
+            "enableDesc": "Allow your child to earn tokens for correct answers",
+            "experimentalNotice": "Experimental Feature",
+            "experimentalDesc": "This feature helps children understand money concepts and motivates learning. Use with caution and only with small amounts.",
+            "tokenType": "Token Type",
+            "rewardPerAnswer": "Reward per Correct Answer",
+            "dailyLimit": "Daily Reward Limit",
+            "vaultBalance": "Vault Balance",
+            "depositToVault": "Deposit to Vault",
+            "amountToDeposit": "Amount to deposit",
+            "deposit": "Deposit",
+            "depositing": "Depositing...",
+            "depositSuccess": "Successfully deposited {amount} {token} to vault!",
+            "depositFailed": "Deposit failed: {error}",
+            "balanceLoadFailed": "Failed to load vault balance: {error}",
+            "earningTokens": "Earn tokens for correct answers",
+            "keepLearning": "Keep learning to earn more rewards!"
+        },
+        "piggyBank": {
+            "title": "Piggy Bank Investment",
+            "subtitle": "Teach your child about investing and earning interest",
+            "enableInvestment": "Enable Investment",
+            "enableDesc": "Allow your child's rewards to be automatically invested for earning interest",
+            "investmentSettings": "Investment Settings",
+            "investmentPercentage": "Investment Percentage",
+            "investmentPercentageDesc": "Percentage of daily rewards to invest automatically",
+            "dailyMaxInvestment": "Daily Maximum Investment",
+            "cumulativeMaxInvestment": "Cumulative Maximum Investment",
+            "selectProduct": "Select Investment Product",
+            "loadingProducts": "Loading investment products...",
+            "selectedProduct": "Selected Product",
+            "myPiggyBank": "My Piggy Bank",
+            "smartSavings": "Smart savings with interest",
+            "totalBalance": "Total Balance",
+            "dailyEarnings": "Daily Earnings",
+            "totalEarnings": "Total Earnings",
+            "investingIn": "Investing in {product} ({apr}% APR)",
+            "web3Disabled": "Web3 Features Disabled",
+            "web3DisabledDesc": "Ask your parent to enable rewards and savings features in settings."
+        },
+        "childView": {
+            "rewards": "Rewards",
+            "notEnabled": "Not enabled",
+            "earned": "{token} earned",
+            "myRewardsSavings": "My Rewards & Savings",
+            "learningRewards": "Learning Rewards",
+            "myPiggyBank": "My Piggy Bank",
+            "keepLearning": "Keep learning to earn more rewards!"
+        }
     }
 }

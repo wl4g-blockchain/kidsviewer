@@ -327,7 +327,7 @@ export const IOSWebViewer: React.FC<IOSWebViewerProps> = ({
           questions={questions}
           onAnswer={handleAnswerQuestionWithLog}
           isVisible={showQuestions}
-          watchingToken={watchingToken}
+          watchingToken={watchingToken || undefined}
           onAllQuestionsCompleted={() => {
             // Hide questions when all completed
             setShowQuestions(false);

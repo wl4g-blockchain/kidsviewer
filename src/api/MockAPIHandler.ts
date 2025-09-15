@@ -1158,7 +1158,7 @@ export class MockAPIHandler implements IAPIHandler {
       const todayRemainingTime = Math.max(0, person.data.settings.dailyTimeLimitMinutes * 60 * 1000 - todayWatchedTime);
 
       // Check if ForceSkip is enabled - if so, don't ask questions
-      if (watchingInfo.forceSkip) {
+      if ((watchingInfo as any).forceSkip) {
         console.log('ForceSkip is enabled for token', watchingToken, ', skipping questions');
         return createApiResponse('200', 'ok', {
           remainingTime,
@@ -1279,7 +1279,7 @@ export class MockAPIHandler implements IAPIHandler {
       // Simple password check for mock (in real implementation, this would verify against parental password)
       if (password === '123456') {
         // Set forceSkip flag in token data
-        tokenData.forceSkip = true;
+        (tokenData as any).forceSkip = true;
         mockDataDB.watchingTokens.set(watchingToken, tokenData);
         
         return createApiResponse('200', 'ok', { success: true, message: 'Questions skipped successfully' });

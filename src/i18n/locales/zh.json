@@ -526,5 +526,69 @@
             "keepGoing": "继续加油！",
             "tryAgain": "再试一次！"
         }
+    },
+    "web3": {
+        "wallet": {
+            "connect": "连接钱包",
+            "disconnect": "断开连接",
+            "connected": "钱包已连接",
+            "notConnected": "钱包未连接",
+            "connectFailed": "连接钱包失败",
+            "noWalletFound": "未找到钱包。请安装兼容的钱包。",
+            "experimentalNotice": "实验性功能",
+            "experimentalDesc": "Web3 集成处于测试阶段。请谨慎使用，仅使用小额资金。"
+        },
+        "rewards": {
+            "title": "奖励金库",
+            "subtitle": "管理孩子的学习奖励和激励",
+            "enableRewards": "开启奖励",
+            "enableDesc": "允许孩子通过正确回答问题获得代币",
+            "experimentalNotice": "实验性功能",
+            "experimentalDesc": "此功能帮助孩子理解金钱概念并激励学习。请谨慎使用，仅使用小额资金。",
+            "tokenType": "代币类型",
+            "rewardPerAnswer": "每次正确回答的奖励",
+            "dailyLimit": "每日奖励上限",
+            "vaultBalance": "金库余额",
+            "depositToVault": "充值到金库",
+            "amountToDeposit": "充值金额",
+            "deposit": "充值",
+            "depositing": "充值中...",
+            "depositSuccess": "成功充值 {amount} {token} 到金库！",
+            "depositFailed": "充值失败：{error}",
+            "balanceLoadFailed": "加载金库余额失败：{error}",
+            "earningTokens": "通过正确回答问题获得代币",
+            "keepLearning": "继续学习以获得更多奖励！"
+        },
+        "piggyBank": {
+            "title": "存钱罐理财",
+            "subtitle": "教孩子投资和赚取利息",
+            "enableInvestment": "开启理财",
+            "enableDesc": "允许孩子的奖励自动投资以赚取利息",
+            "investmentSettings": "理财设置",
+            "investmentPercentage": "投资比例",
+            "investmentPercentageDesc": "每日奖励中用于投资的比例",
+            "dailyMaxInvestment": "每日最大投资额",
+            "cumulativeMaxInvestment": "累计最大投资额",
+            "selectProduct": "选择理财产品",
+            "loadingProducts": "加载理财产品中...",
+            "selectedProduct": "已选择产品",
+            "myPiggyBank": "我的存钱罐",
+            "smartSavings": "智能储蓄赚取利息",
+            "totalBalance": "总余额",
+            "dailyEarnings": "每日收益",
+            "totalEarnings": "总收益",
+            "investingIn": "投资于 {product}（{apr}% 年化收益率）",
+            "web3Disabled": "Web3 功能已禁用",
+            "web3DisabledDesc": "请让家长在设置中开启奖励和储蓄功能。"
+        },
+        "childView": {
+            "rewards": "奖励",
+            "notEnabled": "未开启",
+            "earned": "已获得 {token}",
+            "myRewardsSavings": "我的奖励和储蓄",
+            "learningRewards": "学习奖励",
+            "myPiggyBank": "我的存钱罐",
+            "keepLearning": "继续学习以获得更多奖励！"
+        }
     }
 }

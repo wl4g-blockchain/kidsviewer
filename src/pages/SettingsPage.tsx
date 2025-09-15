@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useTranslation } from '../i18n/I18nProvider';
-import { Settings, Save, RefreshCw, Trash2, Shield, Globe, BookOpen, ArrowRight } from 'lucide-react';
+import { Settings, Save, RefreshCw, Trash2, Shield, Globe, BookOpen, ArrowRight, Coins, PiggyBank } from 'lucide-react';
 import { AppSettings, AppInfo } from '../types';
 import { PlatformManagement } from './PlatformManagement';
 import { QuestionManagement } from './QuestionManagement';
+import { RewardVaultManager } from '../components/RewardVaultManager';
+import { PiggyBankManager } from '../components/PiggyBankManager';
 
 export const SettingsPage: React.FC = () => {
   const { currentUser, apiHandler } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [currentView, setCurrentView] = useState<'settings' | 'platforms' | 'questions'>('settings');
+  const [currentView, setCurrentView] = useState<'settings' | 'platforms' | 'questions' | 'rewards' | 'piggybank'>('settings');
   const [settings, setSettings] = useState<Partial<AppSettings> & { autoLock: boolean; dataSync: boolean }>({
     language: 'en',
     notifications: { enabled: true, sound: true, vibration: false },
@@ -140,6 +142,40 @@ export const SettingsPage: React.FC = () => {
     );
   }
 
+  if (currentView === 'rewards') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4 mb-6">
+          <button
+            onClick={() => setCurrentView('settings')}
+            className="inline-flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <ArrowRight className="w-5 h-5 mr-2 rotate-180" />
+            Back to Settings
+          </button>
+        </div>
+        <RewardVaultManager onConfigUpdate={() => {}} />
+      </div>
+    );
+  }
+
+  if (currentView === 'piggybank') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4 mb-6">
+          <button
+            onClick={() => setCurrentView('settings')}
+            className="inline-flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <ArrowRight className="w-5 h-5 mr-2 rotate-180" />
+            Back to Settings
+          </button>
+        </div>
+        <PiggyBankManager onConfigUpdate={() => {}} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-10 py-8 relative">
       {/* Soft decorative background */}
@@ -178,7 +214,7 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           {/* Management Modules */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div
               onClick={() => setCurrentView('platforms')}
               className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 cursor-pointer hover:shadow-md transition-all duration-200 group"
@@ -212,6 +248,42 @@ export const SettingsPage: React.FC = () => {
                   </div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-green-500 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+
+            <div
+              onClick={() => setCurrentView('rewards')}
+              className="bg-gradient-to-br from-yellow-50 to-orange-100 rounded-xl p-6 border border-yellow-200 cursor-pointer hover:shadow-md transition-all duration-200 group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center mr-4">
+                    <Coins className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">Reward Vault</h3>
+                    <p className="text-sm text-gray-600">Manage learning rewards and incentives</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-5 h-5 text-yellow-500 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+
+            <div
+              onClick={() => setCurrentView('piggybank')}
+              className="bg-gradient-to-br from-pink-50 to-purple-100 rounded-xl p-6 border border-pink-200 cursor-pointer hover:shadow-md transition-all duration-200 group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-pink-500 rounded-lg flex items-center justify-center mr-4">
+                    <PiggyBank className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800">Piggy Bank</h3>
+                    <p className="text-sm text-gray-600">Investment and savings management</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-5 h-5 text-pink-500 group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
           </div>

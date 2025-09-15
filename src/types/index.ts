@@ -203,3 +203,6 @@ export interface AppInfo {
   buildDate: string;
   commitHash?: string;
 }
+
+// Web3 types - re-export from web3.ts
+export * from './web3';

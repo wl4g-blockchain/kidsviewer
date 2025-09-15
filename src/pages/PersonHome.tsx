@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
-import { Video, Trophy, Crown, Baby, Play, AlertCircle, RefreshCw, Clock, Lock, BookOpen, ArrowLeft, Loader2 } from 'lucide-react';
+import { Video, Trophy, Crown, Baby, Play, AlertCircle, RefreshCw, Clock, Lock, BookOpen, ArrowLeft, Loader2, Coins, PiggyBank, TrendingUp } from 'lucide-react';
 import { ParentalPasswordModal } from '../components/ParentalPasswordModal';
-import { Question, Platform } from '../types';
+import { Question, Platform, RewardConfig, PiggyBankConfig, PiggyBankBalance } from '../types';
 import { ElectronWebViewer } from '../components/ElectronWebViewer';
 import { IOSWebViewer } from '../components/IOSWebViewer';
 import { isPlatformIOS } from '../utils/platformUtil';
@@ -49,6 +49,11 @@ export const PersonHome: React.FC = () => {
   const [remainingTime, setRemainingTime] = useState(0);
   const [remainingDailyTime, setRemainingDailyTime] = useState(0);
 
+  // Web3 states
+  const [rewardConfig, setRewardConfig] = useState<RewardConfig | null>(null);
+  const [piggyBankConfig, setPiggyBankConfig] = useState<PiggyBankConfig | null>(null);
+  const [piggyBankBalance, setPiggyBankBalance] = useState<PiggyBankBalance | null>(null);
+
   // Helper function to get platform name based on current language
   const getPlatformName = (platform: Platform): string => {
     return currentLanguage === 'zh' ? platform.nameCN : platform.nameEN;
@@ -78,6 +83,7 @@ export const PersonHome: React.FC = () => {
   useEffect(() => {
     if (activePerson) {
       loadPersonPlatforms();
+      loadWeb3Configs();
     }
   }, [activePerson]);
 
@@ -112,6 +118,44 @@ export const PersonHome: React.FC = () => {
       setError(error instanceof Error ? error.message : t('person.loadContentError'));
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadWeb3Configs = async () => {
+    try {
+      // Load reward configuration
+      const savedRewardConfig = localStorage.getItem('rewardConfig');
+      if (savedRewardConfig) {
+        const config = JSON.parse(savedRewardConfig);
+        setRewardConfig(config);
+      }
+
+      // Load piggy bank configuration
+      const savedPiggyBankConfig = localStorage.getItem('piggyBankConfig');
+      if (savedPiggyBankConfig) {
+        const config = JSON.parse(savedPiggyBankConfig);
+        setPiggyBankConfig(config);
+      }
+
+      // Load piggy bank balance (mock data for now)
+      if (savedPiggyBankConfig) {
+        const mockBalance: PiggyBankBalance = {
+          token: {
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+            address: '0xA0b86a33E6441b8C4C8C0C4C0C4C0C4C0C4C0C4C',
+            chainId: 1
+          },
+          balance: '15.75',
+          formattedBalance: '15.75',
+          dailyEarnings: '0.05',
+          totalEarnings: '1.25'
+        };
+        setPiggyBankBalance(mockBalance);
+      }
+    } catch (error) {
+      console.error('Failed to load Web3 configs:', error);
     }
   };
 
@@ -672,7 +716,7 @@ export const PersonHome: React.FC = () => {
                   <Trophy className="w-6 h-6 mr-2 text-yellow-500" />
                   🏆 {t('home.child.todayAchievements')}
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="text-center bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
                     <div className="text-6xl mb-3">⏰</div>
                     <h3 className="font-bold text-gray-800 mb-2">{t('home.child.studyTime')}</h3>
@@ -691,9 +735,122 @@ export const PersonHome: React.FC = () => {
                     <div className="text-4xl font-black text-green-600 mb-1">0</div>
                     <p className="text-sm text-gray-600">{t('home.child.challengeDesc')}</p>
                   </div>
+                  <div className="text-center bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+                    <div className="text-6xl mb-3">🎁</div>
+                    <h3 className="font-bold text-gray-800 mb-2">Rewards</h3>
+                    <div className="text-4xl font-black text-purple-600 mb-1">
+                      {rewardConfig?.enabled ? '0' : '—'}
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {rewardConfig?.enabled ? `${rewardConfig.tokenType} earned` : 'Not enabled'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Web3 Rewards and Investment Section */}
+            {(rewardConfig?.enabled || piggyBankConfig?.enabled) && (
+              <div className="px-4">
+                <div className="card-modern p-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <Coins className="w-6 h-6 mr-2 text-yellow-500" />
+                    💰 My Rewards & Savings
+                  </h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Rewards Section */}
+                    {rewardConfig?.enabled && (
+                      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
+                        <div className="flex items-center mb-4">
+                          <div className="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center mr-3">
+                            <Coins className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-800">Learning Rewards</h3>
+                            <p className="text-sm text-gray-600">Earn tokens for correct answers</p>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Token Type:</span>
+                            <span className="font-semibold text-gray-800">{rewardConfig.tokenType}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Per Answer:</span>
+                            <span className="font-semibold text-gray-800">{rewardConfig.rewardPerAnswer} {rewardConfig.tokenType}</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Daily Limit:</span>
+                            <span className="font-semibold text-gray-800">{rewardConfig.dailyLimit} {rewardConfig.tokenType}</span>
+                          </div>
+                          <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
+                            <p className="text-sm text-yellow-800 text-center">
+                              🎉 Keep learning to earn more rewards!
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Piggy Bank Section */}
+                    {piggyBankConfig?.enabled && piggyBankBalance && (
+                      <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-6 border border-pink-200">
+                        <div className="flex items-center mb-4">
+                          <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center mr-3">
+                            <PiggyBank className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-800">My Piggy Bank</h3>
+                            <p className="text-sm text-gray-600">Smart savings with interest</p>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Total Balance:</span>
+                            <span className="font-bold text-lg text-pink-600">
+                              {piggyBankBalance.formattedBalance} {piggyBankBalance.token.symbol}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Daily Earnings:</span>
+                            <span className="font-semibold text-green-600 flex items-center">
+                              <TrendingUp className="w-4 h-4 mr-1" />
+                              +{piggyBankBalance.dailyEarnings} {piggyBankBalance.token.symbol}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Total Earnings:</span>
+                            <span className="font-semibold text-green-600">
+                              +{piggyBankBalance.totalEarnings} {piggyBankBalance.token.symbol}
+                            </span>
+                          </div>
+                          {piggyBankConfig.selectedAaveProduct && (
+                            <div className="mt-4 p-3 bg-pink-100 rounded-lg">
+                              <p className="text-sm text-pink-800 text-center">
+                                💎 Investing in {piggyBankConfig.selectedAaveProduct.name} 
+                                ({piggyBankConfig.selectedAaveProduct.apr}% APR)
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Web3 Status Messages */}
+                  {!rewardConfig?.enabled && !piggyBankConfig?.enabled && (
+                    <div className="text-center py-8">
+                      <div className="text-6xl mb-4">🔒</div>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">Web3 Features Disabled</h3>
+                      <p className="text-gray-600">
+                        Ask your parent to enable rewards and savings features in settings.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Encouragement message */}
             <div className="px-4 pb-8">
