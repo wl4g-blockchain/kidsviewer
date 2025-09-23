@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 
+use core::felt252;
 use core::integer::u256;
 use starknet::event::EventEmitter;
 use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
-use core::felt252;
 
 // Interface definition
 #[starknet::interface]
