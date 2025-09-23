@@ -30,6 +30,32 @@
   "ios": {
     "contentInset": "always",
     "scheme": "kidsviewer",
-    "backgroundColor": "#ffffff"
+    "backgroundColor": "#ffffff",
+    "associatedDomains": [
+      "applinks:kidsviewer.app",
+      "applinks:metamask.app.link",
+      "applinks:argent.xyz",
+      "applinks:app.braavos.com"
+    ]
+  },
+  "android": {
+    "allowMixedContent": true,
+    "scheme": "kidsviewer",
+    "intentFilters": [
+      {
+        "action": "android.intent.action.VIEW",
+        "autoVerify": true,
+        "data": [
+          {
+            "scheme": "https",
+            "host": "kidsviewer.app"
+          }
+        ],
+        "category": [
+          "android.intent.category.DEFAULT",
+          "android.intent.category.BROWSABLE"
+        ]
+      }
+    ]
   }
 }

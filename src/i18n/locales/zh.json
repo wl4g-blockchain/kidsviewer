@@ -548,6 +548,11 @@
             "tokenType": "代币类型",
             "rewardPerAnswer": "每次正确回答的奖励",
             "dailyLimit": "每日奖励上限",
+            "settlementMode": "奖励结算模式",
+            "settlementModeRealtime": "实时结算",
+            "settlementModeDaily": "每日结算（减少Gas费用）",
+            "settlementModeDescRealtime": "每次正确回答后立即分发奖励",
+            "settlementModeDescDaily": "奖励累积并在每天分发一次以减少交易成本",
             "vaultBalance": "金库余额",
             "depositToVault": "充值到金库",
             "amountToDeposit": "充值金额",
@@ -557,7 +562,28 @@
             "depositFailed": "充值失败：{error}",
             "balanceLoadFailed": "加载金库余额失败：{error}",
             "earningTokens": "通过正确回答问题获得代币",
-            "keepLearning": "继续学习以获得更多奖励！"
+            "keepLearning": "继续学习以获得更多奖励！",
+            "krcBenefits": "KRC平台权益",
+            "krcBalance": "余额",
+            "feeDiscount": "手续费折扣",
+            "yieldBoost": "收益加成",
+            "votingPower": "投票权",
+            "childManagement": "孩子管理",
+            "selectChild": "选择孩子",
+            "selectChildPlaceholder": "选择一个孩子...",
+            "withdrawalRequests": "待处理的取款申请",
+            "defiInvestment": "DeFi投资设置",
+            "enableDefiInvestment": "开启DeFi投资",
+            "enableDefiInvestmentDesc": "允许孩子投资AAVE产品",
+            "approvedAaveProducts": "已批准的AAVE产品",
+            "approveProduct": "批准",
+            "withdrawalRequest": {
+                "amount": "金额",
+                "reason": "原因",
+                "timestamp": "申请时间",
+                "approve": "批准",
+                "reject": "拒绝"
+            }
         },
         "piggyBank": {
             "title": "存钱罐理财",
@@ -580,6 +606,23 @@
             "investingIn": "投资于 {product}（{apr}% 年化收益率）",
             "web3Disabled": "Web3 功能已禁用",
             "web3DisabledDesc": "请让家长在设置中开启奖励和储蓄功能。"
+        },
+        "walletLauncher": {
+            "selectNetwork": "选择网络",
+            "ethereum": "以太坊",
+            "starknet": "Starknet",
+            "walletStatus": {
+                "connected": "已连接",
+                "installed": "已安装",
+                "notInstalled": "未安装"
+            },
+            "installWallet": "安装钱包",
+            "connecting": "连接中...",
+            "processing": "处理中...",
+            "success": "成功！",
+            "error": "错误",
+            "redirecting": "正在重定向回应用...",
+            "backToSettings": "返回设置"
         },
         "childView": {
             "rewards": "奖励",

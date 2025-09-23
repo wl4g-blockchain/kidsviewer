@@ -1,0 +1,20 @@
+[package]
+name = "kidsviewer"
+version = "0.1.0"
+edition = "2024_07"
+
+[dependencies]
+garaga = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.18.1" }
+starknet = "2.12.0"
+
+[cairo]
+sierra-replace-ids = false
+inlining-strategy = 2
+allowed-libfuncs-list = { version = "2.12.0" }
+
+[dev-dependencies]
+cairo_test = "2.12.0"
+
+[[target.starknet-contract]]
+casm = true
+casm-add-pythonic-hints = true

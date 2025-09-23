@@ -1,24 +1,10 @@
 // Piggy Bank Investment Management Component for Web3 integration
 
 import React, { useState, useEffect } from 'react';
-import { 
-  PiggyBank, 
-  TrendingUp, 
-  AlertCircle, 
-  CheckCircle, 
-  Loader2, 
-  Wallet,
-  DollarSign,
-  BarChart3
-} from 'lucide-react';
+import { PiggyBank, TrendingUp, AlertCircle, CheckCircle, Loader2, Wallet, DollarSign, BarChart3 } from 'lucide-react';
 import { WalletConnectModal } from './WalletConnectModal';
-import { Web3Utils } from '../utils/web3Utils';
-import { 
-  WalletConnection, 
-  PiggyBankConfig, 
-  AaveProduct, 
-  PiggyBankBalance
-} from '../types/web3';
+import { Web3Utils } from '../../utils/web3/web3Utils';
+import { WalletConnection, PiggyBankConfig, AaveProduct, PiggyBankBalance } from '../../types/web3';
 
 interface PiggyBankManagerProps {
   onConfigUpdate: (config: PiggyBankConfig) => void;
@@ -32,7 +18,7 @@ const MOCK_AAVE_PRODUCTS: AaveProduct[] = [
     symbol: 'aUSDC',
     apr: 3.2,
     address: '0x1234567890123456789012345678901234567890',
-    chainId: 1
+    chainId: 1,
   },
   {
     id: 'usdt-supply',
@@ -40,7 +26,7 @@ const MOCK_AAVE_PRODUCTS: AaveProduct[] = [
     symbol: 'aUSDT',
     apr: 2.8,
     address: '0x0987654321098765432109876543210987654321',
-    chainId: 1
+    chainId: 1,
   },
   {
     id: 'dai-supply',
@@ -48,8 +34,8 @@ const MOCK_AAVE_PRODUCTS: AaveProduct[] = [
     symbol: 'aDAI',
     apr: 4.1,
     address: '0x1111111111111111111111111111111111111111',
-    chainId: 1
-  }
+    chainId: 1,
+  },
 ];
 
 export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpdate }) => {
@@ -64,7 +50,7 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
     investmentPercentage: 50,
     dailyMaxInvestment: 5,
     cumulativeMaxInvestment: 100,
-    selectedAaveProduct: undefined
+    selectedAaveProduct: undefined,
   });
 
   // Piggy bank balance state
@@ -131,12 +117,12 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
           name: 'USD Coin',
           decimals: 6,
           address: '0xA0b86a33E6441b8C4C8C0C4C0C4C0C4C0C4C0C4C',
-          chainId: 1
+          chainId: 1,
         },
         balance: '25.50',
         formattedBalance: '25.50',
         dailyEarnings: '0.08',
-        totalEarnings: '2.45'
+        totalEarnings: '2.45',
       };
 
       setPiggyBankBalance(mockBalance);
@@ -194,9 +180,7 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-800">Enable Investment</h3>
-            <p className="text-gray-600 text-sm mt-1">
-              Allow your child's rewards to be automatically invested for earning interest
-            </p>
+            <p className="text-gray-600 text-sm mt-1">Allow your child's rewards to be automatically invested for earning interest</p>
           </div>
           <button
             onClick={handleEnableInvestment}
@@ -219,7 +203,7 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
           {/* Wallet Connection */}
           <div className="bg-white rounded-xl p-6 border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Wallet Connection</h3>
-            
+
             {!walletConnection ? (
               <div className="text-center py-6">
                 <Wallet className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -241,10 +225,7 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
                       <p className="text-sm text-green-600">{formatAddress(walletConnection.address)}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setWalletConnection(null)}
-                    className="text-sm text-gray-500 hover:text-gray-700 underline"
-                  >
+                  <button onClick={() => setWalletConnection(null)} className="text-sm text-gray-500 hover:text-gray-700 underline">
                     Disconnect
                   </button>
                 </div>
@@ -294,41 +275,33 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
           {/* Investment Settings */}
           <div className="bg-white rounded-xl p-6 border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Investment Settings</h3>
-            
+
             <div className="space-y-4">
               {/* Investment Percentage */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Investment Percentage
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Investment Percentage</label>
                 <div className="flex items-center space-x-3">
                   <input
                     type="range"
                     min="0"
                     max="100"
                     value={piggyBankConfig.investmentPercentage}
-                    onChange={(e) => handleConfigChange('investmentPercentage', parseInt(e.target.value))}
+                    onChange={e => handleConfigChange('investmentPercentage', parseInt(e.target.value))}
                     className="flex-1"
                   />
-                  <span className="text-lg font-semibold text-gray-800 w-16 text-right">
-                    {piggyBankConfig.investmentPercentage}%
-                  </span>
+                  <span className="text-lg font-semibold text-gray-800 w-16 text-right">{piggyBankConfig.investmentPercentage}%</span>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">
-                  Percentage of daily rewards to invest automatically
-                </p>
+                <p className="text-sm text-gray-600 mt-1">Percentage of daily rewards to invest automatically</p>
               </div>
 
               {/* Daily Max Investment */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Daily Maximum Investment
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Daily Maximum Investment</label>
                 <div className="flex items-center space-x-2">
                   <input
                     type="number"
                     value={piggyBankConfig.dailyMaxInvestment}
-                    onChange={(e) => handleConfigChange('dailyMaxInvestment', parseFloat(e.target.value))}
+                    onChange={e => handleConfigChange('dailyMaxInvestment', parseFloat(e.target.value))}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     step="0.1"
                     min="0"
@@ -339,14 +312,12 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
 
               {/* Cumulative Max Investment */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cumulative Maximum Investment
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Cumulative Maximum Investment</label>
                 <div className="flex items-center space-x-2">
                   <input
                     type="number"
                     value={piggyBankConfig.cumulativeMaxInvestment}
-                    onChange={(e) => handleConfigChange('cumulativeMaxInvestment', parseFloat(e.target.value))}
+                    onChange={e => handleConfigChange('cumulativeMaxInvestment', parseFloat(e.target.value))}
                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     step="1"
                     min="0"
@@ -360,7 +331,7 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
           {/* AAVE Product Selection */}
           <div className="bg-white rounded-xl p-6 border border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Select Investment Product</h3>
-            
+
             {isLoadingProducts ? (
               <div className="text-center py-8">
                 <Loader2 className="w-8 h-8 text-gray-400 mx-auto mb-4 animate-spin" />
@@ -368,7 +339,7 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
               </div>
             ) : (
               <div className="space-y-3">
-                {aaveProducts.map((product) => (
+                {aaveProducts.map(product => (
                   <div
                     key={product.id}
                     onClick={() => handleSelectAaveProduct(product)}
@@ -431,11 +402,7 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
       )}
 
       {/* Wallet Connect Modal */}
-      <WalletConnectModal
-        isOpen={isWalletModalOpen}
-        onClose={() => setIsWalletModalOpen(false)}
-        onConnect={handleWalletConnect}
-      />
+      <WalletConnectModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} onConnect={handleWalletConnect} />
     </div>
   );
 };

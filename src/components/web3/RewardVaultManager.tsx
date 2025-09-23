@@ -4,17 +4,22 @@ import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { Coins, Wallet, AlertCircle, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
 import { WalletConnectModal } from './WalletConnectModal';
-import { EthereumUtils, StarknetUtils, Web3Utils } from '../utils/web3Utils';
+import { EthereumUtils, StarknetUtils, Web3Utils } from '../../utils/web3/web3Utils';
 import {
   WalletConnection,
   RewardConfig,
   TokenInfo,
   VaultBalance,
   TransactionResult,
+  WithdrawalRequest,
+  InvestmentConfig,
+  KRCHoldings,
   TOKEN_ADDRESSES,
   CONTRACT_ADDRESSES,
   SUPPORTED_NETWORKS,
-} from '../types/web3';
+  AAVE_PRODUCTS,
+} from '../../types/web3';
+import { web3Service } from '../../services/web3Service';
 
 interface RewardVaultManagerProps {
   onConfigUpdate: (config: RewardConfig) => void;
@@ -33,6 +38,7 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     rewardPerAnswer: 0.1,
     dailyLimit: 10,
     vaultAddress: undefined,
+    settlementMode: 'realtime', // New: reward settlement mode
   });
 
   // Vault balance state
@@ -43,6 +49,13 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
   const [depositAmount, setDepositAmount] = useState('');
   const [isDepositing, setIsDepositing] = useState(false);
 
+  // New state for enhanced functionality
+  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
+  const [investmentConfigs, setInvestmentConfigs] = useState<Map<string, InvestmentConfig>>(new Map());
+  const [krcHoldings, setKrcHoldings] = useState<KRCHoldings | null>(null);
+  const [selectedChild, setSelectedChild] = useState<string>('');
+  const [availableAaveProducts, setAvailableAaveProducts] = useState<any[]>([]);
+
   // Load saved configuration on mount
   useEffect(() => {
     loadRewardConfig();
@@ -52,8 +65,18 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
   useEffect(() => {
     if (walletConnection?.isConnected) {
       loadVaultBalance();
+      loadKrcHoldings();
+      loadAvailableAaveProducts();
     }
   }, [walletConnection]);
+
+  // Load withdrawal requests when child is selected
+  useEffect(() => {
+    if (selectedChild && walletConnection?.isConnected) {
+      loadWithdrawalRequests();
+      loadInvestmentConfig();
+    }
+  }, [selectedChild, walletConnection]);
 
   const loadRewardConfig = () => {
     const saved = localStorage.getItem('rewardConfig');
@@ -187,6 +210,87 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
   const formatAddress = (address: string) => {
     return Web3Utils.formatAddress(address);
+  };
+
+  // New methods for enhanced functionality
+  const loadKrcHoldings = async () => {
+    if (!walletConnection?.isConnected) return;
+
+    try {
+      const holdings = await web3Service.getKRCHoldings(walletConnection.address);
+      setKrcHoldings(holdings);
+    } catch (error: any) {
+      console.error('Failed to load KRC holdings:', error);
+    }
+  };
+
+  const loadAvailableAaveProducts = () => {
+    const products = web3Service.getAvailableAaveProducts();
+    setAvailableAaveProducts(products);
+  };
+
+  const loadWithdrawalRequests = async () => {
+    if (!selectedChild || !walletConnection?.isConnected) return;
+
+    try {
+      const requests = await web3Service.getWithdrawalRequests(selectedChild);
+      setWithdrawalRequests(requests);
+    } catch (error: any) {
+      console.error('Failed to load withdrawal requests:', error);
+    }
+  };
+
+  const loadInvestmentConfig = async () => {
+    if (!selectedChild || !walletConnection?.isConnected) return;
+
+    try {
+      const config = await web3Service.getInvestmentConfig(selectedChild);
+      setInvestmentConfigs(prev => new Map(prev.set(selectedChild, config)));
+    } catch (error: any) {
+      console.error('Failed to load investment config:', error);
+    }
+  };
+
+  const handleApproveWithdrawal = async (requestId: number) => {
+    try {
+      const result = await web3Service.approveWithdrawal(requestId);
+      if (result.success) {
+        setSuccess('Withdrawal approved successfully!');
+        await loadWithdrawalRequests();
+      } else {
+        setError(result.error || 'Failed to approve withdrawal');
+      }
+    } catch (error: any) {
+      setError(`Failed to approve withdrawal: ${error.message}`);
+    }
+  };
+
+  const handleSetInvestmentConfig = async (childAddress: string, enabled: boolean, maxAmount: string) => {
+    try {
+      const result = await web3Service.setInvestmentConfig(childAddress, enabled, maxAmount);
+      if (result.success) {
+        setSuccess('Investment configuration updated successfully!');
+        await loadInvestmentConfig();
+      } else {
+        setError(result.error || 'Failed to update investment config');
+      }
+    } catch (error: any) {
+      setError(`Failed to update investment config: ${error.message}`);
+    }
+  };
+
+  const handleApproveAaveProduct = async (childAddress: string, aaveProductAddress: string, approved: boolean) => {
+    try {
+      const result = await web3Service.approveAaveProduct(childAddress, aaveProductAddress, approved);
+      if (result.success) {
+        setSuccess(`AAVE product ${approved ? 'approved' : 'disapproved'} successfully!`);
+        await loadInvestmentConfig();
+      } else {
+        setError(result.error || 'Failed to update AAVE product approval');
+      }
+    } catch (error: any) {
+      setError(`Failed to update AAVE product approval: ${error.message}`);
+    }
   };
 
   return (
@@ -367,7 +471,166 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
                 <span className="text-gray-600">{rewardConfig.tokenType}</span>
               </div>
             </div>
+
+            {/* Settlement Mode */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Reward Settlement Mode</label>
+              <select
+                value={rewardConfig.settlementMode}
+                onChange={e => handleConfigChange('settlementMode', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="realtime">Real-time Settlement</option>
+                <option value="daily">Daily Settlement (Reduces Gas Fees)</option>
+              </select>
+              <p className="text-sm text-gray-500 mt-1">
+                {rewardConfig.settlementMode === 'realtime' 
+                  ? 'Rewards are distributed immediately after each correct answer'
+                  : 'Rewards are accumulated and distributed once per day to reduce transaction costs'
+                }
+              </p>
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* KRC Holdings Display */}
+      {krcHoldings && (
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">KRC Platform Benefits</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-blue-50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-blue-600">{krcHoldings.balance} KRC</div>
+              <div className="text-sm text-blue-800">Balance</div>
+            </div>
+            <div className="bg-green-50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-green-600">{krcHoldings.feeDiscount / 100}%</div>
+              <div className="text-sm text-green-800">Fee Discount</div>
+            </div>
+            <div className="bg-purple-50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-purple-600">+{krcHoldings.yieldBoost / 100}%</div>
+              <div className="text-sm text-purple-800">Yield Boost</div>
+            </div>
+            <div className="bg-orange-50 rounded-lg p-4">
+              <div className="text-2xl font-bold text-orange-600">{krcHoldings.governancePower} KRC</div>
+              <div className="text-sm text-orange-800">Voting Power</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Child Management */}
+      {walletConnection?.isConnected && (
+        <div className="bg-white rounded-xl p-6 border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Child Management</h3>
+          
+          {/* Child Selection */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Select Child</label>
+            <select
+              value={selectedChild}
+              onChange={e => setSelectedChild(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select a child...</option>
+              {/* In a real app, this would be populated from the user's children */}
+              <option value="child1">Child 1</option>
+              <option value="child2">Child 2</option>
+            </select>
+          </div>
+
+          {/* Withdrawal Requests */}
+          {selectedChild && withdrawalRequests.length > 0 && (
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-800 mb-3">Pending Withdrawal Requests</h4>
+              <div className="space-y-3">
+                {withdrawalRequests.map((request) => (
+                  <div key={request.id} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{request.amount} {request.token}</div>
+                        <div className="text-sm text-gray-600">{request.reason}</div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(request.timestamp * 1000).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleApproveWithdrawal(request.id)}
+                          className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => {/* Handle reject */}}
+                          className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Investment Configuration */}
+          {selectedChild && (
+            <div>
+              <h4 className="font-medium text-gray-800 mb-3">DeFi Investment Settings</h4>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">Enable DeFi Investment</div>
+                    <div className="text-sm text-gray-600">Allow child to invest in AAVE products</div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const currentConfig = investmentConfigs.get(selectedChild);
+                      handleSetInvestmentConfig(
+                        selectedChild, 
+                        !currentConfig?.isEnabled, 
+                        currentConfig?.maxInvestmentAmount || '100'
+                      );
+                    }}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                      investmentConfigs.get(selectedChild)?.isEnabled ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                        investmentConfigs.get(selectedChild)?.isEnabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {/* AAVE Product Approvals */}
+                {investmentConfigs.get(selectedChild)?.isEnabled && (
+                  <div>
+                    <div className="font-medium mb-2">Approved AAVE Products</div>
+                    <div className="space-y-2">
+                      {availableAaveProducts.map((product) => (
+                        <div key={product.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                          <div>
+                            <div className="font-medium">{product.name}</div>
+                            <div className="text-sm text-gray-600">APR: {product.apr}%</div>
+                          </div>
+                          <button
+                            onClick={() => handleApproveAaveProduct(selectedChild, product.address, true)}
+                            className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+                          >
+                            Approve
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

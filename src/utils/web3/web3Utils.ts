@@ -2,7 +2,7 @@
 
 import { ethers } from 'ethers';
 import { Account, RpcProvider } from 'starknet';
-import { WalletConnection, TokenInfo, TransactionResult, SUPPORTED_NETWORKS } from '../types/web3';
+import { WalletConnection, TokenInfo, TransactionResult, SUPPORTED_NETWORKS } from '../../types/web3';
 
 // Ethereum utilities
 export class EthereumUtils {

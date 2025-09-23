@@ -5,8 +5,8 @@ import { Settings, Save, RefreshCw, Trash2, Shield, Globe, BookOpen, ArrowRight,
 import { AppSettings, AppInfo } from '../types';
 import { PlatformManagement } from './PlatformManagement';
 import { QuestionManagement } from './QuestionManagement';
-import { RewardVaultManager } from '../components/RewardVaultManager';
-import { PiggyBankManager } from '../components/PiggyBankManager';
+import { RewardVaultManager } from '../components/web3/RewardVaultManager';
+import { PiggyBankManager } from '../components/web3/PiggyBankManager';
 
 export const SettingsPage: React.FC = () => {
   const { currentUser, apiHandler } = useAuthStore();

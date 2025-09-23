@@ -3,7 +3,8 @@ import { useAuthStore } from '../stores/authStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
 import { Video, Trophy, Crown, Baby, Play, AlertCircle, RefreshCw, Clock, Lock, BookOpen, ArrowLeft, Loader2, Coins, PiggyBank, TrendingUp } from 'lucide-react';
 import { ParentalPasswordModal } from '../components/ParentalPasswordModal';
-import { Question, Platform, RewardConfig, PiggyBankConfig, PiggyBankBalance } from '../types';
+import { Question, Platform, RewardConfig, PiggyBankConfig, PiggyBankBalance, AaveProduct, InvestmentConfig } from '../types';
+import { web3Service } from '../services/web3Service';
 import { ElectronWebViewer } from '../components/ElectronWebViewer';
 import { IOSWebViewer } from '../components/IOSWebViewer';
 import { isPlatformIOS } from '../utils/platformUtil';
@@ -53,6 +54,13 @@ export const PersonHome: React.FC = () => {
   const [rewardConfig, setRewardConfig] = useState<RewardConfig | null>(null);
   const [piggyBankConfig, setPiggyBankConfig] = useState<PiggyBankConfig | null>(null);
   const [piggyBankBalance, setPiggyBankBalance] = useState<PiggyBankBalance | null>(null);
+  const [availableAaveProducts, setAvailableAaveProducts] = useState<AaveProduct[]>([]);
+  const [investmentConfig, setInvestmentConfig] = useState<InvestmentConfig | null>(null);
+  const [realTimeEarnings, setRealTimeEarnings] = useState<number>(0);
+  const [selectedAaveProduct, setSelectedAaveProduct] = useState<AaveProduct | null>(null);
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
+  const [withdrawalAmount, setWithdrawalAmount] = useState('');
+  const [withdrawalReason, setWithdrawalReason] = useState('');
 
   // Helper function to get platform name based on current language
   const getPlatformName = (platform: Platform): string => {
@@ -137,6 +145,19 @@ export const PersonHome: React.FC = () => {
         setPiggyBankConfig(config);
       }
 
+      // Load available AAVE products
+      const products = web3Service.getAvailableAaveProducts();
+      setAvailableAaveProducts(products);
+
+      // Load investment configuration (mock for now)
+      const mockInvestmentConfig: InvestmentConfig = {
+        isEnabled: true,
+        maxInvestmentAmount: '100',
+        totalInvested: '25',
+        approvedAaveProducts: products.map(p => p.address)
+      };
+      setInvestmentConfig(mockInvestmentConfig);
+
       // Load piggy bank balance (mock data for now)
       if (savedPiggyBankConfig) {
         const mockBalance: PiggyBankBalance = {
@@ -154,8 +175,58 @@ export const PersonHome: React.FC = () => {
         };
         setPiggyBankBalance(mockBalance);
       }
+
+      // Start real-time earnings simulation
+      startRealTimeEarningsSimulation();
     } catch (error) {
       console.error('Failed to load Web3 configs:', error);
+    }
+  };
+
+  // Real-time earnings simulation
+  const startRealTimeEarningsSimulation = () => {
+    const interval = setInterval(() => {
+      setRealTimeEarnings(prev => {
+        // Simulate small incremental earnings
+        const increment = Math.random() * 0.0001; // Very small increment
+        return prev + increment;
+      });
+    }, 1000); // Update every second
+
+    // Cleanup interval on unmount
+    return () => clearInterval(interval);
+  };
+
+  // Handle withdrawal request
+  const handleWithdrawalRequest = async () => {
+    if (!withdrawalAmount || !withdrawalReason) {
+      alert('Please fill in both amount and reason');
+      return;
+    }
+
+    try {
+      // In a real implementation, this would call the smart contract
+      // For now, we'll simulate the request
+      const mockRequest = {
+        id: Date.now(),
+        amount: withdrawalAmount,
+        reason: withdrawalReason,
+        timestamp: Math.floor(Date.now() / 1000),
+        status: 'pending'
+      };
+
+      console.log('Withdrawal request submitted:', mockRequest);
+      
+      // Show success message
+      alert('Withdrawal request submitted! Your parent will review it.');
+      
+      // Reset form and close modal
+      setWithdrawalAmount('');
+      setWithdrawalReason('');
+      setShowWithdrawalModal(false);
+    } catch (error) {
+      console.error('Failed to submit withdrawal request:', error);
+      alert('Failed to submit withdrawal request. Please try again.');
     }
   };
 
@@ -825,14 +896,74 @@ export const PersonHome: React.FC = () => {
                               +{piggyBankBalance.totalEarnings} {piggyBankBalance.token.symbol}
                             </span>
                           </div>
-                          {piggyBankConfig.selectedAaveProduct && (
-                            <div className="mt-4 p-3 bg-pink-100 rounded-lg">
-                              <p className="text-sm text-pink-800 text-center">
-                                💎 Investing in {piggyBankConfig.selectedAaveProduct.name} 
-                                ({piggyBankConfig.selectedAaveProduct.apr}% APR)
-                              </p>
+                          
+                          {/* Real-time earnings display */}
+                          <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm text-green-700">Live Growth:</span>
+                              <span className="text-sm font-mono text-green-600">
+                                +{realTimeEarnings.toFixed(6)} {piggyBankBalance.token.symbol}
+                              </span>
+                            </div>
+                            <p className="text-xs text-green-600 mt-1">
+                              * Actual earnings subject to final settlement
+                            </p>
+                          </div>
+
+                          {/* DeFi Investment Products */}
+                          {investmentConfig?.isEnabled && availableAaveProducts.length > 0 && (
+                            <div className="mt-4">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Choose Investment Product</h4>
+                              <div className="space-y-2">
+                                {availableAaveProducts.map((product) => (
+                                  <div 
+                                    key={product.id}
+                                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                                      selectedAaveProduct?.id === product.id
+                                        ? 'bg-blue-100 border-blue-300'
+                                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                                    }`}
+                                    onClick={() => setSelectedAaveProduct(product)}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <div className="font-medium text-sm">{product.name}</div>
+                                        <div className="text-xs text-gray-600">{product.symbol}</div>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="text-sm font-semibold text-green-600">
+                                          {product.apr}% APR
+                                        </div>
+                                        <div className="text-xs text-gray-500">Annual Rate</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              {selectedAaveProduct && (
+                                <div className="mt-3 p-3 bg-blue-100 rounded-lg">
+                                  <p className="text-sm text-blue-800 text-center">
+                                    💎 Investing in {selectedAaveProduct.name} 
+                                    ({selectedAaveProduct.apr}% APR)
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           )}
+
+                          {/* Withdrawal Request Button */}
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <button
+                              onClick={() => setShowWithdrawalModal(true)}
+                              className="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
+                            >
+                              💰 Request Withdrawal
+                            </button>
+                            <p className="text-xs text-gray-500 mt-2 text-center">
+                              Ask your parent for permission to withdraw money
+                            </p>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -873,6 +1004,72 @@ export const PersonHome: React.FC = () => {
         onSubmit={handlePasswordSubmit}
         error={passwordError}
       />
+
+      {/* Withdrawal Request Modal */}
+      {showWithdrawalModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">Request Withdrawal</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount to Withdraw
+                </label>
+                <div className="flex items-center">
+                  <input
+                    type="number"
+                    value={withdrawalAmount}
+                    onChange={(e) => setWithdrawalAmount(e.target.value)}
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                  <span className="ml-2 text-gray-600">
+                    {piggyBankBalance?.token.symbol || 'USDC'}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for Withdrawal
+                </label>
+                <textarea
+                  value={withdrawalReason}
+                  onChange={(e) => setWithdrawalReason(e.target.value)}
+                  placeholder="Why do you need this money? (e.g., buy a toy, save for something special)"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                />
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ Your parent will review this request before approving it.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => setShowWithdrawalModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleWithdrawalRequest}
+                disabled={!withdrawalAmount || !withdrawalReason}
+                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                Submit Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
