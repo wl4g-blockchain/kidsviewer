@@ -6,3 +6,5 @@ build
 accounts.json
 local-accounts.json
 garaga-venv
+.snfoundry_cache/
+.env

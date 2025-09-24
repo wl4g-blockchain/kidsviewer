@@ -30,7 +30,7 @@ pub trait IKidsViewerPiggyBank<CS> {
     ) -> (u256, u256);
     fn get_withdrawal_request(
         self: @CS, request_id: u64,
-    ) -> (ContractAddress, ContractAddress, u256, u64, bool, bool, felt252);
+    ) -> (ContractAddress, ContractAddress, u256, felt252, bool, bool, felt252);
     fn get_child_withdrawal_requests(self: @CS, child: ContractAddress) -> u64;
     fn get_investment_config(self: @CS, child: ContractAddress) -> (bool, u256, u256);
     fn is_aave_product_approved(
@@ -38,6 +38,17 @@ pub trait IKidsViewerPiggyBank<CS> {
     ) -> bool;
     fn is_parent_approved(self: @CS, parent: ContractAddress, child: ContractAddress) -> bool;
     fn is_child_active(self: @CS, child: ContractAddress) -> bool;
+    fn paused(self: @CS) -> bool;
+    fn owner(self: @CS) -> ContractAddress;
+    fn next_request_id(self: @CS) -> u64;
+    fn child_balances(self: @CS, child: ContractAddress, token: ContractAddress) -> u256;
+    fn child_earnings(self: @CS, child: ContractAddress, token: ContractAddress) -> u256;
+    fn child_request_ids(self: @CS, child: ContractAddress) -> u64;
+    fn parent_approvals(self: @CS, parent: ContractAddress, child: ContractAddress) -> bool;
+    fn aave_product_approvals(
+        self: @CS, child: ContractAddress, aave_product: ContractAddress,
+    ) -> bool;
+    fn child_active(self: @CS, child: ContractAddress) -> bool;
 }
 
 // Contract implementation
@@ -148,7 +159,7 @@ pub mod KidsViewerPiggyBank {
         pub child_balances: Map<(ContractAddress, ContractAddress), u256>,
         pub child_earnings: Map<(ContractAddress, ContractAddress), u256>,
         pub withdrawal_requests: Map<
-            u64, (ContractAddress, ContractAddress, u256, u64, bool, bool, felt252),
+            u64, (ContractAddress, ContractAddress, u256, felt252, bool, bool, felt252),
         >,
         pub child_request_ids: Map<ContractAddress, u64>,
         pub parent_approvals: Map<(ContractAddress, ContractAddress), bool>,
@@ -169,7 +180,7 @@ pub mod KidsViewerPiggyBank {
     fn only_owner(self: @ContractState) {
         let caller = get_caller_address();
         let owner = self.owner.read();
-        assert(caller == owner, 'Only owner');
+        assert(caller == owner, 'Caller is not the owner');
     }
 
     fn when_not_paused(self: @ContractState) {
@@ -180,7 +191,7 @@ pub mod KidsViewerPiggyBank {
     fn only_parent(self: @ContractState, child: ContractAddress) {
         let caller = get_caller_address();
         let approved = self.parent_approvals.read((caller, child));
-        assert(approved, 'Not parent');
+        assert(approved, 'Not authorized');
     }
 
     fn valid_amount(amount: u256) {
@@ -224,7 +235,7 @@ pub mod KidsViewerPiggyBank {
 
             self
                 .withdrawal_requests
-                .write(request_id, (caller, token, amount, timestamp, false, false, reason));
+                .write(request_id, (caller, token, amount, reason, false, false, reason));
             self.child_request_ids.write(caller, request_id);
             self.next_request_id.write(request_id + 1);
 
@@ -240,7 +251,7 @@ pub mod KidsViewerPiggyBank {
             only_owner(@self);
             when_not_paused(@self);
 
-            let (child, token, amount, timestamp, approved, executed, _) = self
+            let (child, token, amount, reason, approved, executed, _) = self
                 .withdrawal_requests
                 .read(request_id);
             assert(!approved, 'Already approved');
@@ -248,7 +259,7 @@ pub mod KidsViewerPiggyBank {
 
             self
                 .withdrawal_requests
-                .write(request_id, (child, token, amount, timestamp, true, false, ''));
+                .write(request_id, (child, token, amount, reason, true, false, reason));
 
             let current_balance = self.child_balances.read((child, token));
             let new_balance = current_balance - amount;
@@ -262,7 +273,7 @@ pub mod KidsViewerPiggyBank {
             only_owner(@self);
             when_not_paused(@self);
 
-            let (child, token, amount, timestamp, approved, executed, _) = self
+            let (child, token, amount, _, approved, executed, _) = self
                 .withdrawal_requests
                 .read(request_id);
             assert(!approved, 'Already approved');
@@ -270,7 +281,7 @@ pub mod KidsViewerPiggyBank {
 
             self
                 .withdrawal_requests
-                .write(request_id, (child, token, amount, timestamp, false, true, reason));
+                .write(request_id, (child, token, amount, reason, false, true, reason));
 
             let current_timestamp = get_block_timestamp();
             self
@@ -302,7 +313,9 @@ pub mod KidsViewerPiggyBank {
         fn recover_all_investments(
             ref self: ContractState, child: ContractAddress, token: ContractAddress,
         ) {
-            only_owner(@self);
+            let caller = get_caller_address();
+            let is_approved = self.parent_approvals.read((caller, child));
+            assert(is_approved, 'Not authorized');
             when_not_paused(@self);
 
             let current_balance = self.child_balances.read((child, token));
@@ -315,8 +328,6 @@ pub mod KidsViewerPiggyBank {
         }
 
         fn set_parent_approval(ref self: ContractState, child: ContractAddress, approved: bool) {
-            only_owner(@self);
-
             let caller = get_caller_address();
             self.parent_approvals.write((caller, child), approved);
 
@@ -327,7 +338,9 @@ pub mod KidsViewerPiggyBank {
         fn set_investment_config(
             ref self: ContractState, child: ContractAddress, enabled: bool, max_amount: u256,
         ) {
-            only_owner(@self);
+            let caller = get_caller_address();
+            let is_approved = self.parent_approvals.read((caller, child));
+            assert(is_approved, 'Not authorized');
 
             let new_config = (enabled, max_amount, 0);
             self.investment_configs.write(child, new_config);
@@ -342,7 +355,9 @@ pub mod KidsViewerPiggyBank {
             aave_product: ContractAddress,
             approved: bool,
         ) {
-            only_owner(@self);
+            let caller = get_caller_address();
+            let is_approved = self.parent_approvals.read((caller, child));
+            assert(is_approved, 'Not authorized');
 
             self.aave_product_approvals.write((child, aave_product), approved);
 
@@ -381,7 +396,7 @@ pub mod KidsViewerPiggyBank {
 
         fn get_withdrawal_request(
             self: @ContractState, request_id: u64,
-        ) -> (ContractAddress, ContractAddress, u256, u64, bool, bool, felt252) {
+        ) -> (ContractAddress, ContractAddress, u256, felt252, bool, bool, felt252) {
             self.withdrawal_requests.read(request_id)
         }
 
@@ -408,6 +423,50 @@ pub mod KidsViewerPiggyBank {
         }
 
         fn is_child_active(self: @ContractState, child: ContractAddress) -> bool {
+            self.child_active.read(child)
+        }
+
+        fn paused(self: @ContractState) -> bool {
+            self.paused.read()
+        }
+
+        fn owner(self: @ContractState) -> ContractAddress {
+            self.owner.read()
+        }
+
+        fn next_request_id(self: @ContractState) -> u64 {
+            self.next_request_id.read()
+        }
+
+        fn child_balances(
+            self: @ContractState, child: ContractAddress, token: ContractAddress,
+        ) -> u256 {
+            self.child_balances.read((child, token))
+        }
+
+        fn child_earnings(
+            self: @ContractState, child: ContractAddress, token: ContractAddress,
+        ) -> u256 {
+            self.child_earnings.read((child, token))
+        }
+
+        fn child_request_ids(self: @ContractState, child: ContractAddress) -> u64 {
+            self.child_request_ids.read(child)
+        }
+
+        fn parent_approvals(
+            self: @ContractState, parent: ContractAddress, child: ContractAddress,
+        ) -> bool {
+            self.parent_approvals.read((parent, child))
+        }
+
+        fn aave_product_approvals(
+            self: @ContractState, child: ContractAddress, aave_product: ContractAddress,
+        ) -> bool {
+            self.aave_product_approvals.read((child, aave_product))
+        }
+
+        fn child_active(self: @ContractState, child: ContractAddress) -> bool {
             self.child_active.read(child)
         }
     }

@@ -5,12 +5,30 @@ use starknet::{ContractAddress, get_caller_address};
 
 // Interface definition
 #[starknet::interface]
-pub trait IKRC<CS> {
+pub trait IKRC<ContractState> {
+    // ERC20 functions
+    fn name(self: @ContractState) -> ByteArray;
+    fn symbol(self: @ContractState) -> ByteArray;
+    fn decimals(self: @ContractState) -> u8;
+    fn total_supply(self: @ContractState) -> u256;
+    fn balance_of(self: @ContractState, account: ContractAddress) -> u256;
+    fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256);
+    fn allowance(self: @ContractState, owner: ContractAddress, spender: ContractAddress) -> u256;
+    fn approve(ref self: ContractState, spender: ContractAddress, amount: u256);
+    fn transfer_from(
+        ref self: ContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256,
+    );
+
     // Custom KRC functions
-    fn mint(ref self: CS, to: ContractAddress, amount: u256);
-    fn burn(ref self: CS, amount: u256);
-    fn pause(ref self: CS);
-    fn unpause(ref self: CS);
+    fn mint(ref self: ContractState, to: ContractAddress, amount: u256);
+    fn burn(ref self: ContractState, amount: u256);
+    fn pause(ref self: ContractState);
+    fn unpause(ref self: ContractState);
+
+    // Additional view functions for testing
+    fn max_supply(self: @ContractState) -> u256;
+    fn initial_supply(self: @ContractState) -> u256;
+    fn paused(self: @ContractState) -> bool;
 }
 
 // Contract implementation
@@ -102,6 +120,50 @@ pub mod KRC {
     // Implementation
     #[abi(embed_v0)]
     impl IKRCImpl of super::IKRC<ContractState> {
+        // ERC20 functions (delegated to ERC20Component)
+        fn name(self: @ContractState) -> ByteArray {
+            self.erc20.name()
+        }
+
+        fn symbol(self: @ContractState) -> ByteArray {
+            self.erc20.symbol()
+        }
+
+        fn decimals(self: @ContractState) -> u8 {
+            self.erc20.decimals()
+        }
+
+        fn total_supply(self: @ContractState) -> u256 {
+            self.erc20.total_supply()
+        }
+
+        fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
+            self.erc20.balance_of(account)
+        }
+
+        fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) {
+            self.erc20.transfer(recipient, amount);
+        }
+
+        fn allowance(
+            self: @ContractState, owner: ContractAddress, spender: ContractAddress,
+        ) -> u256 {
+            self.erc20.allowance(owner, spender)
+        }
+
+        fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) {
+            self.erc20.approve(spender, amount);
+        }
+
+        fn transfer_from(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256,
+        ) {
+            self.erc20.transfer_from(sender, recipient, amount);
+        }
+
         // Custom KRC functions
         fn mint(ref self: ContractState, to: ContractAddress, amount: u256) {
             only_owner(@self);
@@ -134,6 +196,19 @@ pub mod KRC {
             only_owner(@self);
             self.paused.write(false);
         }
+
+        // Additional view functions for testing
+        fn max_supply(self: @ContractState) -> u256 {
+            self.max_supply.read()
+        }
+
+        fn initial_supply(self: @ContractState) -> u256 {
+            self.initial_supply.read()
+        }
+
+        fn paused(self: @ContractState) -> bool {
+            self.paused.read()
+        }
     }
 
     // ERC20 Hooks implementation
@@ -143,7 +218,9 @@ pub mod KRC {
             from: ContractAddress,
             recipient: ContractAddress,
             amount: u256,
-        ) { // No additional logic needed before update
+        ) { // Check if paused
+            let is_paused = self.get_contract().paused.read();
+            assert(!is_paused, 'Paused');
         }
 
         fn after_update(

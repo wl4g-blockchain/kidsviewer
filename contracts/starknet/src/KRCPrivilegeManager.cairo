@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 
+use core::felt252;
 use core::integer::u256;
 use starknet::event::EventEmitter;
 use starknet::{ContractAddress, get_block_timestamp, get_caller_address};
@@ -261,7 +262,7 @@ pub mod KRCPrivilegeManager {
             let caller = get_caller_address();
             let proposal_id = self.next_proposal_id.read();
             let timestamp = get_block_timestamp();
-            let start_time = timestamp + 3600; // 1 hour delay
+            let start_time = timestamp; // Start voting immediately
             let end_time = start_time + duration;
 
             self.proposals.write(proposal_id, true);
