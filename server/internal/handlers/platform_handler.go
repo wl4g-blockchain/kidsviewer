@@ -24,6 +24,14 @@ func NewPlatformHandler(platformService *services.PlatformService) *PlatformHand
 
 // GetPlatforms handles GET /platforms
 func (h *PlatformHandler) GetPlatforms(c *gin.Context) {
+	if h.PlatformService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Platform service not initialized",
+		})
+		return
+	}
+
 	platforms, err := h.PlatformService.GetPlatforms(context.Background())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -42,6 +50,14 @@ func (h *PlatformHandler) GetPlatforms(c *gin.Context) {
 
 // GetPlatform handles GET /platforms/:id
 func (h *PlatformHandler) GetPlatform(c *gin.Context) {
+	if h.PlatformService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Platform service not initialized",
+		})
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
@@ -77,6 +93,14 @@ func (h *PlatformHandler) GetPlatform(c *gin.Context) {
 
 // CreatePlatform handles POST /platforms
 func (h *PlatformHandler) CreatePlatform(c *gin.Context) {
+	if h.PlatformService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Platform service not initialized",
+		})
+		return
+	}
+
 	var platform models.Platform
 	if err := c.ShouldBindJSON(&platform); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -106,6 +130,14 @@ func (h *PlatformHandler) CreatePlatform(c *gin.Context) {
 
 // UpdatePlatform handles PUT /platforms/:id
 func (h *PlatformHandler) UpdatePlatform(c *gin.Context) {
+	if h.PlatformService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Platform service not initialized",
+		})
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
@@ -152,6 +184,14 @@ func (h *PlatformHandler) UpdatePlatform(c *gin.Context) {
 
 // DeletePlatform handles DELETE /platforms/:id
 func (h *PlatformHandler) DeletePlatform(c *gin.Context) {
+	if h.PlatformService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Platform service not initialized",
+		})
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {

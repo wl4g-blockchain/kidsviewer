@@ -23,6 +23,14 @@ func NewWatchingHandler(watchingService *services.WatchingService) *WatchingHand
 
 // StartWatching handles POST /watching/start
 func (h *WatchingHandler) StartWatching(c *gin.Context) {
+	if h.WatchingService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Watching service not initialized",
+		})
+		return
+	}
+
 	var req services.StartWatchingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -59,6 +67,14 @@ func (h *WatchingHandler) StartWatching(c *gin.Context) {
 
 // CheckWatching handles POST /watching/check
 func (h *WatchingHandler) CheckWatching(c *gin.Context) {
+	if h.WatchingService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Watching service not initialized",
+		})
+		return
+	}
+
 	var req services.CheckWatchingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -87,6 +103,14 @@ func (h *WatchingHandler) CheckWatching(c *gin.Context) {
 
 // VerifyQuestion handles POST /watching/verify
 func (h *WatchingHandler) VerifyQuestion(c *gin.Context) {
+	if h.WatchingService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Watching service not initialized",
+		})
+		return
+	}
+
 	var req services.VerifyQuestionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -122,6 +146,14 @@ func (h *WatchingHandler) VerifyQuestion(c *gin.Context) {
 
 // GetWatchingHistory handles GET /watching/history/:person_id
 func (h *WatchingHandler) GetWatchingHistory(c *gin.Context) {
+	if h.WatchingService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Watching service not initialized",
+		})
+		return
+	}
+
 	personID := c.Param("person_id")
 	if personID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -155,6 +187,14 @@ func (h *WatchingHandler) GetWatchingHistory(c *gin.Context) {
 
 // SkipQuestions handles POST /watching/skip
 func (h *WatchingHandler) SkipQuestions(c *gin.Context) {
+	if h.WatchingService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Watching service not initialized",
+		})
+		return
+	}
+
 	var req services.SkipQuestionsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

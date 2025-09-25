@@ -792,6 +792,93 @@ backend_test() {
     cd ..
 }
 
+backend_migrate_up() {
+    print_header "Running Database Migrations"
+    
+    # Check if Go is installed
+    if ! command -v go &> /dev/null; then
+        print_error "Go not found, please install Go 1.21+ first"
+        print_info "Install Go: https://golang.org/doc/install"
+        exit 1
+    fi
+    
+    # Navigate to server directory
+    if [ ! -d "server" ]; then
+        print_error "Server directory not found"
+        exit 1
+    fi
+    
+    cd server
+    
+    # Check if config file exists
+    if [ ! -f "config.yaml" ]; then
+        if [ -f "config.example.yaml" ]; then
+            print_info "Creating config.yaml from example..."
+            cp config.example.yaml config.yaml
+            print_warning "Please edit config.yaml with your settings before running migrations"
+        else
+            print_error "No config file found. Please create config.yaml first"
+            cd ..
+            exit 1
+        fi
+    fi
+    
+    print_info "Running database migrations..."
+    
+    # Build and run migration command
+    go build -o kidsviewer-server ./cmd/main.go ./cmd/migrate.go
+    ./kidsviewer-server migrate up
+    
+    if [ $? -ne 0 ]; then
+        print_error "Migration failed"
+        cd ..
+        exit 1
+    fi
+    
+    print_success "Database migrations completed successfully"
+    cd ..
+}
+
+backend_migrate_status() {
+    print_header "Checking Migration Status"
+    
+    # Check if Go is installed
+    if ! command -v go &> /dev/null; then
+        print_error "Go not found, please install Go 1.21+ first"
+        print_info "Install Go: https://golang.org/doc/install"
+        exit 1
+    fi
+    
+    # Navigate to server directory
+    if [ ! -d "server" ]; then
+        print_error "Server directory not found"
+        exit 1
+    fi
+    
+    cd server
+    
+    # Check if config file exists
+    if [ ! -f "config.yaml" ]; then
+        if [ -f "config.example.yaml" ]; then
+            print_info "Creating config.yaml from example..."
+            cp config.example.yaml config.yaml
+            print_warning "Please edit config.yaml with your settings before checking migration status"
+        else
+            print_error "No config file found. Please create config.yaml first"
+            cd ..
+            exit 1
+        fi
+    fi
+    
+    print_info "Checking migration status..."
+    
+    # Build and run migration status command
+    go build -o kidsviewer-server ./cmd/main.go ./cmd/migrate.go
+    ./kidsviewer-server migrate status
+    
+    cd ..
+}
+
 # Show help
 show_help() {
     echo -e "${BLUE}KidsViewer Unified Run Script${NC}"
@@ -799,46 +886,50 @@ show_help() {
     echo "Usage: $0 <command>"
     echo ""
     echo "Frontend Commands:"
-    echo "  electron-dev        Start Electron development mode (with hot reload)"
-    echo "  electron-prod       Start Electron production mode"
-    echo "  ios-dev             Start iOS development with live reload in simulator"
-    echo "  ios-build           Build iOS package for personal device (no Apple Developer account needed)"
-    echo "  web-dev             Start web development server"
-    echo "  web-build           Build project for production"
+    echo "  electron-dev              Start Electron development mode (with hot reload)"
+    echo "  electron-prod             Start Electron production mode"
+    echo "  ios-dev                   Start iOS development with live reload in simulator"
+    echo "  ios-build                 Build iOS package for personal device (no Apple Developer account needed)"
+    echo "  web-dev                   Start web development server"
+    echo "  web-build                 Build project for production"
     echo ""
     echo "Backend Commands:"
-    echo "  backend-build       Build Go backend service (go build)"
-    echo "  backend-run         Run Go backend service (go run)"
-    echo "  backend-dev         Run Go backend in development mode with hot reload"
-    echo "  backend-test        Test Go backend service (go test)"
+    echo "  backend-build             Build Go backend service (go build)"
+    echo "  backend-run               Run Go backend service (go run)"
+    echo "  backend-dev               Run Go backend in development mode with hot reload"
+    echo "  backend-test              Test Go backend service (go test)"
+    echo "  backend-migrate-up        Run database migrations"
+    echo "  backend-migrate-status    Check migration status"
     echo ""
     echo "Contract Commands:"
-    echo "  ethereum-build      Build Ethereum contracts (forge build)"
-    echo "  ethereum-test       Test Ethereum contracts (forge test)"
-    echo "  starknet-build      Build Starknet contracts (scarb build)"
-    echo "  starknet-test       Test Starknet contracts (snforge test)"
-    echo "  contracts-build     Build all contracts (Ethereum + Starknet)"
-    echo "  contracts-test      Test all contracts (Ethereum + Starknet)"
+    echo "  ethereum-build            Build Ethereum contracts (forge build)"
+    echo "  ethereum-test             Test Ethereum contracts (forge test)"
+    echo "  starknet-build            Build Starknet contracts (scarb build)"
+    echo "  starknet-test             Test Starknet contracts (snforge test)"
+    echo "  contracts-build           Build all contracts (Ethereum + Starknet)"
+    echo "  contracts-test            Test all contracts (Ethereum + Starknet)"
     echo ""  
     echo "Other Commands:"
-    echo "  help                Show this help message"
+    echo "  help                      Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 electron-dev     Start development with hot reload"
-    echo "  $0 ios-dev          Start iOS development with live reload"
-    echo "  $0 ios-build        Build for personal iOS device"
-    echo "  $0 web-dev          Start web development server"
-    echo "  $0 web-build        Build project for production"
-    echo "  $0 ethereum-build   Build Ethereum contracts"
-    echo "  $0 ethereum-test    Test Ethereum contracts"
-    echo "  $0 starknet-build   Build Starknet contracts"
-    echo "  $0 starknet-test    Test Starknet contracts"
-    echo "  $0 contracts-build  Build all contracts"
-    echo "  $0 contracts-test   Test all contracts"
-    echo "  $0 backend-build    Build Go backend service"
-    echo "  $0 backend-run      Run Go backend service"
-    echo "  $0 backend-dev      Run Go backend in development mode"
-    echo "  $0 backend-test     Test Go backend service"
+    echo "  $0 electron-dev           Start development with hot reload"
+    echo "  $0 ios-dev                Start iOS development with live reload"
+    echo "  $0 ios-build              Build for personal iOS device"
+    echo "  $0 web-dev                Start web development server"
+    echo "  $0 web-build              Build project for production"
+    echo "  $0 ethereum-build         Build Ethereum contracts"
+    echo "  $0 ethereum-test          Test Ethereum contracts"
+    echo "  $0 starknet-build         Build Starknet contracts"
+    echo "  $0 starknet-test          Test Starknet contracts"
+    echo "  $0 contracts-build        Build all contracts"
+    echo "  $0 contracts-test         Test all contracts"
+    echo "  $0 backend-build          Build Go backend service"
+    echo "  $0 backend-run            Run Go backend service"
+    echo "  $0 backend-dev            Run Go backend in development mode"
+    echo "  $0 backend-test           Test Go backend service"
+    echo "  $0 backend-migrate-up     Run database migrations"
+    echo "  $0 backend-migrate-status Check migration status"
     echo ""
 }
 
@@ -891,6 +982,12 @@ case "${1:-help}" in
         ;;
     "backend-test")
         backend_test
+        ;;
+    "backend-migrate-up")
+        backend_migrate_up
+        ;;
+    "backend-migrate-status")
+        backend_migrate_status
         ;;
     "help"|"-h"|"--help")
         show_help

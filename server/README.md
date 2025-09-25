@@ -47,7 +47,12 @@ cp config.example.yaml config.yaml
 go build -o kidsviewer-server ./cmd
 ```
 
-5. Run the server:
+5. Run database migrations:
+```bash
+./kidsviewer-server migrate up
+```
+
+6. Run the server:
 ```bash
 ./kidsviewer-server
 ```
@@ -63,23 +68,7 @@ The server supports multiple configuration methods with the following priority (
 
 ### Configuration File
 
-Create a `config.yaml` file based on `config.example.yaml`:
-
-```yaml
-server:
-  address: "0.0.0.0"
-  port: 9988
-  
-database:
-  type: "sqlite"
-  dsn: "./data/kidsviewer.db"
-  
-cache:
-  type: "memory"
-  
-jwt:
-  secret-key: "your-secret-key-here"
-```
+Create a `config.yaml` file based on [`config.example.yaml`](./config.example.yaml):
 
 ### Environment Variables
 
@@ -156,6 +145,22 @@ export KIDSVIEWER_JWT_SECRET_KEY="your-secret-key"
 
 ## Database
 
+### Database Migrations
+
+The server includes a built-in migration system that automatically manages database schema and seed data:
+
+```bash
+# Run all pending migrations
+./kidsviewer-server migrate up
+
+# Check migration status
+./kidsviewer-server migrate status
+```
+
+Migration files are located in the `migrations/` directory and are organized by database type and version:
+- `migrations/sqlite/YYYYMMDD/` - SQLite migrations
+- `migrations/postgres/YYYYMMDD/` - PostgreSQL migrations
+
 ### SQLite (Default)
 The server uses SQLite by default, which is suitable for small to medium deployments:
 
@@ -171,7 +176,18 @@ For production deployments, PostgreSQL is recommended:
 ```yaml
 database:
   type: "postgres"
-  dsn: "host=localhost user=kidsviewer password=password dbname=kidsviewer port=5432 sslmode=disable"
+  postgres:
+    host: "localhost"
+    port: 5432
+    database: "kidsviewer"
+    username: "kidsviewer"
+    password: "password"
+    ssl-mode: "disable"
+    timezone: "UTC"
+  pool:
+    max-open-conns: 25
+    max-idle-conns: 5
+    conn-max-lifetime: "5m"
 ```
 
 ## Caching

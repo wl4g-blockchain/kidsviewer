@@ -12,11 +12,12 @@
 *.out
 *.log
 main
-server
+*server*
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
 .idea
 bin/
+data/
 log/
 logs/

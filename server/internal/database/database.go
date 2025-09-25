@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"kidsviewer-server/internal/config"
+	"kidsviewer-server/internal/migration"
 	"kidsviewer-server/internal/models"
 	"log"
 	"time"
@@ -68,9 +69,10 @@ func New(cfg *config.Config) (*Database, error) {
 
 	database := &Database{DB: db}
 
-	// Auto-migrate the schema
-	if err := database.AutoMigrate(); err != nil {
-		return nil, fmt.Errorf("failed to auto-migrate database: %w", err)
+	// Run database migrations
+	migrationManager := migration.NewMigrationManager(db, cfg)
+	if err := migrationManager.RunMigrations(); err != nil {
+		return nil, fmt.Errorf("failed to run database migrations: %w", err)
 	}
 
 	log.Printf("Successfully connected to %s database", cfg.Database.Type)
@@ -110,91 +112,6 @@ func (d *Database) Health() error {
 // Transaction executes a function within a database transaction
 func (d *Database) Transaction(fn func(*gorm.DB) error) error {
 	return d.DB.Transaction(fn)
-}
-
-// SeedData seeds the database with initial data
-func (d *Database) SeedData() error {
-	// Seed default platforms
-	platforms := []models.Platform{
-		{
-			NameEN:      "National Geographic Kids",
-			NameCN:      "国家地理儿童版",
-			URL:         "https://kids.nationalgeographic.com/",
-			Description: "Explore nature, science, and world cultures",
-			AgeGroups:   []string{"young", "older"},
-			Enabled:     true,
-		},
-		{
-			NameEN:      "Khan Academy Kids",
-			NameCN:      "可汗学院儿童版",
-			URL:         "https://www.khanacademy.org/kids",
-			Description: "Educational games and videos for young learners",
-			AgeGroups:   []string{"preschool", "young"},
-			Enabled:     true,
-		},
-		{
-			NameEN:      "YouTube Kids",
-			NameCN:      "YouTube 儿童版",
-			URL:         "https://www.youtubekids.com/",
-			Description: "Safe, educational videos curated for children",
-			AgeGroups:   []string{"young", "older"},
-			Enabled:     true,
-		},
-	}
-
-	for _, platform := range platforms {
-		var existing models.Platform
-		result := d.DB.Where("url = ?", platform.URL).First(&existing)
-		if result.Error == gorm.ErrRecordNotFound {
-			if err := d.DB.Create(&platform).Error; err != nil {
-				return fmt.Errorf("failed to seed platform %s: %w", platform.NameEN, err)
-			}
-		}
-	}
-
-	// Seed question templates
-	questionTemplates := []models.QuestionTemplate{
-		{
-			Type:          "calculation",
-			Subject:       "math",
-			Difficulty:    "beginner",
-			Content:       "What is 2 + 3?",
-			CorrectAnswer: "5",
-			ExplanationEN: "2 + 3 = 5. This is basic addition.",
-			ExplanationCN: "2 + 3 = 5。这是基本的加法。",
-			Language:      "en",
-			AgeGroups:     []string{"preschool", "young"},
-			Tags:          []string{"math", "addition", "beginner"},
-			Enabled:       true,
-		},
-		{
-			Type:          "multiple-choice",
-			Subject:       "english",
-			Difficulty:    "easy",
-			Content:       "What color is the sky?",
-			Options:       []string{"Blue", "Green", "Red", "Yellow"},
-			CorrectAnswer: "Blue",
-			ExplanationEN: "The sky is usually blue during the day due to light scattering.",
-			ExplanationCN: "天空通常是蓝色的，因为光线散射。",
-			Language:      "en",
-			AgeGroups:     []string{"preschool", "young"},
-			Tags:          []string{"english", "colors", "easy"},
-			Enabled:       true,
-		},
-	}
-
-	for _, template := range questionTemplates {
-		var existing models.QuestionTemplate
-		result := d.DB.Where("content = ? AND subject = ?", template.Content, template.Subject).First(&existing)
-		if result.Error == gorm.ErrRecordNotFound {
-			if err := d.DB.Create(&template).Error; err != nil {
-				return fmt.Errorf("failed to seed question template: %w", err)
-			}
-		}
-	}
-
-	log.Println("Database seeded successfully")
-	return nil
 }
 
 // Person-related database operations

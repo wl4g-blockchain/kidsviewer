@@ -24,6 +24,14 @@ func NewQuestionHandler(questionService *services.QuestionService) *QuestionHand
 
 // GetQuestions handles GET /questions
 func (h *QuestionHandler) GetQuestions(c *gin.Context) {
+	if h.QuestionService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Question service not initialized",
+		})
+		return
+	}
+
 	subject := c.Query("subject")
 	difficulty := c.Query("difficulty")
 	ageGroup := c.Query("age_group")
@@ -52,6 +60,14 @@ func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 
 // GetQuestion handles GET /questions/:id
 func (h *QuestionHandler) GetQuestion(c *gin.Context) {
+	if h.QuestionService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Question service not initialized",
+		})
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
@@ -87,6 +103,14 @@ func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 
 // CreateQuestion handles POST /questions
 func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
+	if h.QuestionService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Question service not initialized",
+		})
+		return
+	}
+
 	var question models.QuestionTemplate
 	if err := c.ShouldBindJSON(&question); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -116,6 +140,14 @@ func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
 
 // UpdateQuestion handles PUT /questions/:id
 func (h *QuestionHandler) UpdateQuestion(c *gin.Context) {
+	if h.QuestionService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Question service not initialized",
+		})
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
@@ -162,6 +194,14 @@ func (h *QuestionHandler) UpdateQuestion(c *gin.Context) {
 
 // DeleteQuestion handles DELETE /questions/:id
 func (h *QuestionHandler) DeleteQuestion(c *gin.Context) {
+	if h.QuestionService == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "Question service not initialized",
+		})
+		return
+	}
+
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {

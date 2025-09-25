@@ -75,11 +75,6 @@ func New(cfg *config.Config) (*Server, error) {
 		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
-	// Seed initial data
-	if err := db.SeedData(); err != nil {
-		log.Printf("Warning: failed to seed database: %v", err)
-	}
-
 	// Initialize cache
 	cacheInstance, err := cache.NewCache(cfg)
 	if err != nil {
