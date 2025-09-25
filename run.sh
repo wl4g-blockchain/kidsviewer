@@ -473,27 +473,372 @@ web_build() {
     print_success "Production build completed!"
 }
 
+# Ethereum contracts functions
+ethereum_build() {
+    print_header "Building Ethereum Contracts"
+    
+    # Check if forge is installed
+    if ! command -v forge &> /dev/null; then
+        print_error "Forge not found, please install Foundry first"
+        print_info "Install Foundry: curl -L https://foundry.paradigm.xyz | bash"
+        print_info "Then run: foundryup"
+        exit 1
+    fi
+    
+    # Navigate to ethereum contracts directory
+    if [ ! -d "contracts/ethereum" ]; then
+        print_error "Ethereum contracts directory not found"
+        exit 1
+    fi
+    
+    cd contracts/ethereum
+    
+    print_info "Building Ethereum contracts with forge..."
+    forge build
+    
+    if [ $? -ne 0 ]; then
+        print_error "Ethereum contracts build failed"
+        cd ../..
+        exit 1
+    fi
+    
+    print_success "Ethereum contracts built successfully"
+    cd ../..
+}
+
+ethereum_test() {
+    print_header "Testing Ethereum Contracts"
+    
+    # Check if forge is installed
+    if ! command -v forge &> /dev/null; then
+        print_error "Forge not found, please install Foundry first"
+        print_info "Install Foundry: curl -L https://foundry.paradigm.xyz | bash"
+        print_info "Then run: foundryup"
+        exit 1
+    fi
+    
+    # Navigate to ethereum contracts directory
+    if [ ! -d "contracts/ethereum" ]; then
+        print_error "Ethereum contracts directory not found"
+        exit 1
+    fi
+    
+    cd contracts/ethereum
+    
+    print_info "Running Ethereum contract tests with forge..."
+    forge test
+    
+    if [ $? -ne 0 ]; then
+        print_error "Ethereum contract tests failed"
+        cd ../..
+        exit 1
+    fi
+    
+    print_success "Ethereum contract tests passed"
+    cd ../..
+}
+
+# Starknet contracts functions
+starknet_build() {
+    print_header "Building Starknet Contracts"
+    
+    # Check if scarb is installed
+    if ! command -v scarb &> /dev/null; then
+        print_error "Scarb not found, please install Scarb first"
+        print_info "Install Scarb: curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh"
+        exit 1
+    fi
+    
+    # Navigate to starknet contracts directory
+    if [ ! -d "contracts/starknet" ]; then
+        print_error "Starknet contracts directory not found"
+        exit 1
+    fi
+    
+    cd contracts/starknet
+    
+    print_info "Building Starknet contracts with scarb..."
+    scarb build
+    
+    if [ $? -ne 0 ]; then
+        print_error "Starknet contracts build failed"
+        cd ../..
+        exit 1
+    fi
+    
+    print_success "Starknet contracts built successfully"
+    cd ../..
+}
+
+starknet_test() {
+    print_header "Testing Starknet Contracts"
+    
+    # Check if snforge is installed
+    if ! command -v snforge &> /dev/null; then
+        print_error "snforge not found, please install Starknet Foundry first"
+        print_info "Install Starknet Foundry: curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | sh"
+        exit 1
+    fi
+    
+    # Navigate to starknet contracts directory
+    if [ ! -d "contracts/starknet" ]; then
+        print_error "Starknet contracts directory not found"
+        exit 1
+    fi
+    
+    cd contracts/starknet
+    
+    print_info "Running Starknet contract tests with snforge..."
+    snforge test
+    
+    if [ $? -ne 0 ]; then
+        print_error "Starknet contract tests failed"
+        cd ../..
+        exit 1
+    fi
+    
+    print_success "Starknet contract tests passed"
+    cd ../..
+}
+
+# Combined contracts functions
+contracts_build() {
+    print_header "Building All Contracts"
+    
+    ethereum_build
+    starknet_build
+    
+    print_success "All contracts built successfully"
+}
+
+contracts_test() {
+    print_header "Testing All Contracts"
+    
+    ethereum_test
+    starknet_test
+    
+    print_success "All contract tests passed"
+}
+
+# Backend Go service functions
+backend_build() {
+    print_header "Building Backend Go Service"
+    
+    # Check if Go is installed
+    if ! command -v go &> /dev/null; then
+        print_error "Go not found, please install Go 1.21+ first"
+        print_info "Install Go: https://golang.org/doc/install"
+        exit 1
+    fi
+    
+    # Check Go version
+    GO_VERSION=$(go version | grep -o 'go[0-9]\+\.[0-9]\+' | cut -d'v' -f2)
+    REQUIRED_VERSION="1.21"
+    if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$GO_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
+        print_error "Go version too low, requires $REQUIRED_VERSION+, current: $GO_VERSION"
+        exit 1
+    fi
+    
+    # Navigate to server directory
+    if [ ! -d "server" ]; then
+        print_error "Server directory not found"
+        exit 1
+    fi
+    
+    cd server
+    
+    print_info "Building Go backend service..."
+    
+    # Build with flags to avoid showing local absolute paths
+    CGO_ENABLED=0 go build \
+        -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        -trimpath \
+        -o main \
+        ./cmd/main.go
+    
+    if [ $? -ne 0 ]; then
+        print_error "Backend build failed"
+        cd ..
+        exit 1
+    fi
+    
+    print_success "Backend service built successfully"
+    cd ..
+}
+
+backend_run() {
+    print_header "Running Backend Go Service"
+    
+    # Check if Go is installed
+    if ! command -v go &> /dev/null; then
+        print_error "Go not found, please install Go 1.21+ first"
+        print_info "Install Go: https://golang.org/doc/install"
+        exit 1
+    fi
+    
+    # Navigate to server directory
+    if [ ! -d "server" ]; then
+        print_error "Server directory not found"
+        exit 1
+    fi
+    
+    cd server
+    
+    # Check if config file exists, create from example if not
+    if [ ! -f "config.yaml" ] && [ -f "config.example.yaml" ]; then
+        print_info "Creating config.yaml from example..."
+        cp config.example.yaml config.yaml
+        print_warning "Please edit config.yaml with your settings before running the server"
+    fi
+    
+    print_info "Starting Go backend service..."
+    print_info "Server will be available at: http://localhost:9988"
+    print_warning "Press Ctrl+C to stop the server"
+    echo ""
+    
+    # Run with flags to avoid showing local absolute paths
+    CGO_ENABLED=0 go run \
+        -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        -trimpath \
+        ./cmd/main.go
+    
+    cd ..
+}
+
+backend_dev() {
+    print_header "Starting Backend Development Mode"
+    
+    # Check if Go is installed
+    if ! command -v go &> /dev/null; then
+        print_error "Go not found, please install Go 1.21+ first"
+        print_info "Install Go: https://golang.org/doc/install"
+        exit 1
+    fi
+    
+    # Navigate to server directory
+    if [ ! -d "server" ]; then
+        print_error "Server directory not found"
+        exit 1
+    fi
+    
+    cd server
+    
+    # Check if config file exists, create from example if not
+    if [ ! -f "config.yaml" ] && [ -f "config.example.yaml" ]; then
+        print_info "Creating config.yaml from example..."
+        cp config.example.yaml config.yaml
+        print_warning "Please edit config.yaml with your settings before running the server"
+    fi
+    
+    print_info "Starting Go backend service in development mode..."
+    print_info "Server will be available at: http://localhost:9988"
+    print_info "Auto-reload enabled with air (if installed)"
+    print_warning "Press Ctrl+C to stop the server"
+    echo ""
+    
+    # Check if air is installed for hot reload
+    if command -v air &> /dev/null; then
+        print_info "Using air for hot reload..."
+        air
+    else
+        print_info "Air not found, running with go run..."
+        print_info "Install air for hot reload: go install github.com/cosmtrek/air@latest"
+        # Run with flags to avoid showing local absolute paths
+        CGO_ENABLED=0 go run \
+            -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -trimpath \
+            ./cmd/main.go
+    fi
+    
+    cd ..
+}
+
+backend_test() {
+    print_header "Testing Backend Go Service"
+    
+    # Check if Go is installed
+    if ! command -v go &> /dev/null; then
+        print_error "Go not found, please install Go 1.21+ first"
+        print_info "Install Go: https://golang.org/doc/install"
+        exit 1
+    fi
+    
+    # Navigate to server directory
+    if [ ! -d "server" ]; then
+        print_error "Server directory not found"
+        exit 1
+    fi
+    
+    cd server
+    
+    print_info "Running Go backend tests..."
+    
+    # Run tests with coverage
+    go test -v -race -coverprofile=coverage.out ./...
+    
+    if [ $? -ne 0 ]; then
+        print_error "Backend tests failed"
+        cd ..
+        exit 1
+    fi
+    
+    # Show coverage if tests passed
+    if [ -f "coverage.out" ]; then
+        print_info "Test coverage:"
+        go tool cover -func=coverage.out | tail -1
+    fi
+    
+    print_success "Backend tests passed"
+    cd ..
+}
+
 # Show help
 show_help() {
     echo -e "${BLUE}KidsViewer Unified Run Script${NC}"
     echo ""
     echo "Usage: $0 <command>"
     echo ""
-    echo "Commands:"
-    echo "  electron-dev    Start Electron development mode (with hot reload)"
-    echo "  electron-prod   Start Electron production mode"
-    echo "  ios-dev        Start iOS development with live reload in simulator"
-    echo "  ios-build      Build iOS package for personal device (no Apple Developer account needed)"
-    echo "  web-dev        Start web development server"
-    echo "  web-build      Build project for production"
-    echo "  help           Show this help message"
+    echo "Frontend Commands:"
+    echo "  electron-dev        Start Electron development mode (with hot reload)"
+    echo "  electron-prod       Start Electron production mode"
+    echo "  ios-dev             Start iOS development with live reload in simulator"
+    echo "  ios-build           Build iOS package for personal device (no Apple Developer account needed)"
+    echo "  web-dev             Start web development server"
+    echo "  web-build           Build project for production"
+    echo ""
+    echo "Backend Commands:"
+    echo "  backend-build       Build Go backend service (go build)"
+    echo "  backend-run         Run Go backend service (go run)"
+    echo "  backend-dev         Run Go backend in development mode with hot reload"
+    echo "  backend-test        Test Go backend service (go test)"
+    echo ""
+    echo "Contract Commands:"
+    echo "  ethereum-build      Build Ethereum contracts (forge build)"
+    echo "  ethereum-test       Test Ethereum contracts (forge test)"
+    echo "  starknet-build      Build Starknet contracts (scarb build)"
+    echo "  starknet-test       Test Starknet contracts (snforge test)"
+    echo "  contracts-build     Build all contracts (Ethereum + Starknet)"
+    echo "  contracts-test      Test all contracts (Ethereum + Starknet)"
+    echo ""  
+    echo "Other Commands:"
+    echo "  help                Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 electron-dev    # Start development with hot reload"
-    echo "  $0 ios-dev        # Start iOS development with live reload"
-    echo "  $0 ios-build      # Build for personal iOS device"
-    echo "  $0 web-dev        # Start web development server"
-    echo "  $0 web-build      # Build project for production"
+    echo "  $0 electron-dev     Start development with hot reload"
+    echo "  $0 ios-dev          Start iOS development with live reload"
+    echo "  $0 ios-build        Build for personal iOS device"
+    echo "  $0 web-dev          Start web development server"
+    echo "  $0 web-build        Build project for production"
+    echo "  $0 ethereum-build   Build Ethereum contracts"
+    echo "  $0 ethereum-test    Test Ethereum contracts"
+    echo "  $0 starknet-build   Build Starknet contracts"
+    echo "  $0 starknet-test    Test Starknet contracts"
+    echo "  $0 contracts-build  Build all contracts"
+    echo "  $0 contracts-test   Test all contracts"
+    echo "  $0 backend-build    Build Go backend service"
+    echo "  $0 backend-run      Run Go backend service"
+    echo "  $0 backend-dev      Run Go backend in development mode"
+    echo "  $0 backend-test     Test Go backend service"
     echo ""
 }
 
@@ -516,6 +861,36 @@ case "${1:-help}" in
         ;;
     "web-build")
         web_build
+        ;;
+    "ethereum-build")
+        ethereum_build
+        ;;
+    "ethereum-test")
+        ethereum_test
+        ;;
+    "starknet-build")
+        starknet_build
+        ;;
+    "starknet-test")
+        starknet_test
+        ;;
+    "contracts-build")
+        contracts_build
+        ;;
+    "contracts-test")
+        contracts_test
+        ;;
+    "backend-build")
+        backend_build
+        ;;
+    "backend-run")
+        backend_run
+        ;;
+    "backend-dev")
+        backend_dev
+        ;;
+    "backend-test")
+        backend_test
         ;;
     "help"|"-h"|"--help")
         show_help
