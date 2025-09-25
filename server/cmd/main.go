@@ -17,9 +17,9 @@ import (
 )
 
 var (
-	cfgFile      string
-	viperConfig  *utils.ViperConfigurer
-	rootCmd = &cobra.Command{
+	cfgFile     string
+	viperConfig *utils.ViperConfigurer
+	rootCmd     = &cobra.Command{
 		Use:   "kidsviewer-server",
 		Short: "KidsViewer Server - A safe content viewing platform for children",
 		Long: `KidsViewer Server is a comprehensive platform that provides safe content viewing

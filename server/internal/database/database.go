@@ -7,8 +7,6 @@ import (
 	"log"
 	"time"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -40,35 +38,15 @@ func New(cfg *config.Config) (*Database, error) {
 
 	switch cfg.Database.Type {
 	case "sqlite":
-		dsn := cfg.Database.SQLite.Path
-		db, err = gorm.Open(sqlite.Open(dsn), gormConfig)
+		db, err = NewSQLiteDatabase(cfg, gormConfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect to SQLite database: %w", err)
 		}
-
-		// Apply SQLite pragmas
-		for pragma, value := range cfg.Database.SQLite.Pragma {
-			if err := db.Exec(fmt.Sprintf("PRAGMA %s = %s", pragma, value)).Error; err != nil {
-				log.Printf("Warning: failed to set PRAGMA %s: %v", pragma, err)
-			}
-		}
-
 	case "postgres":
-		dsn := fmt.Sprintf(
-			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s TimeZone=%s",
-			cfg.Database.Postgres.Host,
-			cfg.Database.Postgres.Port,
-			cfg.Database.Postgres.Username,
-			cfg.Database.Postgres.Password,
-			cfg.Database.Postgres.Database,
-			cfg.Database.Postgres.SSLMode,
-			cfg.Database.Postgres.TimeZone,
-		)
-		db, err = gorm.Open(postgres.Open(dsn), gormConfig)
+		db, err = NewPostgresDatabase(cfg, gormConfig)
 		if err != nil {
 			return nil, fmt.Errorf("failed to connect to PostgreSQL database: %w", err)
 		}
-
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", cfg.Database.Type)
 	}
