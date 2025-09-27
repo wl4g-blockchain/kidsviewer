@@ -546,147 +546,93 @@ web_build() {
 ethereum_build() {
     print_header "Building Ethereum Contracts"
     
-    # Check if forge is installed
-    if ! command -v forge &> /dev/null; then
-        print_error "Forge not found, please install Foundry first"
-        print_info "Install Foundry: curl -L https://foundry.paradigm.xyz | bash"
-        print_info "Then run: foundryup"
+    # Check if contracts run script exists
+    if [ ! -f "contracts/run.sh" ]; then
+        print_error "Contracts run script not found"
         exit 1
     fi
     
-    # Navigate to ethereum contracts directory
-    if [ ! -d "contracts/ethereum" ]; then
-        print_error "Ethereum contracts directory not found"
-        exit 1
-    fi
-    
-    cd contracts/ethereum
-    
-    print_info "Building Ethereum contracts with forge..."
-    forge build
-    
-    if [ $? -ne 0 ]; then
-        print_error "Ethereum contracts build failed"
-        cd ../..
-        exit 1
-    fi
-    
-    print_success "Ethereum contracts built successfully"
-    cd ../..
+    # Call contracts run script
+    cd contracts
+    ./run.sh ethereum-build
+    cd ..
 }
 
 ethereum_test() {
     print_header "Testing Ethereum Contracts"
     
-    # Check if forge is installed
-    if ! command -v forge &> /dev/null; then
-        print_error "Forge not found, please install Foundry first"
-        print_info "Install Foundry: curl -L https://foundry.paradigm.xyz | bash"
-        print_info "Then run: foundryup"
+    # Check if contracts run script exists
+    if [ ! -f "contracts/run.sh" ]; then
+        print_error "Contracts run script not found"
         exit 1
     fi
     
-    # Navigate to ethereum contracts directory
-    if [ ! -d "contracts/ethereum" ]; then
-        print_error "Ethereum contracts directory not found"
-        exit 1
-    fi
-    
-    cd contracts/ethereum
-    
-    print_info "Running Ethereum contract tests with forge..."
-    forge test
-    
-    if [ $? -ne 0 ]; then
-        print_error "Ethereum contract tests failed"
-        cd ../..
-        exit 1
-    fi
-    
-    print_success "Ethereum contract tests passed"
-    cd ../..
+    # Call contracts run script
+    cd contracts
+    ./run.sh ethereum-test
+    cd ..
 }
 
 # Starknet contracts functions
 starknet_build() {
     print_header "Building Starknet Contracts"
     
-    # Check if scarb is installed
-    if ! command -v scarb &> /dev/null; then
-        print_error "Scarb not found, please install Scarb first"
-        print_info "Install Scarb: curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | sh"
+    # Check if contracts run script exists
+    if [ ! -f "contracts/run.sh" ]; then
+        print_error "Contracts run script not found"
         exit 1
     fi
     
-    # Navigate to starknet contracts directory
-    if [ ! -d "contracts/starknet" ]; then
-        print_error "Starknet contracts directory not found"
-        exit 1
-    fi
-    
-    cd contracts/starknet
-    
-    print_info "Building Starknet contracts with scarb..."
-    scarb build
-    
-    if [ $? -ne 0 ]; then
-        print_error "Starknet contracts build failed"
-        cd ../..
-        exit 1
-    fi
-    
-    print_success "Starknet contracts built successfully"
-    cd ../..
+    # Call contracts run script
+    cd contracts
+    ./run.sh starknet-build
+    cd ..
 }
 
 starknet_test() {
     print_header "Testing Starknet Contracts"
     
-    # Check if snforge is installed
-    if ! command -v snforge &> /dev/null; then
-        print_error "snforge not found, please install Starknet Foundry first"
-        print_info "Install Starknet Foundry: curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | sh"
+    # Check if contracts run script exists
+    if [ ! -f "contracts/run.sh" ]; then
+        print_error "Contracts run script not found"
         exit 1
     fi
     
-    # Navigate to starknet contracts directory
-    if [ ! -d "contracts/starknet" ]; then
-        print_error "Starknet contracts directory not found"
-        exit 1
-    fi
-    
-    cd contracts/starknet
-    
-    print_info "Running Starknet contract tests with snforge..."
-    snforge test
-    
-    if [ $? -ne 0 ]; then
-        print_error "Starknet contract tests failed"
-        cd ../..
-        exit 1
-    fi
-    
-    print_success "Starknet contract tests passed"
-    cd ../..
+    # Call contracts run script
+    cd contracts
+    ./run.sh starknet-test
+    cd ..
 }
 
 # Combined contracts functions
 contracts_build() {
     print_header "Building All Contracts"
     
-    ethereum_build
-    starknet_build
+    # Check if contracts run script exists
+    if [ ! -f "contracts/run.sh" ]; then
+        print_error "Contracts run script not found"
+        exit 1
+    fi
     
-    print_success "All contracts built successfully"
+    # Call contracts run script
+    cd contracts
+    ./run.sh contracts-build
+    cd ..
 }
 
 contracts_test() {
     print_header "Testing All Contracts"
     
-    ethereum_test
-    starknet_test
+    # Check if contracts run script exists
+    if [ ! -f "contracts/run.sh" ]; then
+        print_error "Contracts run script not found"
+        exit 1
+    fi
     
-    print_success "All contract tests passed"
+    # Call contracts run script
+    cd contracts
+    ./run.sh contracts-test
+    cd ..
 }
 
 # Backend Go service functions
