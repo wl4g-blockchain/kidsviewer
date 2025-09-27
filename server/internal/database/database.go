@@ -117,14 +117,14 @@ func (d *Database) Transaction(fn func(*gorm.DB) error) error {
 // Person-related database operations
 
 // GetPersonsByUserID retrieves all persons for a specific user
-func (d *Database) GetPersonsByUserID(userID string) ([]models.Person, error) {
+func (d *Database) GetPersonsByUserID(userID int64) ([]models.Person, error) {
 	var persons []models.Person
 	err := d.DB.Where("user_id = ?", userID).Find(&persons).Error
 	return persons, err
 }
 
 // GetPersonByID retrieves a person by ID
-func (d *Database) GetPersonByID(personID string) (*models.Person, error) {
+func (d *Database) GetPersonByID(personID int64) (*models.Person, error) {
 	var person models.Person
 	err := d.DB.Where("id = ?", personID).First(&person).Error
 	if err != nil {
@@ -144,7 +144,7 @@ func (d *Database) UpdatePerson(person *models.Person) error {
 }
 
 // DeletePerson deletes a person by ID
-func (d *Database) DeletePerson(personID string) error {
+func (d *Database) DeletePerson(personID int64) error {
 	return d.DB.Delete(&models.Person{}, "id = ?", personID).Error
 }
 
@@ -156,7 +156,7 @@ func (d *Database) GetPlatformsByAgeGroup(ageGroup string) ([]models.Platform, e
 }
 
 // GetPersonStatistics retrieves statistics for a person
-func (d *Database) GetPersonStatistics(personID string) (*models.PersonStatistics, error) {
+func (d *Database) GetPersonStatistics(personID int64) (*models.PersonStatistics, error) {
 	var person models.Person
 	err := d.DB.Select("statistics").Where("id = ?", personID).First(&person).Error
 	if err != nil {
@@ -166,7 +166,7 @@ func (d *Database) GetPersonStatistics(personID string) (*models.PersonStatistic
 }
 
 // GetLearningProgress retrieves learning progress for a person
-func (d *Database) GetLearningProgress(personID string) (*models.LearningProgress, error) {
+func (d *Database) GetLearningProgress(personID int64) (*models.LearningProgress, error) {
 	var person models.Person
 	err := d.DB.Select("statistics").Where("id = ?", personID).First(&person).Error
 	if err != nil {

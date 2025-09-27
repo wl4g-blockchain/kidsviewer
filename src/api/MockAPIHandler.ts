@@ -70,7 +70,7 @@ function shuffleArray<T>(array: T[]): T[] {
 
 // Mock data structure
 const mockDataDB = {
-  users: [] as User[],
+  users: [] as (User | Person)[],
   platforms: [] as Platform[],
   questionTemplates: [] as QuestionTemplate[],
   settings: {
@@ -100,8 +100,8 @@ const mockDataDB = {
   watchingTokens: new Map<
     string,
     {
-      personId: string;
-      platformId: string;
+      personId: number;
+      platformId: number;
       createdAt: number;
       expiresAt: number;
       startTime: number;
@@ -112,8 +112,8 @@ const mockDataDB = {
   >(),
   // Watching history
   watchingHistories: [] as {
-    id: string;
-    personId: string;
+    id: number;
+    personId: number;
     date: string;
     platform: string;
     watchedTime: number;
@@ -136,9 +136,9 @@ function generateQuestions(subjects: string[], difficulty: string, count: number
   const selectedTemplates = shuffled.slice(0, Math.min(count, shuffled.length));
 
   // Convert templates to Question instances with appropriate explanation
-  selectedTemplates.forEach((template, index) => {
+  selectedTemplates.forEach((template) => {
     const question: Question = {
-      id: `q_${Date.now()}_${index}`,
+      id: Math.floor(Math.random() * 1000000),
       type: template.type,
       subject: template.subject,
       difficulty: template.difficulty,
@@ -198,7 +198,7 @@ export class MockAPIHandler implements IAPIHandler {
 
     // Initialize with some demo data
     const parent_01: Parental = {
-      id: 'parent_01',
+      id: 1,
       email: 'lyra@kidsviewer.local',
       phone: '+1234567890',
       name: 'Lyra',
@@ -210,10 +210,9 @@ export class MockAPIHandler implements IAPIHandler {
     };
 
     const person_01: Person = {
-      id: 'person_01',
-      parentalId: 'parent_01',
-      userType: 'PERSON',
-      email: 'barry.james@kidsviewer.local',
+      id: 1,
+      userId: 1,
+      parentalId: 1,
       name: 'Barry',
       alias: 'Barry',
       ageGroup: 'young',
@@ -222,11 +221,11 @@ export class MockAPIHandler implements IAPIHandler {
         dailyTimeLimitMinutes: 120,
         questionCount: 5,
         questionsPerDay: 15,
-        platformIds: ['platform_001', 'platform_002', 'platform_003', 'platform_004'],
+        platformIds: [1, 2, 3, 4],
         subjects: [
-          { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
-          { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
-          { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
+          { id: Math.floor(Math.random() * 1000000), name: 'Math', enabled: true, difficulty: 'easy' },
+          { id: Math.floor(Math.random() * 1000000), name: 'Chinese', enabled: true, difficulty: 'easy' },
+          { id: Math.floor(Math.random() * 1000000), name: 'English', enabled: true, difficulty: 'easy' },
         ],
       },
       statistics: {
@@ -255,7 +254,7 @@ export class MockAPIHandler implements IAPIHandler {
   private initializePlatforms() {
     const platforms: Platform[] = [
       {
-        id: 'platform_001',
+        id: 1,
         nameEN: 'National Geographic Kids',
         nameCN: '国家地理儿童版',
         url: 'https://kids.nationalgeographic.com/',
@@ -265,7 +264,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'platform_002',
+        id: 2,
         nameEN: 'Khan Academy Kids',
         nameCN: '可汗学院儿童版',
         url: 'https://www.khanacademy.org/kids',
@@ -275,7 +274,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'platform_003',
+        id: 3,
         nameEN: 'YouTube Kids',
         nameCN: 'YouTube 儿童版',
         url: 'https://www.youtubekids.com/',
@@ -285,7 +284,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'platform_004',
+        id: 4,
         nameEN: 'Douyin',
         nameCN: '抖音',
         url: 'https://www.douyin.com/',
@@ -295,7 +294,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'platform_005',
+        id: Math.floor(Math.random() * 1000000),
         nameEN: 'Xiaohongshu',
         nameCN: '小红书',
         url: 'https://www.xiaohongshu.com/',
@@ -305,7 +304,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'platform_006',
+        id: Math.floor(Math.random() * 1000000),
         nameEN: 'Kuaishou',
         nameCN: '快手',
         url: 'https://www.kuaishou.com/',
@@ -315,7 +314,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'platform_007',
+        id: Math.floor(Math.random() * 1000000),
         nameEN: 'Bilibili',
         nameCN: '哔哩哔哩',
         url: 'https://www.bilibili.com/',
@@ -325,7 +324,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'platform_008',
+        id: Math.floor(Math.random() * 1000000),
         nameEN: 'Qiyiguo',
         nameCN: '奇异果',
         url: 'https://www.qiyiguo.com/',
@@ -344,7 +343,7 @@ export class MockAPIHandler implements IAPIHandler {
     const templates: QuestionTemplate[] = [
       // Math questions - Beginner level
       {
-        id: 'math_001',
+        id: 1,
         type: 'calculation',
         subject: 'math',
         difficulty: 'beginner',
@@ -360,7 +359,7 @@ export class MockAPIHandler implements IAPIHandler {
       },
       // Math questions - Easy level
       {
-        id: 'math_002',
+        id: Math.floor(Math.random() * 1000000),
         type: 'calculation',
         subject: 'math',
         difficulty: 'easy',
@@ -376,7 +375,7 @@ export class MockAPIHandler implements IAPIHandler {
       },
       // Math questions - Medium level
       {
-        id: 'math_003',
+        id: Math.floor(Math.random() * 1000000),
         type: 'calculation',
         subject: 'math',
         difficulty: 'medium',
@@ -392,7 +391,7 @@ export class MockAPIHandler implements IAPIHandler {
       },
       // Math questions - Hard level
       {
-        id: 'math_004',
+        id: Math.floor(Math.random() * 1000000),
         type: 'calculation',
         subject: 'math',
         difficulty: 'hard',
@@ -408,7 +407,7 @@ export class MockAPIHandler implements IAPIHandler {
       },
       // Math questions - Expert level
       {
-        id: 'math_005',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'math',
         difficulty: 'expert',
@@ -425,7 +424,7 @@ export class MockAPIHandler implements IAPIHandler {
       },
       // Chinese questions
       {
-        id: 'chinese_001',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'chinese',
         difficulty: 'easy',
@@ -442,7 +441,7 @@ export class MockAPIHandler implements IAPIHandler {
       },
       // English questions
       {
-        id: 'english_001',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'english',
         difficulty: 'easy',
@@ -459,7 +458,7 @@ export class MockAPIHandler implements IAPIHandler {
       },
       // Additional math questions
       {
-        id: 'math_006',
+        id: Math.floor(Math.random() * 1000000),
         type: 'calculation',
         subject: 'math',
         difficulty: 'easy',
@@ -474,7 +473,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'math_007',
+        id: Math.floor(Math.random() * 1000000),
         type: 'calculation',
         subject: 'math',
         difficulty: 'easy',
@@ -489,7 +488,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'math_008',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'math',
         difficulty: 'easy',
@@ -505,7 +504,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'math_009',
+        id: Math.floor(Math.random() * 1000000),
         type: 'calculation',
         subject: 'math',
         difficulty: 'easy',
@@ -521,7 +520,7 @@ export class MockAPIHandler implements IAPIHandler {
       },
       // Chinese questions
       {
-        id: 'chinese_001',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'chinese',
         difficulty: 'easy',
@@ -537,7 +536,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'chinese_002',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'chinese',
         difficulty: 'easy',
@@ -553,7 +552,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'chinese_003',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'chinese',
         difficulty: 'easy',
@@ -570,7 +569,7 @@ export class MockAPIHandler implements IAPIHandler {
       },
       // English questions
       {
-        id: 'english_002',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'english',
         difficulty: 'easy',
@@ -586,7 +585,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'english_003',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'english',
         difficulty: 'easy',
@@ -602,7 +601,7 @@ export class MockAPIHandler implements IAPIHandler {
         updatedAt: new Date(),
       },
       {
-        id: 'english_004',
+        id: Math.floor(Math.random() * 1000000),
         type: 'multiple-choice',
         subject: 'english',
         difficulty: 'easy',
@@ -632,7 +631,7 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       const newUser: Parental = {
-        id: this.generateId(),
+        id: Math.floor(Math.random() * 1000000),
         email,
         phone,
         name,
@@ -648,10 +647,9 @@ export class MockAPIHandler implements IAPIHandler {
 
       // Create a default mock person for demo purposes
       const defaultPerson: Person = {
-        id: this.generateId(),
+        id: Math.floor(Math.random() * 1000000),
+        userId: newUser.id,
         parentalId: newUser.id,
-        userType: 'PERSON',
-        email: `demo@kidsviewer.local`,
         name: 'Barry',
         alias: 'Barry',
         ageGroup: 'young',
@@ -661,11 +659,11 @@ export class MockAPIHandler implements IAPIHandler {
           questionCount: 3,
           questionsPerDay: 15,
           subjects: [
-            { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
-            { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
-            { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
+            { id: Math.floor(Math.random() * 1000000), name: 'Math', enabled: true, difficulty: 'easy' },
+            { id: Math.floor(Math.random() * 1000000), name: 'Chinese', enabled: true, difficulty: 'easy' },
+            { id: Math.floor(Math.random() * 1000000), name: 'English', enabled: true, difficulty: 'easy' },
           ],
-          platformIds: ['platform_001', 'platform_002', 'platform_003'],
+          platformIds: [1, 2, 3],
         },
         statistics: {
           dailyUsage: [],
@@ -706,11 +704,11 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       // Find the demo user or use hardcoded demo user
-      let user = mockDataDB.users.find((u: any) => u.email === email && u.userType === 'PARENTAL');
+      let user = mockDataDB.users.find((u: any) => u.email === email && 'userType' in u && u.userType === 'PARENTAL') as User | undefined;
       if (!user) {
         // Create demo user if not exists
         const parental_0: Parental = {
-          id: 'person_01',
+          id: 1,
           email: DEMO_CREDENTIALS.email,
           phone: '+1234567890',
           name: 'Lyra Parent',
@@ -723,10 +721,9 @@ export class MockAPIHandler implements IAPIHandler {
 
         // Add mock child person 0
         const person_0: Person = {
-          id: 'demo_child_001',
+          id: 2,
+          userId: parental_0.id,
           parentalId: parental_0.id,
-          userType: 'PERSON',
-          email: 'barry.james@kidsviewer.local',
           name: 'Barry',
           alias: 'Barry',
           ageGroup: 'young',
@@ -736,11 +733,11 @@ export class MockAPIHandler implements IAPIHandler {
             questionCount: 3,
             questionsPerDay: 15,
             subjects: [
-              { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
-              { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
-              { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
+              { id: Math.floor(Math.random() * 1000000), name: 'Math', enabled: true, difficulty: 'easy' },
+              { id: Math.floor(Math.random() * 1000000), name: 'Chinese', enabled: true, difficulty: 'easy' },
+              { id: Math.floor(Math.random() * 1000000), name: 'English', enabled: true, difficulty: 'easy' },
             ],
-            platformIds: ['platform_001', 'platform_002', 'platform_003'],
+            platformIds: [1, 2, 3],
           },
           statistics: {
             dailyUsage: [],
@@ -766,16 +763,16 @@ export class MockAPIHandler implements IAPIHandler {
         user = parental_0;
       }
 
-      if (user.userType !== 'PARENTAL') {
+      if (!('userType' in user) || user.userType !== 'PARENTAL') {
         return createApiResponse('4003', 'Only parental accounts can login');
       }
 
-      this.currentUser = user;
+      this.currentUser = user as User;
 
       // Generate JWT token with 3 hours expiration
-      const token = generateMockJWT(user, 3);
+      const token = generateMockJWT(user as User, 3);
 
-      return createApiResponse('200', 'ok', { user, token });
+      return createApiResponse('200', 'ok', { user: user as User, token });
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
@@ -796,23 +793,26 @@ export class MockAPIHandler implements IAPIHandler {
 
   async updateUser(userId: string, updates: Partial<User>): Promise<ApiResponse<User>> {
     try {
-      const userIndex = mockDataDB.users.findIndex((u: any) => u.id === userId);
+      const userIndex = mockDataDB.users.findIndex((u: any) => u.id === parseInt(userId));
 
       if (userIndex === -1) {
         return createApiResponse('4001', 'User not found');
       }
 
-      mockDataDB.users[userIndex] = {
-        ...mockDataDB.users[userIndex],
+      const currentUser = mockDataDB.users[userIndex] as User;
+      const updatedUser: User = {
+        ...currentUser,
         ...updates,
         updatedAt: new Date(),
       };
 
-      if (this.currentUser?.id === userId) {
-        this.currentUser = mockDataDB.users[userIndex];
+      mockDataDB.users[userIndex] = updatedUser;
+
+      if (this.currentUser?.id === parseInt(userId)) {
+        this.currentUser = updatedUser;
       }
 
-      return createApiResponse('200', 'ok', mockDataDB.users[userIndex]);
+      return createApiResponse('200', 'ok', updatedUser);
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
@@ -821,20 +821,19 @@ export class MockAPIHandler implements IAPIHandler {
   // Parental operations
   async createPerson(parentalId: string, personData: Partial<Person>): Promise<ApiResponse<Person>> {
     try {
-      const parental = mockDataDB.users.find((u: any) => u.id === parentalId && u.userType === 'PARENTAL') as Parental;
+      const parental = mockDataDB.users.find((u: any) => u.id === parseInt(parentalId) && 'userType' in u && u.userType === 'PARENTAL') as Parental;
 
       if (!parental) {
         return createApiResponse('4001', 'Parental not found');
       }
 
       // Default platform IDs for new persons
-      const defaultPlatformIds = ['platform_001', 'platform_002', 'platform_003'];
+      const defaultPlatformIds = [1, 2, 3];
 
       const newPerson: Person = {
-        id: this.generateId(),
-        parentalId,
-        userType: 'PERSON',
-        email: `${personData.alias}@kidsviewer.local`,
+        id: Math.floor(Math.random() * 1000000),
+        userId: parental.id,
+        parentalId: parental.id,
         name: personData.alias || 'Person',
         alias: personData.alias || 'Person',
         ageGroup: personData.ageGroup || 'young',
@@ -844,9 +843,9 @@ export class MockAPIHandler implements IAPIHandler {
           questionCount: personData.settings?.questionCount || 3,
           questionsPerDay: personData.settings?.questionsPerDay || 15,
           subjects: personData.settings?.subjects || [
-            { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' },
-            { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' },
-            { id: 'english', name: 'English', enabled: true, difficulty: 'easy' },
+            { id: Math.floor(Math.random() * 1000000), name: 'Math', enabled: true, difficulty: 'easy' },
+            { id: Math.floor(Math.random() * 1000000), name: 'Chinese', enabled: true, difficulty: 'easy' },
+            { id: Math.floor(Math.random() * 1000000), name: 'English', enabled: true, difficulty: 'easy' },
           ],
           platformIds: personData.settings?.platformIds || defaultPlatformIds,
         },
@@ -880,7 +879,8 @@ export class MockAPIHandler implements IAPIHandler {
 
   async getPersons(parentalId: string): Promise<ApiResponse<Person[]>> {
     try {
-      const persons = mockDataDB.users.filter((u: any) => u.parentalId === parentalId && u.userType === 'PERSON') as Person[];
+      const parentalIdNum = parseInt(parentalId);
+      const persons = mockDataDB.users.filter((u: any) => 'parentalId' in u && u.parentalId === parentalIdNum) as Person[];
       return createApiResponse('200', 'ok', persons || []);
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
@@ -889,7 +889,8 @@ export class MockAPIHandler implements IAPIHandler {
 
   async updatePersonSettings(personId: string, settings: Partial<Person['settings']>): Promise<ApiResponse<Person>> {
     try {
-      const personIndex = mockDataDB.users.findIndex((u: any) => u.id === personId && u.userType === 'PERSON');
+      const personIdNum = parseInt(personId);
+      const personIndex = mockDataDB.users.findIndex((u: any) => 'id' in u && u.id === personIdNum && 'parentalId' in u);
 
       if (personIndex === -1) {
         return createApiResponse('4001', 'Person not found');
@@ -907,18 +908,19 @@ export class MockAPIHandler implements IAPIHandler {
 
   async deletePerson(personId: string): Promise<ApiResponse<void>> {
     try {
-      const personIndex = mockDataDB.users.findIndex((u: any) => u.id === personId && u.userType === 'PERSON');
+      const personIdNum = parseInt(personId);
+      const personIndex = mockDataDB.users.findIndex((u: any) => 'id' in u && u.id === personIdNum && 'parentalId' in u);
 
       if (personIndex === -1) {
         return createApiResponse('4001', 'Person not found');
       }
 
       const person = mockDataDB.users[personIndex] as Person;
-      const parentalIndex = mockDataDB.users.findIndex((u: any) => u.id === person.parentalId && u.userType === 'PARENTAL');
+      const parentalIndex = mockDataDB.users.findIndex((u: any) => u.id === person.parentalId && 'userType' in u && u.userType === 'PARENTAL');
 
       if (parentalIndex !== -1) {
         const parental = mockDataDB.users[parentalIndex] as Parental;
-        parental.persons = parental.persons.filter(p => p.id !== personId);
+        parental.persons = parental.persons.filter(p => p.id !== personIdNum);
       }
 
       // Remove person from users array
@@ -933,7 +935,8 @@ export class MockAPIHandler implements IAPIHandler {
   // Person operations
   async getPerson(personId: string): Promise<ApiResponse<Person>> {
     try {
-      const person = mockDataDB.users.find((u: any) => u.id === personId && u.userType === 'PERSON') as Person;
+      const personIdNum = parseInt(personId);
+      const person = mockDataDB.users.find((u: any) => 'id' in u && u.id === personIdNum && 'parentalId' in u) as Person;
 
       if (!person) {
         return createApiResponse('4001', 'Person not found');
@@ -947,7 +950,8 @@ export class MockAPIHandler implements IAPIHandler {
 
   async updatePersonStatistics(personId: string, statistics: Partial<Person['statistics']>): Promise<ApiResponse<Person>> {
     try {
-      const personIndex = mockDataDB.users.findIndex((u: any) => u.id === personId && u.userType === 'PERSON');
+      const personIdNum = parseInt(personId);
+      const personIndex = mockDataDB.users.findIndex((u: any) => 'id' in u && u.id === personIdNum && 'parentalId' in u);
 
       if (personIndex === -1) {
         return createApiResponse('4001', 'Person not found');
@@ -1081,7 +1085,10 @@ export class MockAPIHandler implements IAPIHandler {
 
       // Mock real api cost time 200ms
       await new Promise(resolve => setTimeout(resolve, 200));
-      return createApiResponse('200', 'ok', personPlatforms);
+      return createApiResponse('200', 'ok', personPlatforms.map(p => ({
+        ...p,
+        platformId: p.platformId.toString()
+      })));
     } catch (error) {
       return createApiResponse('5000', error instanceof Error ? error.message : String(error));
     }
@@ -1097,14 +1104,14 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       // Get platform specific settings
-      const platform = mockDataDB.platforms.find(p => p.id === platformId);
+      const platform = mockDataDB.platforms.find(p => p.id === parseInt(platformId));
       if (!platform || !person.data.settings.platformIds.includes(platform.id)) {
         return createApiResponse('4002', 'Platform not allowed for this person');
       }
 
       // Calculate expiresAt and remaining daily time
       const todayDate = new Date().toISOString().split('T')[0]; // yyyy-MM-dd
-      const todayHistories = mockDataDB.watchingHistories.filter(h => h.date === todayDate && h.personId === personId);
+      const todayHistories = mockDataDB.watchingHistories.filter(h => h.date === todayDate && h.personId === parseInt(personId));
       const todayWatchedTime = todayHistories.reduce((sum, h) => sum + h.watchedTime, 0);
       const todayRemainingTime = Math.max(0, person.data.settings.dailyTimeLimitMinutes - todayWatchedTime);
       //const expiresAt = Date.now() + person.data.settings.perTimeLimitMinutes * 60 * 1000;
@@ -1116,8 +1123,8 @@ export class MockAPIHandler implements IAPIHandler {
       }
 
       mockDataDB.watchingTokens.set(token, {
-        personId,
-        platformId: platformId,
+        personId: parseInt(personId),
+        platformId: parseInt(platformId),
         createdAt: Date.now(),
         expiresAt: expiresAt,
         startTime: Date.now(),
@@ -1142,7 +1149,7 @@ export class MockAPIHandler implements IAPIHandler {
         return createApiResponse('4003', 'Invalid or expired token');
       }
 
-      const person = await this.getPerson(watchingInfo.personId);
+      const person = await this.getPerson(watchingInfo.personId.toString());
       if (person.errcode !== '200' || !person.data) {
         return createApiResponse('4001', 'Person not found');
       }
@@ -1178,7 +1185,7 @@ export class MockAPIHandler implements IAPIHandler {
       // Check if session time exceeded
       if (remainingTime <= 0) {
         const enabledSubjects = person.data.settings.subjects.filter(subject => subject.enabled).map(subject => subject.id);
-        const questions = generateQuestions(enabledSubjects, 'easy', person.data.settings.questionCount);
+        const questions = generateQuestions(enabledSubjects.map(s => s.toString()), 'easy', person.data.settings.questionCount);
 
         // Store questions in the watching token for verification
         const tokenData = mockDataDB.watchingTokens.get(watchingToken);
@@ -1215,7 +1222,7 @@ export class MockAPIHandler implements IAPIHandler {
         return createApiResponse('4003', 'Invalid or expired token');
       }
 
-      const person = await this.getPerson(tokenData.personId);
+      const person = await this.getPerson(tokenData.personId.toString());
       if (person.errcode !== '200' || !person.data) {
         return createApiResponse('4001', 'Person not found');
       }
@@ -1344,7 +1351,7 @@ export class MockAPIHandler implements IAPIHandler {
   async createPlatform(platformData: Partial<Platform>): Promise<ApiResponse<Platform>> {
     try {
       const newPlatform: Platform = {
-        id: this.generateId(),
+        id: Math.floor(Math.random() * 1000000),
         nameEN: platformData.nameEN || '',
         nameCN: platformData.nameCN || '',
         url: platformData.url || '',
@@ -1363,7 +1370,7 @@ export class MockAPIHandler implements IAPIHandler {
 
   async updatePlatform(platformId: string, platformData: Partial<Platform>): Promise<ApiResponse<Platform>> {
     try {
-      const platformIndex = mockDataDB.platforms.findIndex(p => p.id === platformId);
+      const platformIndex = mockDataDB.platforms.findIndex(p => p.id === parseInt(platformId));
 
       if (platformIndex === -1) {
         return createApiResponse('4001', 'Platform not found');
@@ -1383,7 +1390,7 @@ export class MockAPIHandler implements IAPIHandler {
 
   async deletePlatform(platformId: string): Promise<ApiResponse<void>> {
     try {
-      const platformIndex = mockDataDB.platforms.findIndex(p => p.id === platformId);
+      const platformIndex = mockDataDB.platforms.findIndex(p => p.id === parseInt(platformId));
 
       if (platformIndex === -1) {
         return createApiResponse('4001', 'Platform not found');
@@ -1426,7 +1433,7 @@ export class MockAPIHandler implements IAPIHandler {
   async createQuestionTemplate(templateData: Partial<QuestionTemplate>): Promise<ApiResponse<QuestionTemplate>> {
     try {
       const newTemplate: QuestionTemplate = {
-        id: this.generateId(),
+        id: Math.floor(Math.random() * 1000000),
         type: templateData.type || 'multiple-choice',
         subject: templateData.subject || 'math',
         difficulty: templateData.difficulty || 'medium',
@@ -1451,7 +1458,7 @@ export class MockAPIHandler implements IAPIHandler {
 
   async updateQuestionTemplate(templateId: string, templateData: Partial<QuestionTemplate>): Promise<ApiResponse<QuestionTemplate>> {
     try {
-      const templateIndex = mockDataDB.questionTemplates.findIndex(t => t.id === templateId);
+      const templateIndex = mockDataDB.questionTemplates.findIndex(t => t.id === parseInt(templateId));
 
       if (templateIndex === -1) {
         return createApiResponse('4001', 'Question template not found');
@@ -1471,7 +1478,7 @@ export class MockAPIHandler implements IAPIHandler {
 
   async deleteQuestionTemplate(templateId: string): Promise<ApiResponse<void>> {
     try {
-      const templateIndex = mockDataDB.questionTemplates.findIndex(t => t.id === templateId);
+      const templateIndex = mockDataDB.questionTemplates.findIndex(t => t.id === parseInt(templateId));
 
       if (templateIndex === -1) {
         return createApiResponse('4001', 'Question template not found');

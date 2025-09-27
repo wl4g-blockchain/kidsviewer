@@ -100,7 +100,7 @@ export const QuestionManagement: React.FC = () => {
     try {
       const response = await apiHandler.updateQuestionTemplate(questionId, questionData);
       if (response.errcode === '200' && response.data) {
-        setQuestions(prev => prev.map(q => (q.id === questionId ? response.data! : q)));
+        setQuestions(prev => prev.map(q => (q.id === parseInt(questionId) ? response.data! : q)));
         setEditingQuestion(null);
       }
     } catch (error) {
@@ -114,7 +114,7 @@ export const QuestionManagement: React.FC = () => {
     try {
       const response = await apiHandler.deleteQuestionTemplate(questionId);
       if (response.errcode === '200') {
-        setQuestions(prev => prev.filter(q => q.id !== questionId));
+        setQuestions(prev => prev.filter(q => q.id !== parseInt(questionId)));
       }
     } catch (error) {
       console.error('Failed to delete question:', error);
@@ -335,7 +335,7 @@ export const QuestionManagement: React.FC = () => {
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDeleteQuestion(question.id)}
+                  onClick={() => handleDeleteQuestion(question.id.toString())}
                   className="p-2 text-gray-500 hover:text-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -432,7 +432,7 @@ export const QuestionManagement: React.FC = () => {
       {(showCreateModal || editingQuestion) && (
         <QuestionModal
           question={editingQuestion}
-          onSave={editingQuestion ? data => handleUpdateQuestion(editingQuestion.id, data) : handleCreateQuestion}
+          onSave={editingQuestion ? data => handleUpdateQuestion(editingQuestion.id.toString(), data) : handleCreateQuestion}
           onClose={() => {
             setShowCreateModal(false);
             setEditingQuestion(null);

@@ -14,6 +14,7 @@
     "electron-dev": "ELECTRON=true concurrently \"npm run dev\" \"wait-on http://localhost:5173 && ELECTRON_RENDERER_URL=http://localhost:5173 npx electron .\"",
     "electron-build": "npm run build && npm run build-electron",
     "build-electron": "tsc -p electron/tsconfig.json && electron-builder",
+    "electron-build-simple": "npm run build && tsc -p electron/tsconfig.json && electron-builder --dir",
     "dist": "npm run build && npm run build-electron && electron-builder --publish=never"
   },
   "keywords": [
@@ -69,6 +70,7 @@
   "build": {
     "appId": "com.kidsviewer.app",
     "productName": "KidsViewer",
+    "executableName": "KidsViewer",
     "directories": {
       "output": "release"
     },
@@ -77,24 +79,23 @@
       "dist-electron/**/*",
       "node_modules/**/*"
     ],
-    "extraResources": [
-      {
-        "from": "dist-electron",
-        "to": "dist-electron",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
     "mac": {
       "category": "public.app-category.education",
-      "target": "dmg"
+      "target": "dmg",
+      "executableName": "KidsViewer",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "notarize": false
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "executableName": "KidsViewer"
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "executableName": "KidsViewer"
     }
   }
 }

@@ -76,7 +76,7 @@ export const PersonHome: React.FC = () => {
     description?: string;
   }): Platform => {
     return {
-      id: apiPlatform.platformId,
+      id: parseInt(apiPlatform.platformId),
       nameEN: apiPlatform.platformNameEN,
       nameCN: apiPlatform.platformNameCN,
       url: apiPlatform.url,
@@ -109,7 +109,7 @@ export const PersonHome: React.FC = () => {
     try {
       console.log(`Loading person platforms for person ${activePerson.alias} (ID: ${activePerson.id})...`);
 
-      const response = await apiHandler.getPersonPlatforms(activePerson.id);
+      const response = await apiHandler.getPersonPlatforms(activePerson.id.toString());
       console.info('Loaded the person person platforms response:', response);
 
       if (response.errcode === '200' && response.data) {
@@ -360,7 +360,7 @@ export const PersonHome: React.FC = () => {
         // Create session info for UI
         const session: WatchingSession = {
           watchingToken: '', // Will be set by WebViewer
-          platformId: plat.id,
+          platformId: plat.id.toString(),
           platformName: getPlatformName(plat),
           platformUrl: plat.url,
           description: plat.description,
@@ -529,7 +529,7 @@ export const PersonHome: React.FC = () => {
                     platformId={memoizedWatchingSession.platformId}
                     platformName={memoizedWatchingSession.platformName}
                     platformUrl={memoizedWatchingSession.platformUrl}
-                    personId={activePerson.id}
+                    personId={activePerson.id.toString()}
                     onLoadError={handleWebViewerLoadError}
                     onLoadSuccess={handleWebViewerLoadSuccess}
                     onCountdownUpdate={handleCountdownUpdate}
@@ -541,7 +541,7 @@ export const PersonHome: React.FC = () => {
                     platformId={memoizedWatchingSession.platformId}
                     platformName={memoizedWatchingSession.platformName}
                     platformUrl={memoizedWatchingSession.platformUrl}
-                    personId={activePerson.id}
+                    personId={activePerson.id.toString()}
                     onLoadError={handleWebViewerLoadError}
                     onLoadSuccess={handleWebViewerLoadSuccess}
                     onCountdownUpdate={handleCountdownUpdate}

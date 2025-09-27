@@ -17,9 +17,9 @@ type Parental struct {
 
 // Person represents a child/person user
 type Person struct {
-	ID               string    `json:"id" gorm:"primaryKey"`
-	UserID           string    `json:"userId" gorm:"not null;index"`     // Reference to parent user
-	ParentalID       string    `json:"parentalId" gorm:"not null;index"` // Reference to parent user
+	ID               int64     `json:"id" gorm:"primaryKey"`
+	UserID           int64     `json:"userId" gorm:"not null;index"`     // Reference to parent user
+	ParentalID       int64     `json:"parentalId" gorm:"not null;index"` // Reference to parent user
 	Alias            string    `json:"alias" gorm:"not null"`            // Display name for the person
 	Name             string    `json:"name" gorm:"not null"`
 	AgeGroup         string    `json:"ageGroup" gorm:"not null;check:age_group IN ('preschool', 'young', 'older', 'teen')"`
@@ -44,13 +44,13 @@ type PersonSettings struct {
 	DailyTimeLimitMinutes int       `json:"dailyTimeLimitMinutes"` // Total allowed per day (e.g., 120, 180)
 	QuestionCount         int       `json:"questionCount"`         // Number of questions to unlock per session
 	QuestionsPerDay       int       `json:"questionsPerDay"`       // Maximum questions per day
-	PlatformIDs           []string  `json:"platformIds"`           // IDs of allowed platforms
+	PlatformIDs           []int64   `json:"platformIds"`           // IDs of allowed platforms
 	Subjects              []Subject `json:"subjects"`              // Subject preferences
 }
 
 // Subject represents a learning subject configuration
 type Subject struct {
-	ID         string `json:"id"`
+	ID         int64  `json:"id" gorm:"primaryKey"`
 	Name       string `json:"name"`
 	Enabled    bool   `json:"enabled"`
 	Difficulty string `json:"difficulty"` // beginner, easy, medium, hard, expert
@@ -72,7 +72,7 @@ type DailyUsage struct {
 
 // Session represents a viewing session
 type Session struct {
-	ID                string `json:"id"`
+	ID                int64  `json:"id" gorm:"primaryKey"`
 	StartTime         string `json:"startTime"`
 	EndTime           string `json:"endTime"`
 	Duration          int    `json:"duration"` // Minutes
@@ -91,7 +91,7 @@ type QuestionStats struct {
 
 // RepeatedQuestion represents a question that was asked multiple times
 type RepeatedQuestion struct {
-	QuestionID      string    `json:"questionId"`
+	QuestionID      int64     `json:"questionId"`
 	Attempts        int       `json:"attempts"`
 	CorrectAttempts int       `json:"correctAttempts"`
 	LastAttempted   time.Time `json:"lastAttempted"`
@@ -145,7 +145,7 @@ type QuestionTemplate struct {
 // WatchingSession represents an active watching session
 type WatchingSession struct {
 	BaseModel
-	PersonID         string    `json:"personId" gorm:"not null;index"`
+	PersonID         int64     `json:"personId" gorm:"not null;index"`
 	PlatformURL      string    `json:"platformUrl" gorm:"not null"`
 	WatchingToken    string    `json:"watchingToken" gorm:"uniqueIndex;not null"`
 	StartTime        time.Time `json:"startTime" gorm:"not null"`

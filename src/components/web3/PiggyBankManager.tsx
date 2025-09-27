@@ -51,6 +51,8 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
     dailyMaxInvestment: 5,
     cumulativeMaxInvestment: 100,
     selectedAaveProduct: undefined,
+    defiEnabled: false,
+    approvedAaveProducts: [],
   });
 
   // Piggy bank balance state

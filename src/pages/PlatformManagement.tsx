@@ -46,7 +46,7 @@ export const PlatformManagement: React.FC = () => {
     try {
       const response = await apiHandler.updatePlatform(platformId, platformData);
       if (response.errcode === '200' && response.data) {
-        setPlatforms(prev => prev.map(p => (p.id === platformId ? response.data! : p)));
+        setPlatforms(prev => prev.map(p => (p.id === parseInt(platformId) ? response.data! : p)));
         setEditingPlatform(null);
       }
     } catch (error) {
@@ -60,7 +60,7 @@ export const PlatformManagement: React.FC = () => {
     try {
       const response = await apiHandler.deletePlatform(platformId);
       if (response.errcode === '200') {
-        setPlatforms(prev => prev.filter(p => p.id !== platformId));
+        setPlatforms(prev => prev.filter(p => p.id !== parseInt(platformId)));
       }
     } catch (error) {
       console.error('Failed to delete platform:', error);
@@ -103,7 +103,7 @@ export const PlatformManagement: React.FC = () => {
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => handleDeletePlatform(platform.id)}
+                  onClick={() => handleDeletePlatform(platform.id.toString())}
                   className="p-2 text-gray-500 hover:text-red-600 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -138,7 +138,7 @@ export const PlatformManagement: React.FC = () => {
       {(showCreateModal || editingPlatform) && (
         <PlatformModal
           platform={editingPlatform}
-          onSave={editingPlatform ? data => handleUpdatePlatform(editingPlatform.id, data) : handleCreatePlatform}
+          onSave={editingPlatform ? data => handleUpdatePlatform(editingPlatform.id.toString(), data) : handleCreatePlatform}
           onClose={() => {
             setShowCreateModal(false);
             setEditingPlatform(null);

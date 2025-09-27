@@ -27,9 +27,9 @@ func NewSettingsService(db *database.Database, cache cache.Cache) *SettingsServi
 }
 
 // GetAppSettings retrieves application settings for a user
-func (s *SettingsService) GetAppSettings(ctx context.Context, userID uint) (*models.AppSettings, error) {
+func (s *SettingsService) GetAppSettings(ctx context.Context, userID int64) (*models.AppSettings, error) {
 	// Try cache first
-	cacheKey := cache.CacheKey(cache.SettingsPrefix, strconv.FormatUint(uint64(userID), 10))
+	cacheKey := cache.CacheKey(cache.SettingsPrefix, strconv.FormatInt(userID, 10))
 	var cachedSettings models.AppSettings
 	if err := s.cache.Get(ctx, cacheKey, &cachedSettings); err == nil {
 		return &cachedSettings, nil
@@ -65,7 +65,7 @@ func (s *SettingsService) GetAppSettings(ctx context.Context, userID uint) (*mod
 }
 
 // UpdateAppSettings updates application settings for a user
-func (s *SettingsService) UpdateAppSettings(ctx context.Context, userID uint, updates *models.AppSettings) (*models.AppSettings, error) {
+func (s *SettingsService) UpdateAppSettings(ctx context.Context, userID int64, updates *models.AppSettings) (*models.AppSettings, error) {
 	var settings models.AppSettings
 	err := s.db.DB.Where("user_id = ?", userID).First(&settings).Error
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *SettingsService) UpdateAppSettings(ctx context.Context, userID uint, up
 	}
 
 	// Update cache
-	cacheKey := cache.CacheKey(cache.SettingsPrefix, strconv.FormatUint(uint64(userID), 10))
+	cacheKey := cache.CacheKey(cache.SettingsPrefix, strconv.FormatInt(userID, 10))
 	if err := s.cache.Set(ctx, cacheKey, &settings, 30*time.Minute); err != nil {
 		fmt.Printf("Warning: failed to update cached settings: %v\n", err)
 	}
@@ -119,13 +119,13 @@ func (s *SettingsService) GetAppInfo(ctx context.Context) (*models.AppInfo, erro
 }
 
 // DeleteAppSettings deletes application settings for a user
-func (s *SettingsService) DeleteAppSettings(ctx context.Context, userID uint) error {
+func (s *SettingsService) DeleteAppSettings(ctx context.Context, userID int64) error {
 	if err := s.db.DB.Where("user_id = ?", userID).Delete(&models.AppSettings{}).Error; err != nil {
 		return fmt.Errorf("failed to delete settings: %w", err)
 	}
 
 	// Remove from cache
-	cacheKey := cache.CacheKey(cache.SettingsPrefix, strconv.FormatUint(uint64(userID), 10))
+	cacheKey := cache.CacheKey(cache.SettingsPrefix, strconv.FormatInt(userID, 10))
 	if err := s.cache.Delete(ctx, cacheKey); err != nil {
 		fmt.Printf("Warning: failed to remove settings from cache: %v\n", err)
 	}

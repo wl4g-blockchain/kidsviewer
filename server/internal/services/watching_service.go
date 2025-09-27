@@ -349,7 +349,7 @@ func (s *WatchingService) shouldAskQuestion(ctx context.Context, session *models
 }
 
 // getQuestionForPerson gets an appropriate question for the person
-func (s *WatchingService) getQuestionForPerson(ctx context.Context, personID string) (*models.QuestionTemplate, error) {
+func (s *WatchingService) getQuestionForPerson(ctx context.Context, personID int64) (*models.QuestionTemplate, error) {
 	// Get person to determine age group and difficulty
 	var person models.Person
 	if err := s.db.DB.Where("id = ?", personID).First(&person).Error; err != nil {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"kidsviewer-server/internal/models"
 	"kidsviewer-server/internal/services"
-	"net/http"
+	"kidsviewer-server/internal/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -26,11 +26,7 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid request data",
-			"error":   err.Error(),
-		})
+		utils.ValidationErrorResponse(c, "Invalid request data: "+err.Error())
 		return
 	}
 
@@ -43,30 +39,18 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	user, err := h.AuthService.Register(context.Background(), registerReq)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Registration failed",
-			"error":   err.Error(),
-		})
+		utils.BusinessErrorResponse(c, "4001", "Registration failed: "+err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"success": true,
-		"message": "User registered successfully",
-		"data":    user,
-	})
+	utils.SuccessResponse(c, user)
 }
 
 // Login handles user login
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid request data",
-			"error":   err.Error(),
-		})
+		utils.ValidationErrorResponse(c, "Invalid request data: "+err.Error())
 		return
 	}
 
@@ -78,149 +62,92 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	loginResponse, err := h.AuthService.Login(context.Background(), loginReq)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "Login failed",
-			"error":   err.Error(),
-		})
+		utils.UnauthorizedResponse(c, "Login failed: "+err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Login successful",
-		"data":    loginResponse,
-	})
+	utils.SuccessResponse(c, loginResponse)
 }
 
 // Logout handles user logout
 func (h *AuthHandler) Logout(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	if userIDStr == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "User not authenticated",
-		})
+		utils.UnauthorizedResponse(c, "User not authenticated")
 		return
 	}
 
-	// Convert string to uint
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	// Convert string to int64
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid user ID",
-		})
+		utils.BadRequestResponse(c, "Invalid user ID")
 		return
 	}
 
-	err = h.AuthService.Logout(context.Background(), uint(userID))
+	err = h.AuthService.Logout(context.Background(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Logout failed",
-			"error":   err.Error(),
-		})
+		utils.InternalServerErrorResponse(c, "Logout failed: "+err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Logout successful",
-	})
+	utils.SuccessResponse(c, nil)
 }
 
 // GetCurrentUser returns the current authenticated user
 func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	if userIDStr == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "User not authenticated",
-		})
+		utils.UnauthorizedResponse(c, "User not authenticated")
 		return
 	}
 
 	// Convert string to uint
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid user ID",
-		})
+		utils.BadRequestResponse(c, "Invalid user ID")
 		return
 	}
 
-	user, err := h.AuthService.GetCurrentUser(context.Background(), uint(userID))
+	user, err := h.AuthService.GetCurrentUser(context.Background(), userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to get current user",
-			"error":   err.Error(),
-		})
+		utils.InternalServerErrorResponse(c, "Failed to get current user: "+err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data":    user,
-	})
+	utils.SuccessResponse(c, user)
 }
 
 // VerifyParentalPassword verifies the parental password
 func (h *AuthHandler) VerifyParentalPassword(c *gin.Context) {
 	var req models.VerifyPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid request data",
-			"error":   err.Error(),
-		})
+		utils.ValidationErrorResponse(c, "Invalid request data: "+err.Error())
 		return
 	}
 
 	userIDStr := c.GetString("user_id")
 	if userIDStr == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "User not authenticated",
-		})
+		utils.UnauthorizedResponse(c, "User not authenticated")
 		return
 	}
 
 	// Convert string to uint
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"success": false,
-			"message": "Invalid user ID",
-		})
+		utils.BadRequestResponse(c, "Invalid user ID")
 		return
 	}
 
-	isValid, err := h.AuthService.VerifyParentalPassword(context.Background(), uint(userID), req.Password)
+	isValid, err := h.AuthService.VerifyParentalPassword(context.Background(), userID, req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"success": false,
-			"message": "Failed to verify password",
-			"error":   err.Error(),
-		})
+		utils.InternalServerErrorResponse(c, "Failed to verify password: "+err.Error())
 		return
 	}
 
 	if !isValid {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"success": false,
-			"message": "Invalid parental password",
-		})
+		utils.UnauthorizedResponse(c, "Invalid parental password")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Password verified successfully",
-		"data": gin.H{
-			"verified": true,
-		},
-	})
+	utils.SuccessResponse(c, true)
 }

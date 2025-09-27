@@ -8,7 +8,7 @@ import (
 
 // Base model with common fields
 type BaseModel struct {
-	ID        uint           `json:"id" gorm:"primaryKey"`
+	ID        int64          `json:"id" gorm:"primaryKey"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
@@ -26,7 +26,7 @@ type User struct {
 // AppSettings represents application-wide settings
 type AppSettings struct {
 	BaseModel
-	UserID   uint                   `json:"userId" gorm:"uniqueIndex;not null"`
+	UserID   int64                  `json:"userId" gorm:"uniqueIndex;not null"`
 	Language string                 `json:"language" gorm:"default:'en'"`
 	Theme    string                 `json:"theme" gorm:"default:'light'"`
 	Settings map[string]interface{} `json:"settings" gorm:"type:json"`

@@ -33,7 +33,7 @@ func (h *SettingsHandler) GetAppSettings(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -42,7 +42,7 @@ func (h *SettingsHandler) GetAppSettings(c *gin.Context) {
 		return
 	}
 
-	settings, err := h.SettingsService.GetAppSettings(context.Background(), uint(userID))
+	settings, err := h.SettingsService.GetAppSettings(context.Background(), userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
@@ -69,7 +69,7 @@ func (h *SettingsHandler) UpdateAppSettings(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(userIDStr, 10, 32)
+	userID, err := strconv.ParseInt(userIDStr, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"success": false,
@@ -88,7 +88,7 @@ func (h *SettingsHandler) UpdateAppSettings(c *gin.Context) {
 		return
 	}
 
-	updatedSettings, err := h.SettingsService.UpdateAppSettings(context.Background(), uint(userID), &updates)
+	updatedSettings, err := h.SettingsService.UpdateAppSettings(context.Background(), userID, &updates)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,

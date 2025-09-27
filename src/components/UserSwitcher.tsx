@@ -28,7 +28,7 @@ export const UserSwitcher: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await apiHandler.getPersons(currentUser.id);
+      const response = await apiHandler.getPersons(currentUser.id.toString());
       if (response.errcode === "200" && response.data) {
         setPersons(response.data);
       }

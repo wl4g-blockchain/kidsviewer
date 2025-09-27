@@ -41,7 +41,8 @@ func TestAuthHandler_Register_InvalidData(t *testing.T) {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.False(t, response["success"].(bool))
+	assert.Equal(t, "4002", response["errcode"])
+	assert.NotEmpty(t, response["errmsg"])
 }
 
 func TestAuthHandler_Login_InvalidData(t *testing.T) {
@@ -71,7 +72,8 @@ func TestAuthHandler_Login_InvalidData(t *testing.T) {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.False(t, response["success"].(bool))
+	assert.Equal(t, "4002", response["errcode"])
+	assert.NotEmpty(t, response["errmsg"])
 }
 
 func TestAuthHandler_Logout_NoUserID(t *testing.T) {
@@ -92,7 +94,8 @@ func TestAuthHandler_Logout_NoUserID(t *testing.T) {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.False(t, response["success"].(bool))
+	assert.Equal(t, "4001", response["errcode"])
+	assert.NotEmpty(t, response["errmsg"])
 }
 
 func TestAuthHandler_GetCurrentUser_NoUserID(t *testing.T) {
@@ -113,7 +116,8 @@ func TestAuthHandler_GetCurrentUser_NoUserID(t *testing.T) {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.False(t, response["success"].(bool))
+	assert.Equal(t, "4001", response["errcode"])
+	assert.NotEmpty(t, response["errmsg"])
 }
 
 func TestAuthHandler_VerifyParentalPassword_NoUserID(t *testing.T) {
@@ -141,5 +145,6 @@ func TestAuthHandler_VerifyParentalPassword_NoUserID(t *testing.T) {
 
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
-	assert.False(t, response["success"].(bool))
+	assert.Equal(t, "4001", response["errcode"])
+	assert.NotEmpty(t, response["errmsg"])
 }

@@ -36,7 +36,7 @@ func NewAuthService(db *database.Database, cache cache.Cache, jwtSecret string, 
 
 // Claims represents JWT claims
 type Claims struct {
-	UserID   uint   `json:"user_id"`
+	UserID   int64  `json:"user_id"`
 	Email    string `json:"email"`
 	UserType string `json:"user_type"`
 	jwt.RegisteredClaims
@@ -149,9 +149,9 @@ func (s *AuthService) Login(ctx context.Context, req *LoginRequest) (*AuthRespon
 }
 
 // Logout invalidates a user session
-func (s *AuthService) Logout(ctx context.Context, userID uint) error {
+func (s *AuthService) Logout(ctx context.Context, userID int64) error {
 	// Remove from cache
-	cacheKey := cache.CacheKey(cache.SessionPrefix, strconv.FormatUint(uint64(userID), 10))
+	cacheKey := cache.CacheKey(cache.SessionPrefix, strconv.FormatInt(userID, 10))
 	return s.cache.Delete(ctx, cacheKey)
 }
 
@@ -177,9 +177,9 @@ func (s *AuthService) ValidateToken(tokenString string) (*Claims, error) {
 }
 
 // GetCurrentUser returns the current user from token
-func (s *AuthService) GetCurrentUser(ctx context.Context, userID uint) (interface{}, error) {
+func (s *AuthService) GetCurrentUser(ctx context.Context, userID int64) (interface{}, error) {
 	// Try cache first
-	cacheKey := cache.CacheKey(cache.UserPrefix, strconv.FormatUint(uint64(userID), 10))
+	cacheKey := cache.CacheKey(cache.UserPrefix, strconv.FormatInt(userID, 10))
 	var cachedUser models.Parental
 	if err := s.cache.Get(ctx, cacheKey, &cachedUser); err == nil {
 		return &cachedUser, nil
@@ -203,7 +203,7 @@ func (s *AuthService) GetCurrentUser(ctx context.Context, userID uint) (interfac
 }
 
 // VerifyParentalPassword verifies the parental control password
-func (s *AuthService) VerifyParentalPassword(ctx context.Context, userID uint, password string) (bool, error) {
+func (s *AuthService) VerifyParentalPassword(ctx context.Context, userID int64, password string) (bool, error) {
 	var parental models.Parental
 	if err := s.db.DB.First(&parental, userID).Error; err != nil {
 		return false, fmt.Errorf("failed to find user: %w", err)
@@ -217,7 +217,7 @@ func (s *AuthService) VerifyParentalPassword(ctx context.Context, userID uint, p
 }
 
 // generateToken creates a new JWT token
-func (s *AuthService) generateToken(userID uint, email, userType string) (string, error) {
+func (s *AuthService) generateToken(userID int64, email, userType string) (string, error) {
 	now := time.Now()
 	claims := &Claims{
 		UserID:   userID,
@@ -225,7 +225,7 @@ func (s *AuthService) generateToken(userID uint, email, userType string) (string
 		UserType: userType,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    s.issuer,
-			Subject:   strconv.FormatUint(uint64(userID), 10),
+			Subject:   strconv.FormatInt(userID, 10),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(s.jwtExpiry)),
 			NotBefore: jwt.NewNumericDate(now),
@@ -237,7 +237,7 @@ func (s *AuthService) generateToken(userID uint, email, userType string) (string
 }
 
 // cacheUserSession caches the user session
-func (s *AuthService) cacheUserSession(ctx context.Context, userID uint, token string) error {
-	cacheKey := cache.CacheKey(cache.SessionPrefix, strconv.FormatUint(uint64(userID), 10))
+func (s *AuthService) cacheUserSession(ctx context.Context, userID int64, token string) error {
+	cacheKey := cache.CacheKey(cache.SessionPrefix, strconv.FormatInt(userID, 10))
 	return s.cache.Set(ctx, cacheKey, token, s.jwtExpiry)
 }

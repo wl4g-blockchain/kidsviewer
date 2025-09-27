@@ -33,7 +33,7 @@ export const ParentalHome: React.FC = () => {
 
   const loadPersons = async () => {
     try {
-      const response = await apiHandler.getPersons(currentUser!.id);
+      const response = await apiHandler.getPersons(currentUser!.id.toString());
       if (response.errcode === '200' && response.data) {
         setPersons(response.data);
       }
@@ -81,7 +81,7 @@ export const ParentalHome: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await apiHandler.getWatchingHistory(person.id, 7);
+      const response = await apiHandler.getWatchingHistory(person.id.toString(), 7);
       if (response.errcode === '200' && response.data) {
         setWatchingHistory(response.data);
       } else {
@@ -107,7 +107,7 @@ export const ParentalHome: React.FC = () => {
     if (!selectedPerson) return;
 
     try {
-      const response = await apiHandler.updatePersonSettings(selectedPerson.id, settings);
+      const response = await apiHandler.updatePersonSettings(selectedPerson.id.toString(), settings);
       if (response.errcode === '200' && response.data) {
         // Update local state
         setPersons(prev => prev.map(p => (p.id === selectedPerson.id ? response.data! : p)));
@@ -132,7 +132,7 @@ export const ParentalHome: React.FC = () => {
     if (!selectedPerson) return;
 
     try {
-      const response = await apiHandler.deletePerson(selectedPerson.id);
+      const response = await apiHandler.deletePerson(selectedPerson.id.toString());
       if (response.errcode === '200') {
         // Update local state by removing the deleted person
         setPersons(prev => prev.filter(p => p.id !== selectedPerson.id));

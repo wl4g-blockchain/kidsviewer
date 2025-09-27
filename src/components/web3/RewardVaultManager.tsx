@@ -17,7 +17,6 @@ import {
   TOKEN_ADDRESSES,
   CONTRACT_ADDRESSES,
   SUPPORTED_NETWORKS,
-  AAVE_PRODUCTS,
 } from '../../types/web3';
 import { web3Service } from '../../services/web3Service';
 

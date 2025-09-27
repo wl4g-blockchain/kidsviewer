@@ -10,26 +10,26 @@ import '@openzeppelin/contracts/access/Ownable.sol';
  */
 contract KidsViewerPiggyBank is Ownable {
   // Events
-  event RewardReceived(address indexed child, address indexed token, uint256 amount, uint256 timestamp);
+  event RewardReceived(uint64 indexed personId, address indexed token, uint256 amount, uint256 timestamp);
   event WithdrawalRequested(
-    address indexed child,
+    uint64 indexed personId,
     address indexed token,
     uint256 amount,
     string reason,
     uint256 requestId,
     uint256 timestamp
   );
-  event WithdrawalApproved(address indexed child, uint256 requestId, uint256 timestamp);
-  event WithdrawalRejected(address indexed child, uint256 requestId, string reason, uint256 timestamp);
-  event InvestmentMade(address indexed child, address indexed token, uint256 amount, address indexed aaveProduct, uint256 timestamp);
-  event InvestmentRecovered(address indexed child, address indexed token, uint256 amount, uint256 timestamp);
-  event ParentApprovalUpdated(address indexed parent, address indexed child, bool approved, uint256 timestamp);
-  event InvestmentConfigUpdated(address indexed child, bool enabled, uint256 maxAmount, uint256 timestamp);
-  event AaveProductApprovalUpdated(address indexed child, address indexed aaveProduct, bool approved, uint256 timestamp);
+  event WithdrawalApproved(uint64 indexed personId, uint256 requestId, uint256 timestamp);
+  event WithdrawalRejected(uint64 indexed personId, uint256 requestId, string reason, uint256 timestamp);
+  event InvestmentMade(uint64 indexed personId, address indexed token, uint256 amount, address indexed aaveProduct, uint256 timestamp);
+  event InvestmentRecovered(uint64 indexed personId, address indexed token, uint256 amount, uint256 timestamp);
+  event ParentApprovalUpdated(address indexed parent, uint64 indexed personId, bool approved, uint256 timestamp);
+  event InvestmentConfigUpdated(uint64 indexed personId, bool enabled, uint256 maxAmount, uint256 timestamp);
+  event AaveProductApprovalUpdated(uint64 indexed personId, address indexed aaveProduct, bool approved, uint256 timestamp);
 
   // Structs
   struct WithdrawalRequest {
-    address child;
+    uint64 personId;
     address token;
     uint256 amount;
     uint64 timestamp;
@@ -42,16 +42,16 @@ contract KidsViewerPiggyBank is Ownable {
   bool public paused;
   uint256 public nextRequestId;
 
-  mapping(address => mapping(address => uint256)) public childBalances; // child => token => balance
-  mapping(address => mapping(address => uint256)) public childEarnings; // child => token => earnings
+  mapping(uint64 => mapping(address => uint256)) public personBalances; // personId => token => balance
+  mapping(uint64 => mapping(address => uint256)) public personEarnings; // personId => token => earnings
   mapping(uint256 => WithdrawalRequest) public withdrawalRequests;
-  mapping(address => uint256) public childRequestIds; // child => requestId
-  mapping(address => mapping(address => bool)) public parentApprovals; // parent => child => approved
-  mapping(address => bool) public investmentConfigs; // child => enabled
-  mapping(address => uint256) public maxInvestmentAmounts; // child => maxAmount
-  mapping(address => uint256) public totalInvested; // child => totalInvested
-  mapping(address => mapping(address => bool)) public aaveProductApprovals; // child => aaveProduct => approved
-  mapping(address => bool) public childActive;
+  mapping(uint64 => uint256) public personRequestIds; // personId => requestId
+  mapping(address => mapping(uint64 => bool)) public parentApprovals; // parent => personId => approved
+  mapping(uint64 => bool) public investmentConfigs; // personId => enabled
+  mapping(uint64 => uint256) public maxInvestmentAmounts; // personId => maxAmount
+  mapping(uint64 => uint256) public totalInvested; // personId => totalInvested
+  mapping(uint64 => mapping(address => bool)) public aaveProductApprovals; // personId => aaveProduct => approved
+  mapping(uint64 => bool) public personActive;
 
   // Modifiers
   modifier whenNotPaused() {
@@ -59,8 +59,8 @@ contract KidsViewerPiggyBank is Ownable {
     _;
   }
 
-  modifier onlyParent(address child) {
-    require(parentApprovals[msg.sender][child], 'KidsViewerPiggyBank: Not parent');
+  modifier onlyParent(uint64 personId) {
+    require(parentApprovals[msg.sender][personId], 'KidsViewerPiggyBank: Not parent');
     _;
   }
 
@@ -75,29 +75,30 @@ contract KidsViewerPiggyBank is Ownable {
 
   /**
    * @dev Receive reward from vault contract
-   * @param child Address of the child
+   * @param personId ID of the person
    * @param token Address of the token
    * @param amount Amount of reward
    */
-  function receiveReward(address child, address token, uint256 amount) external whenNotPaused validAmount(amount) onlyParent(child) {
-    childBalances[child][token] += amount;
-    childEarnings[child][token] += amount;
+  function receiveReward(uint64 personId, address token, uint256 amount) external whenNotPaused validAmount(amount) onlyParent(personId) {
+    personBalances[personId][token] += amount;
+    personEarnings[personId][token] += amount;
 
-    emit RewardReceived(child, token, amount, block.timestamp);
+    emit RewardReceived(personId, token, amount, block.timestamp);
   }
 
   /**
-   * @dev Request withdrawal (child can call this)
+   * @dev Request withdrawal (parent can call this for their child)
+   * @param personId ID of the person
    * @param token Address of the token
    * @param amount Amount to withdraw
    * @param reason Reason for withdrawal
    */
-  function requestWithdrawal(address token, uint256 amount, string calldata reason) external whenNotPaused validAmount(amount) {
-    require(childBalances[msg.sender][token] >= amount, 'KidsViewerPiggyBank: Insufficient');
+  function requestWithdrawal(uint64 personId, address token, uint256 amount, string calldata reason) external whenNotPaused validAmount(amount) onlyParent(personId) {
+    require(personBalances[personId][token] >= amount, 'KidsViewerPiggyBank: Insufficient');
 
     uint256 requestId = nextRequestId++;
     withdrawalRequests[requestId] = WithdrawalRequest({
-      child: msg.sender,
+      personId: personId,
       token: token,
       amount: amount,
       timestamp: uint64(block.timestamp),
@@ -106,10 +107,9 @@ contract KidsViewerPiggyBank is Ownable {
       reason: reason
     });
 
-    childRequestIds[msg.sender] = requestId;
-    nextRequestId++;
+    personRequestIds[personId] = requestId;
 
-    emit WithdrawalRequested(msg.sender, token, amount, reason, requestId, block.timestamp);
+    emit WithdrawalRequested(personId, token, amount, reason, requestId, block.timestamp);
   }
 
   /**
@@ -122,9 +122,9 @@ contract KidsViewerPiggyBank is Ownable {
     require(!request.executed, 'KidsViewerPiggyBank: Already executed');
 
     request.approved = true;
-    childBalances[request.child][request.token] -= request.amount;
+    personBalances[request.personId][request.token] -= request.amount;
 
-    emit WithdrawalApproved(request.child, requestId, block.timestamp);
+    emit WithdrawalApproved(request.personId, requestId, block.timestamp);
   }
 
   /**
@@ -140,77 +140,78 @@ contract KidsViewerPiggyBank is Ownable {
     request.executed = true;
     request.reason = reason;
 
-    emit WithdrawalRejected(request.child, requestId, reason, block.timestamp);
+    emit WithdrawalRejected(request.personId, requestId, reason, block.timestamp);
   }
 
   /**
-   * @dev Invest in AAVE (child can call this if parent approved)
+   * @dev Invest in AAVE (parent can call this for their child)
+   * @param personId ID of the person
    * @param token Address of the token
    * @param amount Amount to invest
    * @param aaveProduct Address of the AAVE product
    */
-  function investInAave(address token, uint256 amount, address aaveProduct) external whenNotPaused validAmount(amount) {
-    require(childBalances[msg.sender][token] >= amount, 'KidsViewerPiggyBank: Insufficient');
+  function investInAave(uint64 personId, address token, uint256 amount, address aaveProduct) external whenNotPaused validAmount(amount) onlyParent(personId) {
+    require(personBalances[personId][token] >= amount, 'KidsViewerPiggyBank: Insufficient');
 
-    childBalances[msg.sender][token] -= amount;
+    personBalances[personId][token] -= amount;
 
-    emit InvestmentMade(msg.sender, token, amount, aaveProduct, block.timestamp);
+    emit InvestmentMade(personId, token, amount, aaveProduct, block.timestamp);
   }
 
   /**
    * @dev Recover all investments (parent can call this)
-   * @param child Address of the child
+   * @param personId ID of the person
    * @param token Address of the token
    */
-  function recoverAllInvestments(address child, address token) external onlyParent(child) whenNotPaused {
-    uint256 recoveredAmount = childBalances[child][token];
-    childBalances[child][token] = 0;
+  function recoverAllInvestments(uint64 personId, address token) external onlyParent(personId) whenNotPaused {
+    uint256 recoveredAmount = personBalances[personId][token];
+    personBalances[personId][token] = 0;
 
-    emit InvestmentRecovered(child, token, recoveredAmount, block.timestamp);
+    emit InvestmentRecovered(personId, token, recoveredAmount, block.timestamp);
   }
 
   /**
-   * @dev Set parent approval for child
-   * @param child Address of the child
+   * @dev Set parent approval for person
+   * @param personId ID of the person
    * @param approved Whether to approve or revoke approval
    */
-  function setParentApproval(address child, bool approved) external {
-    parentApprovals[msg.sender][child] = approved;
-    emit ParentApprovalUpdated(msg.sender, child, approved, block.timestamp);
+  function setParentApproval(uint64 personId, bool approved) external {
+    parentApprovals[msg.sender][personId] = approved;
+    emit ParentApprovalUpdated(msg.sender, personId, approved, block.timestamp);
   }
 
   /**
-   * @dev Enable/disable investment for child (parent can call this)
-   * @param child Address of the child
+   * @dev Enable/disable investment for person (parent can call this)
+   * @param personId ID of the person
    * @param enabled Whether to enable investment
    * @param maxAmount Maximum investment amount
    */
-  function setInvestmentConfig(address child, bool enabled, uint256 maxAmount) external onlyParent(child) {
-    investmentConfigs[child] = enabled;
-    maxInvestmentAmounts[child] = maxAmount;
-    totalInvested[child] = 0;
+  function setInvestmentConfig(uint64 personId, bool enabled, uint256 maxAmount) external onlyParent(personId) {
+    investmentConfigs[personId] = enabled;
+    maxInvestmentAmounts[personId] = maxAmount;
+    totalInvested[personId] = 0;
 
-    emit InvestmentConfigUpdated(child, enabled, maxAmount, block.timestamp);
+    emit InvestmentConfigUpdated(personId, enabled, maxAmount, block.timestamp);
   }
 
   /**
-   * @dev Approve AAVE product for child (parent can call this)
-   * @param child Address of the child
+   * @dev Approve AAVE product for person (parent can call this)
+   * @param personId ID of the person
    * @param aaveProduct Address of the AAVE product
    * @param approved Whether to approve or revoke approval
    */
-  function setAaveProductApproval(address child, address aaveProduct, bool approved) external onlyParent(child) {
-    aaveProductApprovals[child][aaveProduct] = approved;
-    emit AaveProductApprovalUpdated(child, aaveProduct, approved, block.timestamp);
+  function setAaveProductApproval(uint64 personId, address aaveProduct, bool approved) external onlyParent(personId) {
+    aaveProductApprovals[personId][aaveProduct] = approved;
+    emit AaveProductApprovalUpdated(personId, aaveProduct, approved, block.timestamp);
   }
 
   /**
-   * @dev Activate/deactivate child account
-   * @param child Address of the child
+   * @dev Activate/deactivate person account
+   * @param personId ID of the person
    * @param active Whether to activate or deactivate
    */
-  function setChildActive(address child, bool active) external onlyOwner {
-    childActive[child] = active;
+  function setPersonActive(uint64 personId, bool active) external onlyOwner {
+    personActive[personId] = active;
   }
 
   /**
@@ -228,24 +229,24 @@ contract KidsViewerPiggyBank is Ownable {
   }
 
   /**
-   * @dev Get child's token balance
-   * @param child Address of the child
+   * @dev Get person's token balance
+   * @param personId ID of the person
    * @param token Address of the token
    * @return Balance amount
    */
-  function getChildBalance(address child, address token) external view returns (uint256) {
-    return childBalances[child][token];
+  function getPersonBalance(uint64 personId, address token) external view returns (uint256) {
+    return personBalances[personId][token];
   }
 
   /**
-   * @dev Get child's earnings
-   * @param child Address of the child
+   * @dev Get person's earnings
+   * @param personId ID of the person
    * @param token Address of the token
    * @return balance Balance amount
    * @return earnings Earnings amount
    */
-  function getChildEarnings(address child, address token) external view returns (uint256 balance, uint256 earnings) {
-    return (childBalances[child][token], childEarnings[child][token]);
+  function getPersonEarnings(uint64 personId, address token) external view returns (uint256 balance, uint256 earnings) {
+    return (personBalances[personId][token], personEarnings[personId][token]);
   }
 
   /**
@@ -258,53 +259,53 @@ contract KidsViewerPiggyBank is Ownable {
   }
 
   /**
-   * @dev Get child's withdrawal requests
-   * @param child Address of the child
+   * @dev Get person's withdrawal requests
+   * @param personId ID of the person
    * @return requestId Request ID
    */
-  function getChildWithdrawalRequests(address child) external view returns (uint256) {
-    return childRequestIds[child];
+  function getPersonWithdrawalRequests(uint64 personId) external view returns (uint256) {
+    return personRequestIds[personId];
   }
 
   /**
-   * @dev Get investment configuration for child
-   * @param child Address of the child
+   * @dev Get investment configuration for person
+   * @param personId ID of the person
    * @return isEnabled Whether investment is enabled
    * @return maxInvestmentAmount Maximum investment amount
    * @return totalInvestedAmount Total amount invested
    */
   function getInvestmentConfig(
-    address child
+    uint64 personId
   ) external view returns (bool isEnabled, uint256 maxInvestmentAmount, uint256 totalInvestedAmount) {
-    return (investmentConfigs[child], maxInvestmentAmounts[child], totalInvested[child]);
+    return (investmentConfigs[personId], maxInvestmentAmounts[personId], totalInvested[personId]);
   }
 
   /**
-   * @dev Check if AAVE product is approved for child
-   * @param child Address of the child
+   * @dev Check if AAVE product is approved for person
+   * @param personId ID of the person
    * @param aaveProduct Address of the AAVE product
    * @return Whether product is approved
    */
-  function isAaveProductApproved(address child, address aaveProduct) external view returns (bool) {
-    return aaveProductApprovals[child][aaveProduct];
+  function isAaveProductApproved(uint64 personId, address aaveProduct) external view returns (bool) {
+    return aaveProductApprovals[personId][aaveProduct];
   }
 
   /**
-   * @dev Check if parent is approved for child
+   * @dev Check if parent is approved for person
    * @param parent Address of the parent
-   * @param child Address of the child
+   * @param personId ID of the person
    * @return Whether parent is approved
    */
-  function isParentApproved(address parent, address child) external view returns (bool) {
-    return parentApprovals[parent][child];
+  function isParentApproved(address parent, uint64 personId) external view returns (bool) {
+    return parentApprovals[parent][personId];
   }
 
   /**
-   * @dev Check if child is active
-   * @param child Address of the child
-   * @return Whether child is active
+   * @dev Check if person is active
+   * @param personId ID of the person
+   * @return Whether person is active
    */
-  function isChildActive(address child) external view returns (bool) {
-    return childActive[child];
+  function isPersonActive(uint64 personId) external view returns (bool) {
+    return personActive[personId];
   }
 }

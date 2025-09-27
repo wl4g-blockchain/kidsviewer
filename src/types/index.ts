@@ -1,12 +1,13 @@
 // User types
 export interface User {
-  id: string;
+  id: number; // 改为 number 类型，对应后端的 uint
   email: string;
   phone?: string;
   name: string;
   userType: 'PARENTAL' | 'PERSON';
   createdAt: Date;
   updatedAt: Date;
+  deletedAt?: Date; // 添加软删除字段
 }
 
 export interface Parental extends User {
@@ -15,18 +16,26 @@ export interface Parental extends User {
   persons: Person[];
 }
 
-export interface Person extends User {
-  userType: 'PERSON';
-  parentalId: string;
+export interface Person {
+  id: number; // Person 使用 number 类型的 ID (int64)
+  userId: number; // 添加 UserID 字段 (int64)
+  parentalId: number;
   alias: string;
+  name: string; // 添加 name 字段
   ageGroup: 'preschool' | 'young' | 'older' | 'teen'; // 2-4, 4-6, 6-12, 12-14
+  avatar?: string; // 添加头像字段
+  difficulty?: string; // 添加难度字段
+  maxDailyTime?: number; // 添加最大每日时间字段
+  parentalPassword?: string; // 添加家长密码字段
   settings: PersonSettings;
   statistics: PersonStatistics;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Platform management
 export interface Platform {
-  id: string;
+  id: number; // 改为 number 类型 (int64)
   nameEN: string;
   nameCN: string;
   url: string;
@@ -38,7 +47,7 @@ export interface Platform {
 
 // Base question interface - shared properties
 export interface BaseQuestion {
-  id: string;
+  id: number; // 改为 number 类型 (int64)
   type: QuestionType;
   subject: string;
   difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert'; // Expanded to 5 levels
@@ -69,12 +78,12 @@ export interface PersonSettings {
   questionsPerDay: number; // Maximum questions per day
 
   // Platform and question settings
-  platformIds: string[]; // IDs of allowed platforms
+  platformIds: number[]; // IDs of allowed platforms (int64)
   subjects: Subject[];
 }
 
 export interface Subject {
-  id: string;
+  id: number; // 改为 number 类型 (int64)
   name: string;
   enabled: boolean;
   difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
@@ -101,7 +110,7 @@ export interface DailyUsage {
 }
 
 export interface Session {
-  id: string;
+  id: number; // 改为 number 类型 (int64)
   startTime: Date;
   endTime: Date;
   duration: number; // minutes
@@ -202,6 +211,47 @@ export interface AppInfo {
   platform: string;
   buildDate: string;
   commitHash?: string;
+}
+
+// Request/Response models for API operations
+
+// CreatePersonRequest represents the request to create a new person
+export interface CreatePersonRequest {
+  name: string;
+  ageGroup: 'preschool' | 'young' | 'older' | 'teen';
+  avatar?: string;
+  difficulty?: string;
+  maxDailyTime?: number;
+  parentalPassword?: string;
+}
+
+// UpdatePersonRequest represents the request to update a person
+export interface UpdatePersonRequest {
+  name?: string;
+  ageGroup?: 'preschool' | 'young' | 'older' | 'teen';
+  avatar?: string;
+  difficulty?: string;
+  maxDailyTime?: number;
+  parentalPassword?: string;
+}
+
+// RegisterRequest represents the request to register a new user
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  isParent: boolean;
+}
+
+// LoginRequest represents the request to login
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+// VerifyPasswordRequest represents the request to verify parental password
+export interface VerifyPasswordRequest {
+  password: string;
 }
 
 // Web3 types - re-export from web3.ts

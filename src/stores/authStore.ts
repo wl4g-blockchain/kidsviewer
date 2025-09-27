@@ -185,7 +185,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!currentUser) return;
 
     // Store the switch using AuthUtil
-    AuthUtil.storeActivePerson(person);
+    // Note: Person is no longer a User, so we need to handle this differently
+    // For now, we'll store the person ID separately
+    localStorage.setItem('kidsviewer_active_person_id', person.id.toString());
     AuthUtil.storeAuthData(AuthUtil.getCurrentToken() || '', currentUser, 'child');
 
     set({
@@ -219,7 +221,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
 
     try {
-      const response = await apiHandler.getPersons(currentUser.id);
+      const response = await apiHandler.getPersons(currentUser.id.toString());
 
       if (response.errcode === '200' && response.data) {
         const updatedParent = { ...currentUser, persons: response.data };

@@ -32,6 +32,7 @@ func TestPlatformHandler_GetPlatforms_NoService(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }
 
 func TestPlatformHandler_GetPlatform_InvalidID(t *testing.T) {
@@ -53,6 +54,7 @@ func TestPlatformHandler_GetPlatform_InvalidID(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }
 
 func TestPlatformHandler_CreatePlatform_InvalidData(t *testing.T) {
@@ -83,6 +85,7 @@ func TestPlatformHandler_CreatePlatform_InvalidData(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }
 
 func TestPlatformHandler_UpdatePlatform_InvalidID(t *testing.T) {
@@ -111,6 +114,7 @@ func TestPlatformHandler_UpdatePlatform_InvalidID(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }
 
 func TestPlatformHandler_DeletePlatform_InvalidID(t *testing.T) {
@@ -132,4 +136,5 @@ func TestPlatformHandler_DeletePlatform_InvalidID(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }

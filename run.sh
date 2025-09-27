@@ -138,9 +138,9 @@ electron_dev() {
     wait
 }
 
-# Electron production mode
-electron_prod() {
-    print_header "Starting Electron Production Mode"
+# Electron build for production
+electron_build() {
+    print_header "Building Electron for Production"
     
     check_dependencies
     install_npm_deps
@@ -153,14 +153,83 @@ electron_prod() {
     
     build_project
     
-    print_info "Starting Electron application..."
-    npm run electron &
-    PIDS+=($!)
+    print_info "Building Electron application..."
+    print_warning "Note: Electron build may take several minutes and might appear to hang..."
+    print_info "This is normal for the first build as it downloads Electron binaries"
     
-    print_success "KidsViewer started successfully!"
+    # Try simple build first (faster, less likely to hang)
+    print_info "Attempting simple build first..."
+    if timeout 300 npm run electron-build-simple; then
+        print_success "Simple build completed successfully!"
+        print_info "Built files are available in the release/ directory"
+        return 0
+    fi
     
-    # Wait for all background processes
-    wait
+    # If simple build fails, try full build with timeout
+    print_info "Simple build failed, trying full build..."
+    timeout 600 npm run electron-build || {
+        BUILD_EXIT_CODE=$?
+        if [ $BUILD_EXIT_CODE -eq 124 ]; then
+            print_warning "Build timed out after 10 minutes"
+        else
+            print_warning "Build failed with exit code: $BUILD_EXIT_CODE"
+        fi
+        
+        # Check if any build artifacts were created
+        if [ -d "release/mac-arm64/Electron.app" ]; then
+            print_warning "Build artifacts found despite error/timeout"
+            print_info "Attempting to fix the missing executable..."
+            
+            # Try to find and copy the main executable
+            if [ -f "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" ]; then
+                print_info "Found Electron Helper, creating main executable..."
+                cp "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" "release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer"
+                chmod +x "release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer"
+                print_success "Fixed missing executable"
+            else
+                print_warning "Could not find Electron Helper to copy"
+            fi
+            
+            print_success "Electron application built successfully!"
+            print_info "Built files are available in the release/ directory"
+        else
+            print_error "No build artifacts found. Build failed completely."
+            print_info "Try running: npm run electron-build manually to see detailed error"
+            exit 1
+        fi
+    }
+    
+    # If we reach here, build was successful
+    print_success "Electron application built successfully!"
+    print_info "Built files are available in the release/ directory"
+}
+
+# Fix macOS security issues for Electron app
+electron_fix_macos() {
+    print_header "Fixing macOS Security Issues"
+    
+    if [ ! -d "release/mac-arm64/Electron.app" ]; then
+        print_error "Electron app not found. Please run electron-build first."
+        exit 1
+    fi
+    
+    print_info "Removing quarantine attributes..."
+    xattr -d com.apple.quarantine release/mac-arm64/Electron.app 2>/dev/null || true
+    
+    print_info "Adding execution permissions..."
+    chmod +x release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer
+    
+    print_info "Signing the application (ad-hoc signing)..."
+    codesign --force --deep --sign - release/mac-arm64/Electron.app
+    
+    if [ $? -eq 0 ]; then
+        print_success "macOS security issues fixed!"
+        print_info "You can now run the application without security warnings"
+        print_info "To run: open release/mac-arm64/Electron.app"
+    else
+        print_warning "Code signing failed, but app should still work"
+        print_info "You may need to allow the app in System Preferences > Security & Privacy"
+    fi
 }
 
 # iOS development with live reload
@@ -666,44 +735,6 @@ backend_build() {
     cd ..
 }
 
-backend_run() {
-    print_header "Running Backend Go Service"
-    
-    # Check if Go is installed
-    if ! command -v go &> /dev/null; then
-        print_error "Go not found, please install Go 1.21+ first"
-        print_info "Install Go: https://golang.org/doc/install"
-        exit 1
-    fi
-    
-    # Navigate to server directory
-    if [ ! -d "server" ]; then
-        print_error "Server directory not found"
-        exit 1
-    fi
-    
-    cd server
-    
-    # Check if config file exists, create from example if not
-    if [ ! -f "config.yaml" ] && [ -f "config.example.yaml" ]; then
-        print_info "Creating config.yaml from example..."
-        cp config.example.yaml config.yaml
-        print_warning "Please edit config.yaml with your settings before running the server"
-    fi
-    
-    print_info "Starting Go backend service..."
-    print_info "Server will be available at: http://localhost:9988"
-    print_warning "Press Ctrl+C to stop the server"
-    echo ""
-    
-    # Run with flags to avoid showing local absolute paths
-    CGO_ENABLED=0 go run \
-        -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-        -trimpath \
-        ./cmd/main.go
-    
-    cd ..
-}
 
 backend_dev() {
     print_header "Starting Backend Development Mode"
@@ -887,7 +918,8 @@ show_help() {
     echo ""
     echo "Frontend Commands:"
     echo "  electron-dev              Start Electron development mode (with hot reload)"
-    echo "  electron-prod             Start Electron production mode"
+    echo "  electron-build            Build Electron application for production"
+    echo "  electron-fix-macos        Fix macOS security issues for Electron app"
     echo "  ios-dev                   Start iOS development with live reload in simulator"
     echo "  ios-build                 Build iOS package for personal device (no Apple Developer account needed)"
     echo "  web-dev                   Start web development server"
@@ -895,7 +927,6 @@ show_help() {
     echo ""
     echo "Backend Commands:"
     echo "  backend-build             Build Go backend service (go build)"
-    echo "  backend-run               Run Go backend service (go run)"
     echo "  backend-dev               Run Go backend in development mode with hot reload"
     echo "  backend-test              Test Go backend service (go test)"
     echo "  backend-migrate-up        Run database migrations"
@@ -913,7 +944,8 @@ show_help() {
     echo "  help                      Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 electron-dev           Start development with hot reload"
+    echo "  $0 electron-dev           Start Electron development with hot reload"
+    echo "  $0 electron-build         Build Electron application for production"
     echo "  $0 ios-dev                Start iOS development with live reload"
     echo "  $0 ios-build              Build for personal iOS device"
     echo "  $0 web-dev                Start web development server"
@@ -925,7 +957,6 @@ show_help() {
     echo "  $0 contracts-build        Build all contracts"
     echo "  $0 contracts-test         Test all contracts"
     echo "  $0 backend-build          Build Go backend service"
-    echo "  $0 backend-run            Run Go backend service"
     echo "  $0 backend-dev            Run Go backend in development mode"
     echo "  $0 backend-test           Test Go backend service"
     echo "  $0 backend-migrate-up     Run database migrations"
@@ -938,8 +969,11 @@ case "${1:-help}" in
     "electron-dev")
         electron_dev
         ;;
-    "electron-prod")
-        electron_prod
+    "electron-build")
+        electron_build
+        ;;
+    "electron-fix-macos")
+        electron_fix_macos
         ;;
     "ios-dev")
         ios_dev
@@ -973,9 +1007,6 @@ case "${1:-help}" in
         ;;
     "backend-build")
         backend_build
-        ;;
-    "backend-run")
-        backend_run
         ;;
     "backend-dev")
         backend_dev

@@ -32,6 +32,7 @@ func TestQuestionHandler_GetQuestions_NoService(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }
 
 func TestQuestionHandler_GetQuestion_InvalidID(t *testing.T) {
@@ -53,6 +54,7 @@ func TestQuestionHandler_GetQuestion_InvalidID(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }
 
 func TestQuestionHandler_CreateQuestion_InvalidData(t *testing.T) {
@@ -84,6 +86,7 @@ func TestQuestionHandler_CreateQuestion_InvalidData(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }
 
 func TestQuestionHandler_UpdateQuestion_InvalidID(t *testing.T) {
@@ -114,6 +117,7 @@ func TestQuestionHandler_UpdateQuestion_InvalidID(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }
 
 func TestQuestionHandler_DeleteQuestion_InvalidID(t *testing.T) {
@@ -135,6 +139,7 @@ func TestQuestionHandler_DeleteQuestion_InvalidID(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }
 
 func TestQuestionHandler_GetQuestionTemplates(t *testing.T) {
@@ -156,4 +161,5 @@ func TestQuestionHandler_GetQuestionTemplates(t *testing.T) {
 	var response map[string]interface{}
 	json.Unmarshal(w.Body.Bytes(), &response)
 	assert.False(t, response["success"].(bool))
+	assert.NotEmpty(t, response["message"])
 }

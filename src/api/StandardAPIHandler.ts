@@ -51,19 +51,38 @@ export class StandardAPIHandler implements IAPIHandler {
         headers,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ errmsg: 'Network error' }));
+      const responseData = await response.json().catch(() => ({}));
+
+      // 处理后端新的响应格式 {errcode, errmsg, data}
+      if (responseData.errcode) {
         return {
-          errcode: response.status.toString(),
-          errmsg: errorData.errmsg || `HTTP ${response.status}: ${response.statusText}`,
+          errcode: responseData.errcode,
+          errmsg: responseData.errmsg || 'Unknown error',
+          data: responseData.data,
         };
       }
 
-      const data = await response.json();
+      // 兼容旧的响应格式 {success, data, message}
+      if (responseData.success !== undefined) {
+        if (responseData.success) {
+          return {
+            errcode: '200',
+            errmsg: 'ok',
+            data: responseData.data,
+          };
+        } else {
+          return {
+            errcode: response.status.toString(),
+            errmsg: responseData.message || `HTTP ${response.status}: ${response.statusText}`,
+          };
+        }
+      }
+
+      // 如果都不是，返回原始数据
       return {
-        errcode: '200',
-        errmsg: 'ok',
-        data,
+        errcode: response.ok ? '200' : response.status.toString(),
+        errmsg: response.ok ? 'ok' : `HTTP ${response.status}: ${response.statusText}`,
+        data: responseData,
       };
     } catch (error) {
       return {

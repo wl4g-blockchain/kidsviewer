@@ -83,7 +83,7 @@ export const useWatchingSession = (
   // Convert API questions to common format
   const convertAPIQuestionToCommon = useCallback((apiQuestions: APIQuestion[]): WatchingQuestion[] => {
     return apiQuestions.map(q => ({
-      id: q.id,
+      id: q.id.toString(),
       question: q.content,
       options: q.options || [],
       type: q.type,

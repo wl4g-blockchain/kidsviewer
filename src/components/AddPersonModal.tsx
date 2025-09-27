@@ -85,7 +85,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
         },
       });
 
-      const response = await apiHandler.createPerson(currentUser.id, {
+      const response = await apiHandler.createPerson(currentUser.id.toString(), {
         alias: formData.alias,
         ageGroup: formData.ageGroup,
         settings: {
@@ -93,8 +93,11 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
           dailyTimeLimitMinutes: formData.perTimeLimitMinutes * 4, // by Default
           questionCount: formData.questionCount,
           questionsPerDay: formData.questionCount * 3,
-          subjects: formData.subjects.filter(subject => subject.enabled),
-          platformIds: formData.selectedPlatformIds,
+          subjects: formData.subjects.filter(subject => subject.enabled).map(s => ({
+            ...s,
+            id: Math.floor(Math.random() * 1000000)
+          })),
+          platformIds: formData.selectedPlatformIds.map(id => parseInt(id)),
         },
       });
 
@@ -299,21 +302,21 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
                   <div
                     key={platform.id}
                     className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                      formData.selectedPlatformIds.includes(platform.id)
+                      formData.selectedPlatformIds.includes(platform.id.toString())
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-300 hover:border-gray-400'
                     }`}
-                    onClick={() => handlePlatformToggle(platform.id)}
+                    onClick={() => handlePlatformToggle(platform.id.toString())}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center">
                           <div
                             className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center ${
-                              formData.selectedPlatformIds.includes(platform.id) ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
+                              formData.selectedPlatformIds.includes(platform.id.toString()) ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
                             }`}
                           >
-                            {formData.selectedPlatformIds.includes(platform.id) && <Check className="w-3 h-3 text-white" />}
+                            {formData.selectedPlatformIds.includes(platform.id.toString()) && <Check className="w-3 h-3 text-white" />}
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-900">{platform.nameEN}</h4>

@@ -8,8 +8,6 @@ import (
 	"kidsviewer-server/internal/database"
 	"kidsviewer-server/internal/models"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // PersonService handles person-related business logic
@@ -27,8 +25,8 @@ func NewPersonService(db *database.Database, cache cache.Cache) *PersonService {
 }
 
 // GetPersons returns all persons for a user
-func (s *PersonService) GetPersons(userID string) ([]models.Person, error) {
-	cacheKey := fmt.Sprintf("user:%s:persons", userID)
+func (s *PersonService) GetPersons(userID int64) ([]models.Person, error) {
+	cacheKey := fmt.Sprintf("user:%d:persons", userID)
 
 	// Try to get from cache first
 	var cached string
@@ -55,8 +53,8 @@ func (s *PersonService) GetPersons(userID string) ([]models.Person, error) {
 }
 
 // GetPerson returns a specific person
-func (s *PersonService) GetPerson(userID, personID string) (*models.Person, error) {
-	cacheKey := fmt.Sprintf("person:%s", personID)
+func (s *PersonService) GetPerson(userID int64, personID int64) (*models.Person, error) {
+	cacheKey := fmt.Sprintf("person:%d", personID)
 
 	// Try to get from cache first
 	var cached string
@@ -91,10 +89,11 @@ func (s *PersonService) GetPerson(userID, personID string) (*models.Person, erro
 }
 
 // CreatePerson creates a new person
-func (s *PersonService) CreatePerson(userID string, req models.CreatePersonRequest) (*models.Person, error) {
+func (s *PersonService) CreatePerson(userID int64, req models.CreatePersonRequest) (*models.Person, error) {
 	person := &models.Person{
-		ID:               uuid.New().String(),
+		ID:               time.Now().UnixNano(), // Use timestamp as ID
 		UserID:           userID,
+		ParentalID:       userID, // Set ParentalID to userID
 		Name:             req.Name,
 		AgeGroup:         req.AgeGroup,
 		Avatar:           req.Avatar,
@@ -116,7 +115,7 @@ func (s *PersonService) CreatePerson(userID string, req models.CreatePersonReque
 }
 
 // UpdatePerson updates an existing person
-func (s *PersonService) UpdatePerson(userID, personID string, req models.UpdatePersonRequest) (*models.Person, error) {
+func (s *PersonService) UpdatePerson(userID, personID int64, req models.UpdatePersonRequest) (*models.Person, error) {
 	// Get existing person
 	person, err := s.GetPerson(userID, personID)
 	if err != nil {
@@ -157,7 +156,7 @@ func (s *PersonService) UpdatePerson(userID, personID string, req models.UpdateP
 }
 
 // DeletePerson deletes a person
-func (s *PersonService) DeletePerson(userID, personID string) error {
+func (s *PersonService) DeletePerson(userID, personID int64) error {
 	// Verify ownership
 	_, err := s.GetPerson(userID, personID)
 	if err != nil {
@@ -176,7 +175,7 @@ func (s *PersonService) DeletePerson(userID, personID string) error {
 }
 
 // UpdatePersonSettings updates person settings
-func (s *PersonService) UpdatePersonSettings(userID, personID string, req models.UpdatePersonSettingsRequest) (*models.Person, error) {
+func (s *PersonService) UpdatePersonSettings(userID, personID int64, req models.UpdatePersonSettingsRequest) (*models.Person, error) {
 	// Get existing person
 	person, err := s.GetPerson(userID, personID)
 	if err != nil {
@@ -208,14 +207,14 @@ func (s *PersonService) UpdatePersonSettings(userID, personID string, req models
 }
 
 // GetPersonPlatforms returns platforms available for a person
-func (s *PersonService) GetPersonPlatforms(userID, personID string) ([]models.Platform, error) {
+func (s *PersonService) GetPersonPlatforms(userID, personID int64) ([]models.Platform, error) {
 	// Verify ownership
 	person, err := s.GetPerson(userID, personID)
 	if err != nil {
 		return nil, err
 	}
 
-	cacheKey := fmt.Sprintf("person:%s:platforms", personID)
+	cacheKey := fmt.Sprintf("person:%d:platforms", personID)
 
 	// Try to get from cache first
 	var cached string
@@ -241,14 +240,14 @@ func (s *PersonService) GetPersonPlatforms(userID, personID string) ([]models.Pl
 }
 
 // GetPersonStatistics returns statistics for a person
-func (s *PersonService) GetPersonStatistics(userID, personID string) (*models.PersonStatistics, error) {
+func (s *PersonService) GetPersonStatistics(userID, personID int64) (*models.PersonStatistics, error) {
 	// Verify ownership
 	_, err := s.GetPerson(userID, personID)
 	if err != nil {
 		return nil, err
 	}
 
-	cacheKey := fmt.Sprintf("person:%s:statistics", personID)
+	cacheKey := fmt.Sprintf("person:%d:statistics", personID)
 
 	// Try to get from cache first
 	var cached string
@@ -274,14 +273,14 @@ func (s *PersonService) GetPersonStatistics(userID, personID string) (*models.Pe
 }
 
 // GetLearningProgress returns learning progress for a person
-func (s *PersonService) GetLearningProgress(userID, personID string) (*models.LearningProgress, error) {
+func (s *PersonService) GetLearningProgress(userID, personID int64) (*models.LearningProgress, error) {
 	// Verify ownership
 	_, err := s.GetPerson(userID, personID)
 	if err != nil {
 		return nil, err
 	}
 
-	cacheKey := fmt.Sprintf("person:%s:progress", personID)
+	cacheKey := fmt.Sprintf("person:%d:progress", personID)
 
 	// Try to get from cache first
 	var cached string
@@ -307,16 +306,16 @@ func (s *PersonService) GetLearningProgress(userID, personID string) (*models.Le
 }
 
 // invalidatePersonCache invalidates cache for a specific person
-func (s *PersonService) invalidatePersonCache(personID string) {
+func (s *PersonService) invalidatePersonCache(personID int64) {
 	ctx := context.Background()
-	s.cache.Delete(ctx, fmt.Sprintf("person:%s", personID))
-	s.cache.Delete(ctx, fmt.Sprintf("person:%s:platforms", personID))
-	s.cache.Delete(ctx, fmt.Sprintf("person:%s:statistics", personID))
-	s.cache.Delete(ctx, fmt.Sprintf("person:%s:progress", personID))
+	s.cache.Delete(ctx, fmt.Sprintf("person:%d", personID))
+	s.cache.Delete(ctx, fmt.Sprintf("person:%d:platforms", personID))
+	s.cache.Delete(ctx, fmt.Sprintf("person:%d:statistics", personID))
+	s.cache.Delete(ctx, fmt.Sprintf("person:%d:progress", personID))
 }
 
 // invalidateUserCache invalidates cache for a specific user
-func (s *PersonService) invalidateUserCache(userID string) {
+func (s *PersonService) invalidateUserCache(userID int64) {
 	ctx := context.Background()
-	s.cache.Delete(ctx, fmt.Sprintf("user:%s:persons", userID))
+	s.cache.Delete(ctx, fmt.Sprintf("user:%d:persons", userID))
 }
