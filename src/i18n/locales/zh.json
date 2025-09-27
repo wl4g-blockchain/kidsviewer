@@ -29,7 +29,8 @@
         "attempt": "第 {count} 次尝试",
         "attempts": "已尝试 {count} 次",
         "option": "选项",
-        "confirmDelete": "您确定要删除这个项目吗？"
+        "confirmDelete": "您确定要删除这个项目吗？",
+        "understood": "我知道了"
     },
     "auth": {
         "login": "登录",
@@ -56,18 +57,17 @@
         "ageGroups": {
             "preschool": "学前儿童 (2-4岁)",
             "young": "小童 (4-6岁)",
-            "older": "大童 (6-12岁)"
+            "older": "大童 (6-12岁)",
+            "undefined": "未指定"
         },
         "settings": "设置",
         "sessionTimeLimit": "时间限制",
-        "questionCount": "问题数量",
         "subjects": "学科",
         "allowedUrls": "允许的网址",
         "addUrl": "添加网址",
         "urlPlaceholder": "输入内容平台网址",
         "dailyReport": "每日报告",
         "usageStats": "使用统计",
-        "learningProgress": "学习进度",
         "switchToPerson": "切换到 {name}",
         "backToParent": "返回家长模式",
         "noPersonsAdded": "还没有添加孩子账户",
@@ -464,7 +464,6 @@
         "noQuestionsMatch": "没有题目符合当前筛选条件。",
         "createFirstQuestion": "创建第一个题目",
         "modal": {
-            "create": "创建题目",
             "edit": "编辑题目",
             "questionType": "题目类型",
             "questionContent": "题目内容",

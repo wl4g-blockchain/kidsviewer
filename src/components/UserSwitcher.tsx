@@ -142,7 +142,7 @@ export const UserSwitcher: React.FC = () => {
               ) : (
                 <>
                   <Baby className="w-2 h-2 sm:w-3 sm:h-3" />
-                  <span className="truncate">{t('parental.ageGroups.' + activePerson?.ageGroup)}</span>
+                  <span className="truncate">{t(`parental.ageGroups.${activePerson?.ageGroup || 'undefined'}`)}</span>
                 </>
               )}
             </div>
@@ -232,7 +232,7 @@ export const UserSwitcher: React.FC = () => {
                         <div className="flex-1 text-left">
                           <div className="font-semibold text-gray-800 text-sm">{person.alias}</div>
                           <div className="text-xs text-gray-500">
-                            {t('parental.ageGroups.' + person.ageGroup)} • {person.settings.perTimeLimitMinutes}
+                            {t(`parental.ageGroups.${person.ageGroup || 'undefined'}`)} • {person.settings.perTimeLimitMinutes}
                             {t('time.minutes')}
                           </div>
                         </div>

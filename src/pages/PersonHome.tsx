@@ -472,11 +472,15 @@ export const PersonHome: React.FC = () => {
                     <div className="mt-2 flex items-center justify-center space-x-4 text-sm text-gray-600">
                       <div className="flex items-center space-x-1">
                         <span className="font-medium">{t('personViewer.sessionTime')}:</span>
-                        <span className="text-blue-600 font-bold">{formatTime(remainingTime)}</span>
+                        <span className={`font-bold ${remainingTime <= 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                          {remainingTime <= 0 ? t('time.timeUp') : formatTime(remainingTime)}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <span className="font-medium">{t('personViewer.dailyTime')}:</span>
-                        <span className="text-green-600 font-bold">{formatTime(remainingDailyTime)}</span>
+                        <span className={`font-bold ${remainingDailyTime <= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {remainingDailyTime <= 0 ? t('time.timeUp') : formatTime(remainingDailyTime)}
+                        </span>
                       </div>
                     </div>
                   )}

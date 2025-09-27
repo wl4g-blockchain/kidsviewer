@@ -245,7 +245,7 @@ export const ParentalHome: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-medium text-gray-900">{person.alias}</h3>
                       <p className="text-sm text-gray-500">
-                        {t(`parental.ageGroups.${person.ageGroup}`)} • {person.settings.perTimeLimitMinutes} {t('time.minutes')}
+                        {t(`parental.ageGroups.${person.ageGroup || 'undefined'}`)} • {person.settings.perTimeLimitMinutes} {t('time.minutes')}
                       </p>
                     </div>
                   </div>

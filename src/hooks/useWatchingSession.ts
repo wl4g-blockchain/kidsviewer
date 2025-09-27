@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { APIFactory } from '../api/APIFactory';
 import { Question as APIQuestion } from '../types';
+import { useTranslation } from '../i18n/I18nProvider';
 
 // Common interface for watching session questions
 export interface WatchingQuestion {
@@ -46,6 +47,7 @@ export const useWatchingSession = (
   onQuestionsShown?: () => void,
   onQuestionsHidden?: () => void
 ): UseWatchingSessionReturn => {
+  const t = useTranslation();
   const [watchingToken, setWatchingToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -111,7 +113,7 @@ export const useWatchingSession = (
 
         try {
           const response = await api.checkWatching(token);
-          //alert(JSON.stringify(response));
+          console.log('Watching status check response:', response);
 
           if (response.errcode === '200' && response.data) {
             // Update remaining time information
@@ -151,6 +153,12 @@ export const useWatchingSession = (
             if (response.data.remainingTime <= 0) {
               console.log('Session time limit reached, waiting for server response...');
               // Don't immediately end session - let 4018 error code handle question display
+              // But if we have questions available, show them immediately
+              if (response.data.questions && response.data.questions.length > 0 && !showQuestionsRef.current) {
+                console.log('Session time limit reached, showing questions immediately:', response.data.questions);
+                setQuestions(convertAPIQuestionToCommon(response.data.questions));
+                setShowQuestionsWrapper(true);
+              }
             }
           } else if (response.errcode === '4018' && response.data) {
             // Session time limit exceeded - show questions
@@ -166,6 +174,7 @@ export const useWatchingSession = (
 
             // Show questions if available and not already showing
             if (response.data.questions && response.data.questions.length > 0 && !showQuestionsRef.current) {
+              console.log('4018: Showing questions immediately:', response.data.questions);
               setQuestions(convertAPIQuestionToCommon(response.data.questions));
               setShowQuestionsWrapper(true);
             }
@@ -192,11 +201,14 @@ export const useWatchingSession = (
 
             // Notify parent component that session has ended
             onSessionEndRef.current?.();
+          } else {
+            // Handle other error codes
+            console.log('Unexpected response code:', response.errcode, response);
           }
         } catch (error) {
           console.error('Error checking watching status:', error);
         }
-      }, 1000); // Check every 5 seconds to avoid too frequent requests
+      }, 2000); // Check every 2 seconds for more responsive updates
     },
     [convertAPIQuestionToCommon, setShowQuestionsWrapper]
   );
