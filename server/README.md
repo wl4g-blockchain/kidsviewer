@@ -304,6 +304,12 @@ go test -cover ./...
 go test -tags=integration ./...
 ```
 
+### Regenerate the APIs docs
+
+```bash
+$GOPATH/bin/swag init -g cmd/main.go -o docs
+```
+
 ## License
 
 [Your License Here]

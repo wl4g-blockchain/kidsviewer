@@ -1,13 +1,14 @@
 {
-  "appId": "com.kidsviewer.app",
-  "appName": "KidsViewer",
+  "appId": "com.wl4g.kidsviewer",
+  "appName": "App",
   "webDir": "dist",
   "server": {
     "androidScheme": "https",
-    "iosScheme": "https",
+    "iosScheme": "http",
     "allowNavigation": ["*"],
-    "hostname": "localhost",
-    "cleartext": true
+    "hostname": "192.168.2.13",
+    "cleartext": true,
+    "url": "http://192.168.2.13:5173"
   },
   "plugins": {
     "SplashScreen": {
@@ -29,33 +30,7 @@
   },
   "ios": {
     "contentInset": "always",
-    "scheme": "kidsviewer",
-    "backgroundColor": "#ffffff",
-    "associatedDomains": [
-      "applinks:kidsviewer.app",
-      "applinks:metamask.app.link",
-      "applinks:argent.xyz",
-      "applinks:app.braavos.com"
-    ]
-  },
-  "android": {
-    "allowMixedContent": true,
-    "scheme": "kidsviewer",
-    "intentFilters": [
-      {
-        "action": "android.intent.action.VIEW",
-        "autoVerify": true,
-        "data": [
-          {
-            "scheme": "https",
-            "host": "kidsviewer.app"
-          }
-        ],
-        "category": [
-          "android.intent.category.DEFAULT",
-          "android.intent.category.BROWSABLE"
-        ]
-      }
-    ]
+    "scheme": "App",
+    "backgroundColor": "#ffffff"
   }
 }
