@@ -902,8 +902,8 @@ backend_build() {
 
     print_info "Building Go backend service..."
 
-    # Build with flags to avoid showing local absolute paths
-    CGO_ENABLED=0 go build \
+    # Build with CGO enabled for SQLite support
+    CGO_ENABLED=1 go build \
         -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
         -trimpath \
         -o main \
@@ -957,8 +957,8 @@ backend_dev() {
     else
         print_info "Air not found, running with go run..."
         print_info "Install air for hot reload: go install github.com/cosmtrek/air@latest"
-        # Run with flags to avoid showing local absolute paths
-        CGO_ENABLED=0 go run \
+        # Run with CGO enabled for SQLite support
+        CGO_ENABLED=1 go run \
             -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             -trimpath \
             ./cmd/main.go
