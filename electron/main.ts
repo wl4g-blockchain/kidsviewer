@@ -344,7 +344,7 @@ function closeAllVideoWindows() {
 
 // App event handlers
 app.whenReady().then(() => {
-    electronApp.setAppUserModelId('com.kidsviewer.app');
+    electronApp.setAppUserModelId('com.wl4g.kidsviewer');
 
     // Global configuration: disable CSP and other security policies to allow third-party content embedding
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {

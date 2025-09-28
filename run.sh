@@ -26,12 +26,12 @@ print_header() {
 run_with_timeout() {
     local timeout_seconds=$1
     shift
-    
+
     # Check if timeout command is available
-    if command -v timeout &> /dev/null; then
+    if command -v timeout &>/dev/null; then
         # Use GNU timeout (Linux)
         timeout $timeout_seconds "$@"
-    elif command -v gtimeout &> /dev/null; then
+    elif command -v gtimeout &>/dev/null; then
         # Use GNU timeout from coreutils (macOS with Homebrew)
         gtimeout $timeout_seconds "$@"
     else
@@ -60,20 +60,20 @@ print_info() {
 # Graceful shutdown function
 graceful_shutdown() {
     print_info "Gracefully stopping all processes..."
-    
+
     # Clean up temporary files
     if [ -f ".vite-port-output" ]; then
         rm -f .vite-port-output
     fi
-    
+
     # Restore original configuration if backup exists
     if [ -f "capacitor.config.json.bak" ]; then
         print_info "Restoring original configuration..."
         mv capacitor.config.json.bak capacitor.config.json
     fi
-    
+
     for pid in "${PIDS[@]}"; do
-        if ps -p $pid > /dev/null; then
+        if ps -p $pid >/dev/null; then
             print_info "Stopping process $pid"
             kill -TERM $pid 2>/dev/null || kill -KILL $pid 2>/dev/null
         fi
@@ -88,13 +88,13 @@ trap graceful_shutdown INT TERM
 # Check Node.js and npm
 check_dependencies() {
     # Check Node.js
-    if ! command -v node &> /dev/null; then
+    if ! command -v node &>/dev/null; then
         print_error "Node.js not found, please install Node.js 18+"
         exit 1
     fi
 
     # Check npm
-    if ! command -v npm &> /dev/null; then
+    if ! command -v npm &>/dev/null; then
         print_error "npm not found, please install npm"
         exit 1
     fi
@@ -138,21 +138,21 @@ build_project() {
 # Electron development mode
 electron_dev() {
     print_header "Starting Electron Development Mode"
-    
+
     check_dependencies
     install_npm_deps
-    
+
     print_info "Starting development mode..."
     print_info "Application will open in browser: http://localhost:5173"
     print_info "Electron app will start simultaneously"
     echo ""
     print_warning "Press Ctrl+C to stop the application"
     echo ""
-    
+
     npm run preelectron-dev &
     npm run electron-dev &
     PIDS+=($!)
-    
+
     # Wait for all background processes
     wait
 }
@@ -160,33 +160,33 @@ electron_dev() {
 # Electron build for production
 electron_build() {
     local debug_mode=${1:-false}
-    
+
     if [ "$debug_mode" = "true" ]; then
         print_header "Building Electron for Production (Debug Mode)"
     else
         print_header "Building Electron for Production"
     fi
-    
+
     check_dependencies
     install_npm_deps
-    
+
     # Check if Electron is installed
     if [ ! -d "node_modules/electron" ]; then
         print_info "Installing Electron dependencies..."
         npm install electron electron-builder @electron-toolkit/utils --save-dev
     fi
-    
+
     if [ "$debug_mode" = "true" ]; then
         print_info "Building project with debug output..."
         npm run build-debug
     else
         build_project
     fi
-    
+
     print_info "Building Electron application..."
     print_warning "Note: Electron build may take several minutes and might appear to hang..."
     print_info "This is normal for the first build as it downloads Electron binaries"
-    
+
     if [ "$debug_mode" = "true" ]; then
         print_info "Debug mode enabled - showing detailed build output..."
         print_info "This will help identify where the build process hangs"
@@ -197,7 +197,7 @@ electron_build() {
         print_info "DEBUG=electron-builder"
         print_info "ELECTRON_BUILDER_CACHE=/tmp/electron-builder-cache"
         print_info "ELECTRON_BUILDER_OFFLINE=false"
-        
+
         # Show system information
         print_info "System information:"
         print_info "Node.js version: $(node -v)"
@@ -206,7 +206,7 @@ electron_build() {
         print_info "Available disk space:"
         df -h . | head -2
     fi
-    
+
     # Try simple build first (faster, less likely to hang)
     print_info "Attempting simple build first..."
     if [ "$debug_mode" = "true" ]; then
@@ -222,7 +222,7 @@ electron_build() {
             return 0
         fi
     fi
-    
+
     # If simple build fails, try full build with timeout
     print_info "Simple build failed, trying full build..."
     if [ "$debug_mode" = "true" ]; then
@@ -233,12 +233,12 @@ electron_build() {
             else
                 print_warning "Debug build failed with exit code: $BUILD_EXIT_CODE"
             fi
-            
+
             # Check if any build artifacts were created
             if [ -d "release/mac-arm64/Electron.app" ]; then
                 print_warning "Build artifacts found despite error/timeout"
                 print_info "Attempting to fix the missing executable..."
-                
+
                 # Try to find and copy the main executable
                 if [ -f "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" ]; then
                     print_info "Found Electron Helper, creating main executable..."
@@ -248,7 +248,7 @@ electron_build() {
                 else
                     print_warning "Could not find Electron Helper to copy"
                 fi
-                
+
                 print_success "Electron application built successfully!"
                 print_info "Built files are available in the release/ directory"
             else
@@ -265,12 +265,12 @@ electron_build() {
             else
                 print_warning "Build failed with exit code: $BUILD_EXIT_CODE"
             fi
-            
+
             # Check if any build artifacts were created
             if [ -d "release/mac-arm64/Electron.app" ]; then
                 print_warning "Build artifacts found despite error/timeout"
                 print_info "Attempting to fix the missing executable..."
-                
+
                 # Try to find and copy the main executable
                 if [ -f "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" ]; then
                     print_info "Found Electron Helper, creating main executable..."
@@ -280,7 +280,7 @@ electron_build() {
                 else
                     print_warning "Could not find Electron Helper to copy"
                 fi
-                
+
                 print_success "Electron application built successfully!"
                 print_info "Built files are available in the release/ directory"
             else
@@ -290,7 +290,7 @@ electron_build() {
             fi
         }
     fi
-    
+
     # If we reach here, build was successful
     print_success "Electron application built successfully!"
     print_info "Built files are available in the release/ directory"
@@ -299,21 +299,21 @@ electron_build() {
 # Fix macOS security issues for Electron app
 electron_fix_macos() {
     print_header "Fixing macOS Security Issues"
-    
+
     if [ ! -d "release/mac-arm64/Electron.app" ]; then
         print_error "Electron app not found. Please run electron-build first."
         exit 1
     fi
-    
+
     print_info "Removing quarantine attributes..."
     xattr -d com.apple.quarantine release/mac-arm64/Electron.app 2>/dev/null || true
-    
+
     print_info "Adding execution permissions..."
     chmod +x release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer
-    
+
     print_info "Signing the application (ad-hoc signing)..."
     codesign --force --deep --sign - release/mac-arm64/Electron.app
-    
+
     if [ $? -eq 0 ]; then
         print_success "macOS security issues fixed!"
         print_info "You can now run the application without security warnings"
@@ -327,87 +327,87 @@ electron_fix_macos() {
 # iOS development with live reload
 ios_dev() {
     print_header "Starting iOS Development with Live Reload"
-    
+
     check_dependencies
     install_npm_deps
-    
+
     # Start dev server with hot reload
     print_info "Starting development server with hot reload..."
-    
+
     # Simple approach: run npm dev and capture output to file
-    npm run dev > .vite-port-output 2>&1 &
+    npm run dev >.vite-port-output 2>&1 &
     DEV_PID=$!
     PIDS+=($DEV_PID)
-    
+
     # Show output in real-time
     tail -f .vite-port-output &
     TAIL_PID=$!
     PIDS+=($TAIL_PID)
-    
+
     # Wait for dev server to start
     sleep 5
-    
+
     # Get the actual port used by Vite
     # Wait a bit more for the server to output port info
     sleep 5
-    
+
     # Wait for Vite to output port information
     MAX_RETRIES=10
     RETRY_COUNT=0
     DEV_PORT=""
-    
+
     print_info "Waiting for Vite to start and detect port..."
-    
+
     # Stop the tail process after we've captured enough output
     sleep 3
     kill $TAIL_PID 2>/dev/null || true
-    
+
     while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ -z "$DEV_PORT" ]; do
         if [ -f ".vite-port-output" ]; then
             # Try to get the port from the output file
             DEV_PORT=$(grep -o "Local:.*http://localhost:[0-9]\+" .vite-port-output 2>/dev/null | tail -1 | grep -o "[0-9]\+$" || echo "")
-            
+
             if [ -n "$DEV_PORT" ]; then
                 print_info "Detected Vite port from output: $DEV_PORT"
                 break
             fi
         fi
-        
+
         RETRY_COUNT=$((RETRY_COUNT + 1))
         sleep 1
     done
-    
+
     # If we couldn't detect the port, use a default
     if [ -z "$DEV_PORT" ]; then
         print_warning "Could not detect Vite port from output file after $MAX_RETRIES retries"
         print_info "Using default port 5173"
         DEV_PORT="5173"
     fi
-    
+
     # If we couldn't detect the port from output, try using lsof
     if [ -z "$DEV_PORT" ]; then
         DEV_PORT=$(lsof -i -P -n | grep LISTEN | grep node | head -1 | awk '{print $9}' | cut -d':' -f2)
     fi
-    
+
     # If we still couldn't detect the port, default to 5173
     if [ -z "$DEV_PORT" ]; then
         DEV_PORT=5173
     fi
-    
+
     print_info "Development server running on port: $DEV_PORT"
-    
+
     # Create temporary development config file
     print_info "Creating development config for live reload..."
     # Backup original config
     cp capacitor.config.json capacitor.config.json.bak
-    
+
     # Get local IP address for development server
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS
         LOCAL_IP=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | head -1 | awk '{print $2}')
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         # Linux
-        if command -v ifconfig &> /dev/null; then
+        if command -v ifconfig &>/dev/null; then
             LOCAL_IP=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | head -1 | awk '{print $2}')
         else
             LOCAL_IP=$(ip addr show | grep "inet " | grep -v 127.0.0.1 | head -1 | awk '{print $2}' | cut -d/ -f1)
@@ -419,16 +419,16 @@ ios_dev() {
         # Default fallback
         LOCAL_IP="localhost"
     fi
-    
+
     # If IP detection failed, use localhost
     if [ -z "$LOCAL_IP" ]; then
         LOCAL_IP="localhost"
     fi
-    
+
     # Create development config
-    cat > capacitor.config.json << EOF
+    cat >capacitor.config.json <<EOF
 {
-  "appId": "com.kidsviewer.app",
+  "appId": "com.wl4g.kidsviewer",
   "appName": "App",
   "webDir": "dist",
   "server": {
@@ -464,26 +464,26 @@ ios_dev() {
   }
 }
 EOF
-    
+
     # Sync Capacitor resources
     print_info "Syncing iOS resources with development config..."
     npx cap sync ios
-    
+
     # Check Xcode installation
-    if ! command -v xcodebuild &> /dev/null; then
+    if ! command -v xcodebuild &>/dev/null; then
         print_error "Xcode not found, please install Xcode from Mac App Store"
         # Restore original config
         mv capacitor.config.json.bak capacitor.config.json
         graceful_shutdown
         exit 1
     fi
-    
+
     # Get available iOS simulator devices
     print_info "Fetching available iOS simulator devices..."
-    
+
     # Direct parsing of simulator devices
     DEVICES=$(xcrun simctl list devices | grep -v "^==" | grep "(" | sed 's/^[ \t]*//')
-    
+
     if [ -z "$DEVICES" ]; then
         print_error "No available iOS simulator devices found"
         print_info "Please create a simulator device in Xcode first"
@@ -492,27 +492,27 @@ EOF
         graceful_shutdown
         exit 1
     fi
-    
+
     # Display available devices and prompt user to select one
     echo ""
     print_info "Available iOS simulator devices:"
     echo ""
-    
+
     # Create array of device IDs and names
     # Using a different approach to create the array that works more reliably
     DEVICE_ARRAY=()
     while IFS= read -r line; do
         DEVICE_ARRAY+=("$line")
-    done <<< "$DEVICES"
-    
+    done <<<"$DEVICES"
+
     # Display devices with index numbers
     for i in "${!DEVICE_ARRAY[@]}"; do
-        echo "  $((i+1)). ${DEVICE_ARRAY[$i]}"
+        echo "  $((i + 1)). ${DEVICE_ARRAY[$i]}"
     done
-    
+
     echo ""
     read -p "Select a device (1-${#DEVICE_ARRAY[@]}): " DEVICE_CHOICE
-    
+
     # Validate input
     if ! [[ "$DEVICE_CHOICE" =~ ^[0-9]+$ ]] || [ "$DEVICE_CHOICE" -lt 1 ] || [ "$DEVICE_CHOICE" -gt "${#DEVICE_ARRAY[@]}" ]; then
         print_error "Invalid selection"
@@ -521,67 +521,213 @@ EOF
         graceful_shutdown
         exit 1
     fi
-    
+
     # Get selected device ID
-    SELECTED_DEVICE="${DEVICE_ARRAY[$((DEVICE_CHOICE-1))]}"
-    
+    SELECTED_DEVICE="${DEVICE_ARRAY[$((DEVICE_CHOICE - 1))]}"
+
     # Format: "DEVICE_NAME (UDID) (STATE)"
     DEVICE_NAME=$(echo "$SELECTED_DEVICE" | sed -E 's/^([^(]+).*/\1/' | xargs)
     DEVICE_ID=$(echo "$SELECTED_DEVICE" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
-    
+
     print_info "Selected device: $DEVICE_NAME (ID: $DEVICE_ID)"
-    
+
     # Launch iOS simulator with selected device
     print_info "Launching iOS simulator with selected device..."
     # Use Capacitor CLI with proper options
     npx cap run ios --target="$DEVICE_ID" --scheme=App --live-reload --host="$LOCAL_IP" --port="$DEV_PORT" &
     SIM_PID=$!
     PIDS+=($SIM_PID)
-    
+
     print_success "iOS development environment with live reload started!"
     print_info "Changes to your code will automatically refresh in the simulator"
     print_info "App will use the development server at: http://$LOCAL_IP:$DEV_PORT"
     print_warning "Press Ctrl+C to stop all processes"
-    
+
     # Wait for all background processes
     wait
-    
+
     # Restore original config
     print_info "Restoring original configuration..."
     mv capacitor.config.json.bak capacitor.config.json
 }
 
+# iOS simulator management functions
+ios_simulator_list() {
+    print_header "Listing iOS Simulators"
+
+    # Check Xcode installation
+    if ! command -v xcrun &>/dev/null; then
+        print_error "Xcode command line tools not found, please install Xcode from Mac App Store"
+        exit 1
+    fi
+
+    # Get available iOS simulator devices
+    print_info "Available iOS simulator devices:"
+    echo ""
+
+    # Direct parsing of simulator devices
+    DEVICES=$(xcrun simctl list devices | grep -v "^==" | grep "(" | sed 's/^[ \t]*//')
+
+    if [ -z "$DEVICES" ]; then
+        print_error "No available iOS simulator devices found"
+        print_info "Please create a simulator device in Xcode first"
+        exit 1
+    fi
+
+    # Display devices with index numbers
+    DEVICE_ARRAY=()
+    while IFS= read -r line; do
+        DEVICE_ARRAY+=("$line")
+    done <<<"$DEVICES"
+
+    # Display devices in table format
+    printf "  %-3s %-2s %-25s %-40s %-10s\n" "No." "St" "Device Name" "Device ID" "Status"
+    printf "  %-3s %-2s %-25s %-40s %-10s\n" "---" "--" "-----------" "---------" "------"
+
+    for i in "${!DEVICE_ARRAY[@]}"; do
+        DEVICE_LINE="${DEVICE_ARRAY[$i]}"
+        DEVICE_NAME=$(echo "$DEVICE_LINE" | sed -E 's/^([^(]+).*/\1/' | xargs)
+        DEVICE_ID=$(echo "$DEVICE_LINE" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
+
+        # Extract state from the end of the line
+        if [[ "$DEVICE_LINE" == *"(Booted)"* ]]; then
+            DEVICE_STATE="Booted"
+            STATUS_EMOJI="🟢"
+        else
+            DEVICE_STATE="Shutdown"
+            STATUS_EMOJI="⚪"
+        fi
+
+        # Format index with leading zero for two digits
+        INDEX=$(printf "%02d" $((i + 1)))
+
+        # Truncate device name if too long
+        if [ ${#DEVICE_NAME} -gt 25 ]; then
+            DEVICE_NAME="${DEVICE_NAME:0:22}..."
+        fi
+
+        printf "  %-3s %-2s %-25s %-40s %-10s\n" "$INDEX" "$STATUS_EMOJI" "$DEVICE_NAME" "$DEVICE_ID" "$DEVICE_STATE"
+    done
+
+    echo ""
+    print_success "Simulator list completed"
+}
+
+ios_simulator_reset() {
+    print_header "Resetting iOS Simulator"
+
+    # Check Xcode installation
+    if ! command -v xcrun &>/dev/null; then
+        print_error "Xcode command line tools not found, please install Xcode from Mac App Store"
+        exit 1
+    fi
+
+    # Get available iOS simulator devices
+    print_info "Fetching available iOS simulator devices..."
+
+    # Direct parsing of simulator devices
+    DEVICES=$(xcrun simctl list devices | grep -v "^==" | grep "(" | sed 's/^[ \t]*//')
+
+    if [ -z "$DEVICES" ]; then
+        print_error "No available iOS simulator devices found"
+        print_info "Please create a simulator device in Xcode first"
+        exit 1
+    fi
+
+    # Display available devices and prompt user to select one
+    echo ""
+    print_info "Available iOS simulator devices:"
+    echo ""
+
+    # Create array of device IDs and names
+    DEVICE_ARRAY=()
+    while IFS= read -r line; do
+        DEVICE_ARRAY+=("$line")
+    done <<<"$DEVICES"
+
+    # Display devices with index numbers
+    for i in "${!DEVICE_ARRAY[@]}"; do
+        echo "  $((i + 1)). ${DEVICE_ARRAY[$i]}"
+    done
+
+    echo ""
+    read -p "Select a device to reset (1-${#DEVICE_ARRAY[@]}): " DEVICE_CHOICE
+
+    # Validate input
+    if ! [[ "$DEVICE_CHOICE" =~ ^[0-9]+$ ]] || [ "$DEVICE_CHOICE" -lt 1 ] || [ "$DEVICE_CHOICE" -gt "${#DEVICE_ARRAY[@]}" ]; then
+        print_error "Invalid selection"
+        exit 1
+    fi
+
+    # Get selected device ID
+    SELECTED_DEVICE="${DEVICE_ARRAY[$((DEVICE_CHOICE - 1))]}"
+
+    # Format: "DEVICE_NAME (UDID) (STATE)"
+    DEVICE_NAME=$(echo "$SELECTED_DEVICE" | sed -E 's/^([^(]+).*/\1/' | xargs)
+    DEVICE_ID=$(echo "$SELECTED_DEVICE" | sed -E 's/.*\(([0-9A-F-]+)\).*/\1/')
+
+    print_info "Selected device: $DEVICE_NAME (ID: $DEVICE_ID)"
+
+    # Warning about reset
+    print_warning "This will completely reset the simulator and delete ALL data!"
+    print_warning "All installed apps, settings, and user data will be lost!"
+    echo ""
+    read -p "Are you sure you want to reset this simulator? (yes/no): " CONFIRM
+
+    if [ "$CONFIRM" = "yes" ]; then
+        print_info "Resetting simulator $DEVICE_NAME..."
+
+        # Shutdown simulator if running
+        print_info "Shutting down simulator if running..."
+        xcrun simctl shutdown "$DEVICE_ID" 2>/dev/null || true
+
+        # Erase simulator
+        print_info "Erasing simulator data..."
+        xcrun simctl erase "$DEVICE_ID"
+
+        if [ $? -eq 0 ]; then
+            print_success "Simulator reset completed successfully!"
+            print_info "The simulator is now in a clean state with no installed apps"
+        else
+            print_error "Failed to reset simulator"
+            exit 1
+        fi
+    else
+        print_info "Operation cancelled"
+    fi
+}
+
 # iOS build for personal device without Apple Developer account
 ios_build() {
     print_header "Building iOS Package for Personal Device"
-    
+
     check_dependencies
     install_npm_deps
-    
+
     # Build project
     build_project
-    
+
     # Sync Capacitor resources
     print_info "Syncing iOS resources..."
     npx cap sync ios
-    
+
     # Check Xcode installation
-    if ! command -v xcodebuild &> /dev/null; then
+    if ! command -v xcodebuild &>/dev/null; then
         print_error "Xcode not found, please install Xcode from Mac App Store"
         print_info "After installing Xcode, run: sudo xcode-select --switch /Applications/Xcode.app"
         exit 1
     fi
-    
+
     # Check CocoaPods installation
-    if ! command -v pod &> /dev/null; then
+    if ! command -v pod &>/dev/null; then
         print_info "Installing CocoaPods..."
         sudo gem install cocoapods
     fi
-    
+
     # Install iOS dependencies
     print_info "Installing iOS dependencies..."
     cd ios/App && pod install && cd ../..
-    
+
     # Open Xcode project
     print_info "Opening Xcode project..."
     print_info "Please follow these steps in Xcode:"
@@ -595,10 +741,10 @@ ios_build() {
     print_warning "After installation, go to Settings > General > Device Management on your iOS device"
     print_warning "Find your Apple ID and trust the developer"
     echo ""
-    
+
     # Open Xcode project
     npx cap open ios
-    
+
     print_success "Xcode project opened for building to personal device!"
     print_info "Follow the on-screen instructions to complete the build process"
 }
@@ -606,19 +752,19 @@ ios_build() {
 # Start for web development
 web_dev() {
     print_header "Starting Web Development Mode"
-    
+
     check_dependencies
     install_npm_deps
-    
+
     print_info "Starting web development server..."
     print_info "Application will be available at: http://localhost:5173"
     echo ""
     print_warning "Press Ctrl+C to stop the server"
     echo ""
-    
+
     npm run dev &
     PIDS+=($!)
-    
+
     # Wait for all background processes
     wait
 }
@@ -626,24 +772,24 @@ web_dev() {
 # Build for web production
 web_build() {
     print_header "Building for Production"
-    
+
     check_dependencies
     install_npm_deps
     build_project
-    
+
     print_success "Production build completed!"
 }
 
 # Ethereum contracts functions
 ethereum_build() {
     print_header "Building Ethereum Contracts"
-    
+
     # Check if contracts run script exists
     if [ ! -f "contracts/run.sh" ]; then
         print_error "Contracts run script not found"
         exit 1
     fi
-    
+
     # Call contracts run script
     cd contracts
     ./run.sh ethereum-build
@@ -652,13 +798,13 @@ ethereum_build() {
 
 ethereum_test() {
     print_header "Testing Ethereum Contracts"
-    
+
     # Check if contracts run script exists
     if [ ! -f "contracts/run.sh" ]; then
         print_error "Contracts run script not found"
         exit 1
     fi
-    
+
     # Call contracts run script
     cd contracts
     ./run.sh ethereum-test
@@ -668,13 +814,13 @@ ethereum_test() {
 # Starknet contracts functions
 starknet_build() {
     print_header "Building Starknet Contracts"
-    
+
     # Check if contracts run script exists
     if [ ! -f "contracts/run.sh" ]; then
         print_error "Contracts run script not found"
         exit 1
     fi
-    
+
     # Call contracts run script
     cd contracts
     ./run.sh starknet-build
@@ -683,13 +829,13 @@ starknet_build() {
 
 starknet_test() {
     print_header "Testing Starknet Contracts"
-    
+
     # Check if contracts run script exists
     if [ ! -f "contracts/run.sh" ]; then
         print_error "Contracts run script not found"
         exit 1
     fi
-    
+
     # Call contracts run script
     cd contracts
     ./run.sh starknet-test
@@ -699,13 +845,13 @@ starknet_test() {
 # Combined contracts functions
 contracts_build() {
     print_header "Building All Contracts"
-    
+
     # Check if contracts run script exists
     if [ ! -f "contracts/run.sh" ]; then
         print_error "Contracts run script not found"
         exit 1
     fi
-    
+
     # Call contracts run script
     cd contracts
     ./run.sh contracts-build
@@ -714,13 +860,13 @@ contracts_build() {
 
 contracts_test() {
     print_header "Testing All Contracts"
-    
+
     # Check if contracts run script exists
     if [ ! -f "contracts/run.sh" ]; then
         print_error "Contracts run script not found"
         exit 1
     fi
-    
+
     # Call contracts run script
     cd contracts
     ./run.sh contracts-test
@@ -730,14 +876,14 @@ contracts_test() {
 # Backend Go service functions
 backend_build() {
     print_header "Building Backend Go Service"
-    
+
     # Check if Go is installed
-    if ! command -v go &> /dev/null; then
+    if ! command -v go &>/dev/null; then
         print_error "Go not found, please install Go 1.21+ first"
         print_info "Install Go: https://golang.org/doc/install"
         exit 1
     fi
-    
+
     # Check Go version
     GO_VERSION=$(go version | grep -o 'go[0-9]\+\.[0-9]\+' | cut -d'v' -f2)
     REQUIRED_VERSION="1.21"
@@ -745,68 +891,67 @@ backend_build() {
         print_error "Go version too low, requires $REQUIRED_VERSION+, current: $GO_VERSION"
         exit 1
     fi
-    
+
     # Navigate to server directory
     if [ ! -d "server" ]; then
         print_error "Server directory not found"
         exit 1
     fi
-    
+
     cd server
-    
+
     print_info "Building Go backend service..."
-    
+
     # Build with flags to avoid showing local absolute paths
     CGO_ENABLED=0 go build \
         -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
         -trimpath \
         -o main \
         ./cmd/main.go
-    
+
     if [ $? -ne 0 ]; then
         print_error "Backend build failed"
         cd ..
         exit 1
     fi
-    
+
     print_success "Backend service built successfully"
     cd ..
 }
 
-
 backend_dev() {
     print_header "Starting Backend Development Mode"
-    
+
     # Check if Go is installed
-    if ! command -v go &> /dev/null; then
+    if ! command -v go &>/dev/null; then
         print_error "Go not found, please install Go 1.21+ first"
         print_info "Install Go: https://golang.org/doc/install"
         exit 1
     fi
-    
+
     # Navigate to server directory
     if [ ! -d "server" ]; then
         print_error "Server directory not found"
         exit 1
     fi
-    
+
     cd server
-    
+
     # Check if config file exists, create from example if not
     if [ ! -f "config.yaml" ] && [ -f "config.example.yaml" ]; then
         print_info "Creating config.yaml from example..."
         cp config.example.yaml config.yaml
         print_warning "Please edit config.yaml with your settings before running the server"
     fi
-    
+
     print_info "Starting Go backend service in development mode..."
     print_info "Server will be available at: http://localhost:9988"
     print_info "Auto-reload enabled with air (if installed)"
     print_warning "Press Ctrl+C to stop the server"
     echo ""
-    
+
     # Check if air is installed for hot reload
-    if command -v air &> /dev/null; then
+    if command -v air &>/dev/null; then
         print_info "Using air for hot reload..."
         air
     else
@@ -818,67 +963,67 @@ backend_dev() {
             -trimpath \
             ./cmd/main.go
     fi
-    
+
     cd ..
 }
 
 backend_test() {
     print_header "Testing Backend Go Service"
-    
+
     # Check if Go is installed
-    if ! command -v go &> /dev/null; then
+    if ! command -v go &>/dev/null; then
         print_error "Go not found, please install Go 1.21+ first"
         print_info "Install Go: https://golang.org/doc/install"
         exit 1
     fi
-    
+
     # Navigate to server directory
     if [ ! -d "server" ]; then
         print_error "Server directory not found"
         exit 1
     fi
-    
+
     cd server
-    
+
     print_info "Running Go backend tests..."
-    
+
     # Run tests with coverage
     go test -v -race -coverprofile=coverage.out ./...
-    
+
     if [ $? -ne 0 ]; then
         print_error "Backend tests failed"
         cd ..
         exit 1
     fi
-    
+
     # Show coverage if tests passed
     if [ -f "coverage.out" ]; then
         print_info "Test coverage:"
         go tool cover -func=coverage.out | tail -1
     fi
-    
+
     print_success "Backend tests passed"
     cd ..
 }
 
 backend_migrate_up() {
     print_header "Running Database Migrations"
-    
+
     # Check if Go is installed
-    if ! command -v go &> /dev/null; then
+    if ! command -v go &>/dev/null; then
         print_error "Go not found, please install Go 1.21+ first"
         print_info "Install Go: https://golang.org/doc/install"
         exit 1
     fi
-    
+
     # Navigate to server directory
     if [ ! -d "server" ]; then
         print_error "Server directory not found"
         exit 1
     fi
-    
+
     cd server
-    
+
     # Check if config file exists
     if [ ! -f "config.yaml" ]; then
         if [ -f "config.example.yaml" ]; then
@@ -891,41 +1036,41 @@ backend_migrate_up() {
             exit 1
         fi
     fi
-    
+
     print_info "Running database migrations..."
-    
+
     # Build and run migration command
     go build -o kidsviewer-server ./cmd/main.go ./cmd/migrate.go
     ./kidsviewer-server migrate up
-    
+
     if [ $? -ne 0 ]; then
         print_error "Migration failed"
         cd ..
         exit 1
     fi
-    
+
     print_success "Database migrations completed successfully"
     cd ..
 }
 
 backend_migrate_status() {
     print_header "Checking Migration Status"
-    
+
     # Check if Go is installed
-    if ! command -v go &> /dev/null; then
+    if ! command -v go &>/dev/null; then
         print_error "Go not found, please install Go 1.21+ first"
         print_info "Install Go: https://golang.org/doc/install"
         exit 1
     fi
-    
+
     # Navigate to server directory
     if [ ! -d "server" ]; then
         print_error "Server directory not found"
         exit 1
     fi
-    
+
     cd server
-    
+
     # Check if config file exists
     if [ ! -f "config.yaml" ]; then
         if [ -f "config.example.yaml" ]; then
@@ -938,13 +1083,13 @@ backend_migrate_status() {
             exit 1
         fi
     fi
-    
+
     print_info "Checking migration status..."
-    
+
     # Build and run migration status command
     go build -o kidsviewer-server ./cmd/main.go ./cmd/migrate.go
     ./kidsviewer-server migrate status
-    
+
     cd ..
 }
 
@@ -961,6 +1106,8 @@ show_help() {
     echo "  electron-fix-macos        Fix macOS security issues for Electron app"
     echo "  ios-dev                   Start iOS development with live reload in simulator"
     echo "  ios-build                 Build iOS package for personal device (no Apple Developer account needed)"
+    echo "  ios-simulator-list        List installed applications on iOS simulator"
+    echo "  ios-simulator-reset       Reset iOS simulator (erase all data)"
     echo "  web-dev                   Start web development server"
     echo "  web-build                 Build project for production"
     echo ""
@@ -978,7 +1125,7 @@ show_help() {
     echo "  starknet-test             Test Starknet contracts (snforge test)"
     echo "  contracts-build           Build all contracts (Ethereum + Starknet)"
     echo "  contracts-test            Test all contracts (Ethereum + Starknet)"
-    echo ""  
+    echo ""
     echo "Other Commands:"
     echo "  help                      Show this help message"
     echo ""
@@ -988,6 +1135,8 @@ show_help() {
     echo "  $0 electron-build-debug   Build Electron with detailed debug output"
     echo "  $0 ios-dev                Start iOS development with live reload"
     echo "  $0 ios-build              Build for personal iOS device"
+    echo "  $0 ios-simulator-list     List installed applications on iOS simulator"
+    echo "  $0 ios-simulator-reset    Reset iOS simulator (erase all data)"
     echo "  $0 web-dev                Start web development server"
     echo "  $0 web-build              Build project for production"
     echo "  $0 ethereum-build         Build Ethereum contracts"
@@ -1006,70 +1155,76 @@ show_help() {
 
 # Main script logic
 case "${1:-help}" in
-    "electron-dev")
-        electron_dev
-        ;;
-    "electron-build")
-        electron_build
-        ;;
-    "electron-build-debug")
-        electron_build true
-        ;;
-    "electron-fix-macos")
-        electron_fix_macos
-        ;;
-    "ios-dev")
-        ios_dev
-        ;;
-    "ios-build")
-        ios_build
-        ;;
-    "web-dev")
-        web_dev
-        ;;
-    "web-build")
-        web_build
-        ;;
-    "ethereum-build")
-        ethereum_build
-        ;;
-    "ethereum-test")
-        ethereum_test
-        ;;
-    "starknet-build")
-        starknet_build
-        ;;
-    "starknet-test")
-        starknet_test
-        ;;
-    "contracts-build")
-        contracts_build
-        ;;
-    "contracts-test")
-        contracts_test
-        ;;
-    "backend-build")
-        backend_build
-        ;;
-    "backend-dev")
-        backend_dev
-        ;;
-    "backend-test")
-        backend_test
-        ;;
-    "backend-migrate-up")
-        backend_migrate_up
-        ;;
-    "backend-migrate-status")
-        backend_migrate_status
-        ;;
-    "help"|"-h"|"--help")
-        show_help
-        ;;
-    *)
-        print_error "Unknown command: $1"
-        echo ""
-        show_help
-        exit 1
-        ;;
+"electron-dev")
+    electron_dev
+    ;;
+"electron-build")
+    electron_build
+    ;;
+"electron-build-debug")
+    electron_build true
+    ;;
+"electron-fix-macos")
+    electron_fix_macos
+    ;;
+"ios-dev")
+    ios_dev
+    ;;
+"ios-build")
+    ios_build
+    ;;
+"ios-simulator-list")
+    ios_simulator_list
+    ;;
+"ios-simulator-reset")
+    ios_simulator_reset
+    ;;
+"web-dev")
+    web_dev
+    ;;
+"web-build")
+    web_build
+    ;;
+"ethereum-build")
+    ethereum_build
+    ;;
+"ethereum-test")
+    ethereum_test
+    ;;
+"starknet-build")
+    starknet_build
+    ;;
+"starknet-test")
+    starknet_test
+    ;;
+"contracts-build")
+    contracts_build
+    ;;
+"contracts-test")
+    contracts_test
+    ;;
+"backend-build")
+    backend_build
+    ;;
+"backend-dev")
+    backend_dev
+    ;;
+"backend-test")
+    backend_test
+    ;;
+"backend-migrate-up")
+    backend_migrate_up
+    ;;
+"backend-migrate-status")
+    backend_migrate_status
+    ;;
+"help" | "-h" | "--help")
+    show_help
+    ;;
+*)
+    print_error "Unknown command: $1"
+    echo ""
+    show_help
+    exit 1
+    ;;
 esac
