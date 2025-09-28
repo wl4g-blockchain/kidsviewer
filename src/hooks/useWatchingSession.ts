@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { APIFactory } from '../api/APIFactory';
 import { Question as APIQuestion } from '../types';
-import { useTranslation } from '../i18n/I18nProvider';
 
 // Common interface for watching session questions
 export interface WatchingQuestion {
@@ -47,7 +46,6 @@ export const useWatchingSession = (
   onQuestionsShown?: () => void,
   onQuestionsHidden?: () => void
 ): UseWatchingSessionReturn => {
-  const t = useTranslation();
   const [watchingToken, setWatchingToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);

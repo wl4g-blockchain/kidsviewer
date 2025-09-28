@@ -22,6 +22,25 @@ print_header() {
     echo -e "${BLUE}🚀 KidsViewer - $1${NC}"
 }
 
+# Cross-platform timeout function
+run_with_timeout() {
+    local timeout_seconds=$1
+    shift
+    
+    # Check if timeout command is available
+    if command -v timeout &> /dev/null; then
+        # Use GNU timeout (Linux)
+        timeout $timeout_seconds "$@"
+    elif command -v gtimeout &> /dev/null; then
+        # Use GNU timeout from coreutils (macOS with Homebrew)
+        gtimeout $timeout_seconds "$@"
+    else
+        # Fallback: run without timeout (macOS without coreutils)
+        print_warning "timeout command not available, running without timeout..."
+        "$@"
+    fi
+}
+
 print_success() {
     echo -e "${GREEN}✅ $1${NC}"
 }
@@ -140,7 +159,13 @@ electron_dev() {
 
 # Electron build for production
 electron_build() {
-    print_header "Building Electron for Production"
+    local debug_mode=${1:-false}
+    
+    if [ "$debug_mode" = "true" ]; then
+        print_header "Building Electron for Production (Debug Mode)"
+    else
+        print_header "Building Electron for Production"
+    fi
     
     check_dependencies
     install_npm_deps
@@ -151,53 +176,120 @@ electron_build() {
         npm install electron electron-builder @electron-toolkit/utils --save-dev
     fi
     
-    build_project
+    if [ "$debug_mode" = "true" ]; then
+        print_info "Building project with debug output..."
+        npm run build-debug
+    else
+        build_project
+    fi
     
     print_info "Building Electron application..."
     print_warning "Note: Electron build may take several minutes and might appear to hang..."
     print_info "This is normal for the first build as it downloads Electron binaries"
     
+    if [ "$debug_mode" = "true" ]; then
+        print_info "Debug mode enabled - showing detailed build output..."
+        print_info "This will help identify where the build process hangs"
+        print_info "Setting debug environment variables..."
+        export DEBUG=electron-builder
+        export ELECTRON_BUILDER_CACHE=/tmp/electron-builder-cache
+        export ELECTRON_BUILDER_OFFLINE=false
+        print_info "DEBUG=electron-builder"
+        print_info "ELECTRON_BUILDER_CACHE=/tmp/electron-builder-cache"
+        print_info "ELECTRON_BUILDER_OFFLINE=false"
+        
+        # Show system information
+        print_info "System information:"
+        print_info "Node.js version: $(node -v)"
+        print_info "npm version: $(npm -v)"
+        print_info "Platform: $(uname -a)"
+        print_info "Available disk space:"
+        df -h . | head -2
+    fi
+    
     # Try simple build first (faster, less likely to hang)
     print_info "Attempting simple build first..."
-    if timeout 300 npm run electron-build-simple; then
-        print_success "Simple build completed successfully!"
-        print_info "Built files are available in the release/ directory"
-        return 0
+    if [ "$debug_mode" = "true" ]; then
+        if run_with_timeout 300 npm run electron-build-debug; then
+            print_success "Simple debug build completed successfully!"
+            print_info "Built files are available in the release/ directory"
+            return 0
+        fi
+    else
+        if run_with_timeout 300 npm run electron-build; then
+            print_success "Simple build completed successfully!"
+            print_info "Built files are available in the release/ directory"
+            return 0
+        fi
     fi
     
     # If simple build fails, try full build with timeout
     print_info "Simple build failed, trying full build..."
-    timeout 600 npm run electron-build || {
-        BUILD_EXIT_CODE=$?
-        if [ $BUILD_EXIT_CODE -eq 124 ]; then
-            print_warning "Build timed out after 10 minutes"
-        else
-            print_warning "Build failed with exit code: $BUILD_EXIT_CODE"
-        fi
-        
-        # Check if any build artifacts were created
-        if [ -d "release/mac-arm64/Electron.app" ]; then
-            print_warning "Build artifacts found despite error/timeout"
-            print_info "Attempting to fix the missing executable..."
-            
-            # Try to find and copy the main executable
-            if [ -f "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" ]; then
-                print_info "Found Electron Helper, creating main executable..."
-                cp "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" "release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer"
-                chmod +x "release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer"
-                print_success "Fixed missing executable"
+    if [ "$debug_mode" = "true" ]; then
+        run_with_timeout 600 npm run electron-build-debug || {
+            BUILD_EXIT_CODE=$?
+            if [ $BUILD_EXIT_CODE -eq 124 ]; then
+                print_warning "Debug build timed out after 10 minutes"
             else
-                print_warning "Could not find Electron Helper to copy"
+                print_warning "Debug build failed with exit code: $BUILD_EXIT_CODE"
             fi
             
-            print_success "Electron application built successfully!"
-            print_info "Built files are available in the release/ directory"
-        else
-            print_error "No build artifacts found. Build failed completely."
-            print_info "Try running: npm run electron-build manually to see detailed error"
-            exit 1
-        fi
-    }
+            # Check if any build artifacts were created
+            if [ -d "release/mac-arm64/Electron.app" ]; then
+                print_warning "Build artifacts found despite error/timeout"
+                print_info "Attempting to fix the missing executable..."
+                
+                # Try to find and copy the main executable
+                if [ -f "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" ]; then
+                    print_info "Found Electron Helper, creating main executable..."
+                    cp "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" "release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer"
+                    chmod +x "release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer"
+                    print_success "Fixed missing executable"
+                else
+                    print_warning "Could not find Electron Helper to copy"
+                fi
+                
+                print_success "Electron application built successfully!"
+                print_info "Built files are available in the release/ directory"
+            else
+                print_error "No build artifacts found. Build failed completely."
+                print_info "Try running: npm run electron-build-debug manually to see detailed error"
+                exit 1
+            fi
+        }
+    else
+        run_with_timeout 600 npm run electron-build || {
+            BUILD_EXIT_CODE=$?
+            if [ $BUILD_EXIT_CODE -eq 124 ]; then
+                print_warning "Build timed out after 10 minutes"
+            else
+                print_warning "Build failed with exit code: $BUILD_EXIT_CODE"
+            fi
+            
+            # Check if any build artifacts were created
+            if [ -d "release/mac-arm64/Electron.app" ]; then
+                print_warning "Build artifacts found despite error/timeout"
+                print_info "Attempting to fix the missing executable..."
+                
+                # Try to find and copy the main executable
+                if [ -f "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" ]; then
+                    print_info "Found Electron Helper, creating main executable..."
+                    cp "release/mac-arm64/Electron.app/Contents/Frameworks/Electron Helper.app/Contents/MacOS/Electron Helper" "release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer"
+                    chmod +x "release/mac-arm64/Electron.app/Contents/MacOS/KidsViewer"
+                    print_success "Fixed missing executable"
+                else
+                    print_warning "Could not find Electron Helper to copy"
+                fi
+                
+                print_success "Electron application built successfully!"
+                print_info "Built files are available in the release/ directory"
+            else
+                print_error "No build artifacts found. Build failed completely."
+                print_info "Try running: npm run electron-build manually to see detailed error"
+                exit 1
+            fi
+        }
+    fi
     
     # If we reach here, build was successful
     print_success "Electron application built successfully!"
@@ -865,6 +957,7 @@ show_help() {
     echo "Frontend Commands:"
     echo "  electron-dev              Start Electron development mode (with hot reload)"
     echo "  electron-build            Build Electron application for production"
+    echo "  electron-build-debug      Build Electron application with debug output"
     echo "  electron-fix-macos        Fix macOS security issues for Electron app"
     echo "  ios-dev                   Start iOS development with live reload in simulator"
     echo "  ios-build                 Build iOS package for personal device (no Apple Developer account needed)"
@@ -892,6 +985,7 @@ show_help() {
     echo "Examples:"
     echo "  $0 electron-dev           Start Electron development with hot reload"
     echo "  $0 electron-build         Build Electron application for production"
+    echo "  $0 electron-build-debug   Build Electron with detailed debug output"
     echo "  $0 ios-dev                Start iOS development with live reload"
     echo "  $0 ios-build              Build for personal iOS device"
     echo "  $0 web-dev                Start web development server"
@@ -917,6 +1011,9 @@ case "${1:-help}" in
         ;;
     "electron-build")
         electron_build
+        ;;
+    "electron-build-debug")
+        electron_build true
         ;;
     "electron-fix-macos")
         electron_fix_macos
