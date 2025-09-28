@@ -23,6 +23,17 @@ func NewPersonHandler(personService *services.PersonService) *PersonHandler {
 }
 
 // GetPersons returns all persons for the authenticated user
+// @Summary Get all persons
+// @Description Get all persons for the authenticated user
+// @Tags persons
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "Persons retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 500 {object} map[string]interface{} "Failed to get persons"
+// @Router /api/v1/persons [get]
 func (h *PersonHandler) GetPersons(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	if userIDStr == "" {
@@ -47,6 +58,18 @@ func (h *PersonHandler) GetPersons(c *gin.Context) {
 }
 
 // GetPerson returns a specific person
+// @Summary Get person by ID
+// @Description Get a specific person by ID for the authenticated user
+// @Tags persons
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Person ID"
+// @Success 200 {object} map[string]interface{} "Person retrieved successfully"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID or person ID"
+// @Failure 404 {object} map[string]interface{} "Person not found"
+// @Router /api/v1/persons/{id} [get]
 func (h *PersonHandler) GetPerson(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	personIDStr := c.Param("id")
@@ -79,6 +102,18 @@ func (h *PersonHandler) GetPerson(c *gin.Context) {
 }
 
 // CreatePerson creates a new person
+// @Summary Create a new person
+// @Description Create a new person for the authenticated user
+// @Tags persons
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body models.CreatePersonRequest true "Person creation request"
+// @Success 200 {object} map[string]interface{} "Person created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data or user ID"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Failed to create person"
+// @Router /api/v1/persons [post]
 func (h *PersonHandler) CreatePerson(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	if userIDStr == "" {
@@ -109,6 +144,19 @@ func (h *PersonHandler) CreatePerson(c *gin.Context) {
 }
 
 // UpdatePerson updates an existing person
+// @Summary Update person
+// @Description Update an existing person for the authenticated user
+// @Tags persons
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Person ID"
+// @Param request body models.UpdatePersonRequest true "Person update request"
+// @Success 200 {object} map[string]interface{} "Person updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data or user ID"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Failed to update person"
+// @Router /api/v1/persons/{id} [put]
 func (h *PersonHandler) UpdatePerson(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	personIDStr := c.Param("id")
@@ -162,6 +210,18 @@ func (h *PersonHandler) UpdatePerson(c *gin.Context) {
 }
 
 // DeletePerson deletes a person
+// @Summary Delete person
+// @Description Delete a person for the authenticated user
+// @Tags persons
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Person ID"
+// @Success 200 {object} map[string]interface{} "Person deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID or person ID"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Failed to delete person"
+// @Router /api/v1/persons/{id} [delete]
 func (h *PersonHandler) DeletePerson(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	personIDStr := c.Param("id")
@@ -204,6 +264,19 @@ func (h *PersonHandler) DeletePerson(c *gin.Context) {
 }
 
 // UpdatePersonSettings updates person settings
+// @Summary Update person settings
+// @Description Update settings for a specific person
+// @Tags persons
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Person ID"
+// @Param request body models.UpdatePersonSettingsRequest true "Person settings update request"
+// @Success 200 {object} map[string]interface{} "Person settings updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data or user ID"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Failed to update person settings"
+// @Router /api/v1/persons/{id}/settings [put]
 func (h *PersonHandler) UpdatePersonSettings(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	personIDStr := c.Param("id")
@@ -257,6 +330,18 @@ func (h *PersonHandler) UpdatePersonSettings(c *gin.Context) {
 }
 
 // GetPersonPlatforms returns platforms available for a person
+// @Summary Get person platforms
+// @Description Get platforms available for a specific person
+// @Tags persons
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Person ID"
+// @Success 200 {object} map[string]interface{} "Person platforms retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID or person ID"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Failed to get person platforms"
+// @Router /api/v1/persons/{id}/platforms [get]
 func (h *PersonHandler) GetPersonPlatforms(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	personIDStr := c.Param("id")
@@ -299,6 +384,18 @@ func (h *PersonHandler) GetPersonPlatforms(c *gin.Context) {
 }
 
 // GetPersonStatistics returns statistics for a person
+// @Summary Get person statistics
+// @Description Get statistics for a specific person
+// @Tags persons
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Person ID"
+// @Success 200 {object} map[string]interface{} "Person statistics retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID or person ID"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Failed to get person statistics"
+// @Router /api/v1/persons/{id}/statistics [get]
 func (h *PersonHandler) GetPersonStatistics(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	personIDStr := c.Param("id")
@@ -341,6 +438,18 @@ func (h *PersonHandler) GetPersonStatistics(c *gin.Context) {
 }
 
 // GetLearningProgress returns learning progress for a person
+// @Summary Get learning progress
+// @Description Get learning progress for a specific person
+// @Tags persons
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Person ID"
+// @Success 200 {object} map[string]interface{} "Learning progress retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID or person ID"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Failed to get learning progress"
+// @Router /api/v1/persons/{id}/learning-progress [get]
 func (h *PersonHandler) GetLearningProgress(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	personIDStr := c.Param("id")

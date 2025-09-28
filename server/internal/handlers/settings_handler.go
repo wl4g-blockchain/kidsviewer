@@ -23,6 +23,17 @@ func NewSettingsHandler(settingsService *services.SettingsService) *SettingsHand
 }
 
 // GetAppSettings handles GET /settings
+// @Summary Get app settings
+// @Description Get application settings for the authenticated user
+// @Tags settings
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{} "App settings retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid user ID"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Failed to get app settings"
+// @Router /api/v1/settings [get]
 func (h *SettingsHandler) GetAppSettings(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	if userIDStr == "" {
@@ -59,6 +70,18 @@ func (h *SettingsHandler) GetAppSettings(c *gin.Context) {
 }
 
 // UpdateAppSettings handles PUT /settings
+// @Summary Update app settings
+// @Description Update application settings for the authenticated user
+// @Tags settings
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body models.AppSettings true "App settings update request"
+// @Success 200 {object} map[string]interface{} "Settings updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data or user ID"
+// @Failure 401 {object} map[string]interface{} "User not authenticated"
+// @Failure 500 {object} map[string]interface{} "Failed to update app settings"
+// @Router /api/v1/settings [put]
 func (h *SettingsHandler) UpdateAppSettings(c *gin.Context) {
 	userIDStr := c.GetString("user_id")
 	if userIDStr == "" {
@@ -106,6 +129,14 @@ func (h *SettingsHandler) UpdateAppSettings(c *gin.Context) {
 }
 
 // GetAppInfo handles GET /settings/app-info
+// @Summary Get app info
+// @Description Get application information
+// @Tags settings
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "App info retrieved successfully"
+// @Failure 500 {object} map[string]interface{} "Failed to get app info"
+// @Router /api/v1/settings/app-info [get]
 func (h *SettingsHandler) GetAppInfo(c *gin.Context) {
 	appInfo, err := h.SettingsService.GetAppInfo(context.Background())
 	if err != nil {

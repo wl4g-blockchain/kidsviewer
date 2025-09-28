@@ -23,6 +23,14 @@ func NewPlatformHandler(platformService *services.PlatformService) *PlatformHand
 }
 
 // GetPlatforms handles GET /platforms
+// @Summary Get all platforms
+// @Description Get a list of all available platforms
+// @Tags platforms
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]interface{} "Platforms retrieved successfully"
+// @Failure 500 {object} map[string]interface{} "Failed to get platforms"
+// @Router /api/v1/platforms [get]
 func (h *PlatformHandler) GetPlatforms(c *gin.Context) {
 	if h.PlatformService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -49,6 +57,17 @@ func (h *PlatformHandler) GetPlatforms(c *gin.Context) {
 }
 
 // GetPlatform handles GET /platforms/:id
+// @Summary Get platform by ID
+// @Description Get a specific platform by ID
+// @Tags platforms
+// @Accept json
+// @Produce json
+// @Param id path int true "Platform ID"
+// @Success 200 {object} map[string]interface{} "Platform retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid platform ID"
+// @Failure 404 {object} map[string]interface{} "Platform not found"
+// @Failure 500 {object} map[string]interface{} "Failed to get platform"
+// @Router /api/v1/platforms/{id} [get]
 func (h *PlatformHandler) GetPlatform(c *gin.Context) {
 	if h.PlatformService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -92,6 +111,16 @@ func (h *PlatformHandler) GetPlatform(c *gin.Context) {
 }
 
 // CreatePlatform handles POST /platforms
+// @Summary Create platform
+// @Description Create a new platform
+// @Tags platforms
+// @Accept json
+// @Produce json
+// @Param request body models.Platform true "Platform creation request"
+// @Success 201 {object} map[string]interface{} "Platform created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data"
+// @Failure 500 {object} map[string]interface{} "Failed to create platform"
+// @Router /api/v1/platforms [post]
 func (h *PlatformHandler) CreatePlatform(c *gin.Context) {
 	if h.PlatformService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -129,6 +158,18 @@ func (h *PlatformHandler) CreatePlatform(c *gin.Context) {
 }
 
 // UpdatePlatform handles PUT /platforms/:id
+// @Summary Update platform
+// @Description Update an existing platform
+// @Tags platforms
+// @Accept json
+// @Produce json
+// @Param id path int true "Platform ID"
+// @Param request body models.Platform true "Platform update request"
+// @Success 200 {object} map[string]interface{} "Platform updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data or platform ID"
+// @Failure 404 {object} map[string]interface{} "Platform not found"
+// @Failure 500 {object} map[string]interface{} "Failed to update platform"
+// @Router /api/v1/platforms/{id} [put]
 func (h *PlatformHandler) UpdatePlatform(c *gin.Context) {
 	if h.PlatformService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -183,6 +224,16 @@ func (h *PlatformHandler) UpdatePlatform(c *gin.Context) {
 }
 
 // DeletePlatform handles DELETE /platforms/:id
+// @Summary Delete platform
+// @Description Delete an existing platform
+// @Tags platforms
+// @Accept json
+// @Produce json
+// @Param id path int true "Platform ID"
+// @Success 200 {object} map[string]interface{} "Platform deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid platform ID"
+// @Failure 500 {object} map[string]interface{} "Failed to delete platform"
+// @Router /api/v1/platforms/{id} [delete]
 func (h *PlatformHandler) DeletePlatform(c *gin.Context) {
 	if h.PlatformService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

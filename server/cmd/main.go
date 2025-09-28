@@ -1,3 +1,18 @@
+// @title KidsViewer API
+// @version 1.0
+// @description KidsViewer Backend API Documentation
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:9988
+// @BasePath /
+
 package main
 
 import (

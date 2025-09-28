@@ -23,6 +23,18 @@ func NewQuestionHandler(questionService *services.QuestionService) *QuestionHand
 }
 
 // GetQuestions handles GET /questions
+// @Summary Get questions
+// @Description Get questions with optional filtering by subject, difficulty, age group, and limit
+// @Tags questions
+// @Accept json
+// @Produce json
+// @Param subject query string false "Subject filter"
+// @Param difficulty query string false "Difficulty filter"
+// @Param age_group query string false "Age group filter"
+// @Param limit query int false "Limit number of questions (default: 0 for all)"
+// @Success 200 {object} map[string]interface{} "Questions retrieved successfully"
+// @Failure 500 {object} map[string]interface{} "Failed to get questions"
+// @Router /api/v1/questions [get]
 func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 	if h.QuestionService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -59,6 +71,17 @@ func (h *QuestionHandler) GetQuestions(c *gin.Context) {
 }
 
 // GetQuestion handles GET /questions/:id
+// @Summary Get question by ID
+// @Description Get a specific question by ID
+// @Tags questions
+// @Accept json
+// @Produce json
+// @Param id path int true "Question ID"
+// @Success 200 {object} map[string]interface{} "Question retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid question ID"
+// @Failure 404 {object} map[string]interface{} "Question not found"
+// @Failure 500 {object} map[string]interface{} "Failed to get question"
+// @Router /api/v1/questions/{id} [get]
 func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 	if h.QuestionService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -102,6 +125,16 @@ func (h *QuestionHandler) GetQuestion(c *gin.Context) {
 }
 
 // CreateQuestion handles POST /questions
+// @Summary Create question
+// @Description Create a new question template
+// @Tags questions
+// @Accept json
+// @Produce json
+// @Param request body models.QuestionTemplate true "Question creation request"
+// @Success 201 {object} map[string]interface{} "Question created successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data"
+// @Failure 500 {object} map[string]interface{} "Failed to create question"
+// @Router /api/v1/questions [post]
 func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
 	if h.QuestionService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -139,6 +172,18 @@ func (h *QuestionHandler) CreateQuestion(c *gin.Context) {
 }
 
 // UpdateQuestion handles PUT /questions/:id
+// @Summary Update question
+// @Description Update an existing question template
+// @Tags questions
+// @Accept json
+// @Produce json
+// @Param id path int true "Question ID"
+// @Param request body models.QuestionTemplate true "Question update request"
+// @Success 200 {object} map[string]interface{} "Question updated successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid request data or question ID"
+// @Failure 404 {object} map[string]interface{} "Question not found"
+// @Failure 500 {object} map[string]interface{} "Failed to update question"
+// @Router /api/v1/questions/{id} [put]
 func (h *QuestionHandler) UpdateQuestion(c *gin.Context) {
 	if h.QuestionService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -193,6 +238,16 @@ func (h *QuestionHandler) UpdateQuestion(c *gin.Context) {
 }
 
 // DeleteQuestion handles DELETE /questions/:id
+// @Summary Delete question
+// @Description Delete an existing question template
+// @Tags questions
+// @Accept json
+// @Produce json
+// @Param id path int true "Question ID"
+// @Success 200 {object} map[string]interface{} "Question deleted successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid question ID"
+// @Failure 500 {object} map[string]interface{} "Failed to delete question"
+// @Router /api/v1/questions/{id} [delete]
 func (h *QuestionHandler) DeleteQuestion(c *gin.Context) {
 	if h.QuestionService == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

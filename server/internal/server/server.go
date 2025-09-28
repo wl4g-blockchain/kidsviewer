@@ -12,9 +12,13 @@ import (
 	"log"
 	"time"
 
+	_ "kidsviewer-server/docs" // 导入生成的 docs 包
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/prometheus"
 	otelmetric "go.opentelemetry.io/otel/metric"
@@ -51,6 +55,7 @@ type Handlers struct {
 	Watching *handlers.WatchingHandler
 	Settings *handlers.SettingsHandler
 	Health   *handlers.HealthHandler
+	Swagger  *handlers.SwaggerHandler
 }
 
 // Metrics contains OpenTelemetry metrics
@@ -140,6 +145,7 @@ func initHandlers(services *Services) *Handlers {
 		Watching: handlers.NewWatchingHandler(services.Watching),
 		Settings: handlers.NewSettingsHandler(services.Settings),
 		Health:   handlers.NewHealthHandler(),
+		Swagger:  handlers.NewSwaggerHandler(),
 	}
 }
 
@@ -168,6 +174,12 @@ func initRouter(cfg *config.Config, handlers *Handlers, metrics *Metrics) *gin.E
 	router.GET("/health/ready", handlers.Health.Ready)
 	router.GET("/health/live", handlers.Health.Live)
 	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	// Swagger documentation endpoints
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/swagger", func(c *gin.Context) {
+		c.Redirect(302, "/swagger/index.html")
+	})
 
 	// API routes
 	api := router.Group("/api/v1")

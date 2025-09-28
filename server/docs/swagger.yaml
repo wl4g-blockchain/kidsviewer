@@ -1,0 +1,1419 @@
+basePath: /
+definitions:
+  models.AppSettings:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      language:
+        type: string
+      settings:
+        additionalProperties: true
+        type: object
+      theme:
+        type: string
+      updatedAt:
+        type: string
+      userId:
+        type: integer
+    type: object
+  models.CreatePersonRequest:
+    properties:
+      ageGroup:
+        enum:
+        - preschool
+        - young
+        - older
+        - teen
+        type: string
+      avatar:
+        type: string
+      difficulty:
+        type: string
+      maxDailyTime:
+        type: integer
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+      parentalPassword:
+        type: string
+    required:
+    - ageGroup
+    - name
+    type: object
+  models.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  models.Platform:
+    properties:
+      ageGroups:
+        description: JSON array of age groups
+        items:
+          type: string
+        type: array
+      createdAt:
+        type: string
+      description:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: integer
+      nameCN:
+        type: string
+      nameEN:
+        type: string
+      updatedAt:
+        type: string
+      url:
+        type: string
+    type: object
+  models.QuestionTemplate:
+    properties:
+      ageGroups:
+        items:
+          type: string
+        type: array
+      content:
+        type: string
+      correctAnswer:
+        type: string
+      createdAt:
+        type: string
+      difficulty:
+        type: string
+      enabled:
+        type: boolean
+      explanationCN:
+        type: string
+      explanationEN:
+        type: string
+      id:
+        type: integer
+      language:
+        type: string
+      options:
+        items:
+          type: string
+        type: array
+      subject:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      isParent:
+        type: boolean
+      password:
+        minLength: 6
+        type: string
+      username:
+        maxLength: 50
+        minLength: 2
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  models.UpdatePersonRequest:
+    properties:
+      ageGroup:
+        type: string
+      avatar:
+        type: string
+      difficulty:
+        type: string
+      maxDailyTime:
+        type: integer
+      name:
+        type: string
+      parentalPassword:
+        type: string
+    type: object
+  models.UpdatePersonSettingsRequest:
+    properties:
+      difficulty:
+        type: string
+      maxDailyTime:
+        type: integer
+      parentalPassword:
+        type: string
+    type: object
+  models.VerifyPasswordRequest:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  services.CheckWatchingRequest:
+    properties:
+      watching_token:
+        type: string
+    required:
+    - watching_token
+    type: object
+  services.SkipQuestionsRequest:
+    properties:
+      password:
+        type: string
+      watching_token:
+        type: string
+    required:
+    - password
+    - watching_token
+    type: object
+  services.StartWatchingRequest:
+    properties:
+      person_id:
+        type: string
+      platform_url:
+        type: string
+    required:
+    - person_id
+    - platform_url
+    type: object
+  services.VerifyQuestionRequest:
+    properties:
+      answer:
+        type: string
+      question_id:
+        type: integer
+      watching_token:
+        type: string
+    required:
+    - answer
+    - question_id
+    - watching_token
+    type: object
+host: localhost:9988
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: KidsViewer Backend API Documentation
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: KidsViewer API
+  version: "1.0"
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user with email and password
+      parameters:
+      - description: Login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Login failed
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login user
+      tags:
+      - authentication
+  /api/v1/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout the current authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Logout failed
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - authentication
+  /api/v1/auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Get the current authenticated user information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User information retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get current user
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - authentication
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email and password
+      parameters:
+      - description: Registration request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Registration successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Registration failed
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register a new user
+      tags:
+      - authentication
+  /api/v1/auth/verify-parental-password:
+    post:
+      consumes:
+      - application/json
+      description: Verify the parental password for accessing restricted features
+      parameters:
+      - description: Password verification request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.VerifyPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password verification successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated or invalid password
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to verify password
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Verify parental password
+      tags:
+      - authentication
+  /api/v1/persons:
+    get:
+      consumes:
+      - application/json
+      description: Get all persons for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Persons retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get persons
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all persons
+      tags:
+      - persons
+    post:
+      consumes:
+      - application/json
+      description: Create a new person for the authenticated user
+      parameters:
+      - description: Person creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePersonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data or user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to create person
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new person
+      tags:
+      - persons
+  /api/v1/persons/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a person for the authenticated user
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID or person ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to delete person
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete person
+      tags:
+      - persons
+    get:
+      consumes:
+      - application/json
+      description: Get a specific person by ID for the authenticated user
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID or person ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Person not found
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get person by ID
+      tags:
+      - persons
+    put:
+      consumes:
+      - application/json
+      description: Update an existing person for the authenticated user
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Person update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePersonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data or user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update person
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update person
+      tags:
+      - persons
+  /api/v1/persons/{id}/learning-progress:
+    get:
+      consumes:
+      - application/json
+      description: Get learning progress for a specific person
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Learning progress retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID or person ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get learning progress
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get learning progress
+      tags:
+      - persons
+  /api/v1/persons/{id}/platforms:
+    get:
+      consumes:
+      - application/json
+      description: Get platforms available for a specific person
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person platforms retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID or person ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get person platforms
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get person platforms
+      tags:
+      - persons
+  /api/v1/persons/{id}/settings:
+    put:
+      consumes:
+      - application/json
+      description: Update settings for a specific person
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Person settings update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePersonSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person settings updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data or user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update person settings
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update person settings
+      tags:
+      - persons
+  /api/v1/persons/{id}/statistics:
+    get:
+      consumes:
+      - application/json
+      description: Get statistics for a specific person
+      parameters:
+      - description: Person ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Person statistics retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID or person ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get person statistics
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get person statistics
+      tags:
+      - persons
+  /api/v1/platforms:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all available platforms
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platforms retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get platforms
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all platforms
+      tags:
+      - platforms
+    post:
+      consumes:
+      - application/json
+      description: Create a new platform
+      parameters:
+      - description: Platform creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Platform'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Platform created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to create platform
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create platform
+      tags:
+      - platforms
+  /api/v1/platforms/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing platform
+      parameters:
+      - description: Platform ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platform deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid platform ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to delete platform
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete platform
+      tags:
+      - platforms
+    get:
+      consumes:
+      - application/json
+      description: Get a specific platform by ID
+      parameters:
+      - description: Platform ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platform retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid platform ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Platform not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get platform
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get platform by ID
+      tags:
+      - platforms
+    put:
+      consumes:
+      - application/json
+      description: Update an existing platform
+      parameters:
+      - description: Platform ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Platform update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.Platform'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platform updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data or platform ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Platform not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update platform
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update platform
+      tags:
+      - platforms
+  /api/v1/questions:
+    get:
+      consumes:
+      - application/json
+      description: Get questions with optional filtering by subject, difficulty, age
+        group, and limit
+      parameters:
+      - description: Subject filter
+        in: query
+        name: subject
+        type: string
+      - description: Difficulty filter
+        in: query
+        name: difficulty
+        type: string
+      - description: Age group filter
+        in: query
+        name: age_group
+        type: string
+      - description: 'Limit number of questions (default: 0 for all)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Questions retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get questions
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get questions
+      tags:
+      - questions
+    post:
+      consumes:
+      - application/json
+      description: Create a new question template
+      parameters:
+      - description: Question creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.QuestionTemplate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Question created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to create question
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create question
+      tags:
+      - questions
+  /api/v1/questions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete an existing question template
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Question deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid question ID
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to delete question
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete question
+      tags:
+      - questions
+    get:
+      consumes:
+      - application/json
+      description: Get a specific question by ID
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Question retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid question ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Question not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get question
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get question by ID
+      tags:
+      - questions
+    put:
+      consumes:
+      - application/json
+      description: Update an existing question template
+      parameters:
+      - description: Question ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Question update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.QuestionTemplate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Question updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data or question ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Question not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update question
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update question
+      tags:
+      - questions
+  /api/v1/settings:
+    get:
+      consumes:
+      - application/json
+      description: Get application settings for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: App settings retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get app settings
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get app settings
+      tags:
+      - settings
+    put:
+      consumes:
+      - application/json
+      description: Update application settings for the authenticated user
+      parameters:
+      - description: App settings update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AppSettings'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Settings updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data or user ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: User not authenticated
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to update app settings
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update app settings
+      tags:
+      - settings
+  /api/v1/settings/app-info:
+    get:
+      consumes:
+      - application/json
+      description: Get application information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: App info retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get app info
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get app info
+      tags:
+      - settings
+  /api/v1/watching/check:
+    post:
+      consumes:
+      - application/json
+      description: Check the status of a watching session
+      parameters:
+      - description: Check watching request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.CheckWatchingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Watching session status retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to check watching session
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Check watching session
+      tags:
+      - watching
+  /api/v1/watching/history/{person_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get watching history for a specific person
+      parameters:
+      - description: Person ID
+        in: path
+        name: person_id
+        required: true
+        type: string
+      - description: 'Limit number of sessions (default: 50)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Watching history retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Person ID is required
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to get watching history
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get watching history
+      tags:
+      - watching
+  /api/v1/watching/skip:
+    post:
+      consumes:
+      - application/json
+      description: Skip questions in a watching session (requires parental password)
+      parameters:
+      - description: Skip questions request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.SkipQuestionsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Questions skipped successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized - parental password required
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to skip questions
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Skip questions
+      tags:
+      - watching
+  /api/v1/watching/start:
+    post:
+      consumes:
+      - application/json
+      description: Start a new watching session for a person
+      parameters:
+      - description: Start watching request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.StartWatchingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Watching session started successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Person not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to start watching session
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Start watching session
+      tags:
+      - watching
+  /api/v1/watching/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify the answer to a question in a watching session
+      parameters:
+      - description: Question verification request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.VerifyQuestionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Question verification completed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request data
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Watching session not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Failed to verify question
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Verify question answer
+      tags:
+      - watching
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Get the overall health status of the service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Health status
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get health status
+      tags:
+      - health
+  /health/live:
+    get:
+      consumes:
+      - application/json
+      description: Get the liveness status of the service for Kubernetes liveness
+        probe
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Liveness status
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get liveness status
+      tags:
+      - health
+  /health/ready:
+    get:
+      consumes:
+      - application/json
+      description: Get the readiness status of the service for Kubernetes readiness
+        probe
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Readiness status
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get readiness status
+      tags:
+      - health
+swagger: "2.0"
