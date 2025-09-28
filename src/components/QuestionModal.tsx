@@ -266,6 +266,7 @@ export const QuestionsContainer: React.FC<{
         setUserAnswer('');
         setIsCorrect(false);
         setIsSubmitting(false);
+        setShowAnimation(false); // ensure animation is hidden
         
         // Only move to next question if answer is correct
         if (isAnswerCorrect) {
@@ -282,6 +283,7 @@ export const QuestionsContainer: React.FC<{
     } catch (error) {
       console.error('Error submitting answer:', error);
       setIsSubmitting(false);
+      setShowAnimation(false); // ensure animation is hidden when error
       // On error, stay on the same question for retry
     }
   };
@@ -325,7 +327,7 @@ export const QuestionsContainer: React.FC<{
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 p-6 z-[99999]">
-      {/* 答题反馈动画 */}
+      {/* answer feedback animation */}
       <AnswerFeedbackAnimation
         isCorrect={animationCorrect}
         isVisible={showAnimation}
