@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Plus, Edit, Trash2, BookOpen, Filter, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { QuestionTemplate } from '../types';
 
 export const QuestionManagement: React.FC = () => {
   const { apiHandler } = useAuthStore();
+  const { isDark } = useThemeStore();
   const t = useTranslation();
   const [questions, setQuestions] = useState<QuestionTemplate[]>([]);
   const [filteredQuestions, setFilteredQuestions] = useState<QuestionTemplate[]>([]);
@@ -139,22 +141,26 @@ export const QuestionManagement: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isDark ? 'border-blue-400' : 'border-blue-600'}`}></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className={`space-y-6 p-6 min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <BookOpen className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">{t('questionManagement.title')}</h1>
+          <BookOpen className={`w-8 h-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t('questionManagement.title')}</h1>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
+            isDark 
+              ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
         >
           <Plus className="w-5 h-5 mr-2" />
           {t('questionManagement.addQuestion')}
@@ -162,28 +168,42 @@ export const QuestionManagement: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+      <div className={`rounded-lg shadow-md p-4 border ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
         {/* Search Bar */}
         <div className="mb-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
+              isDark ? 'text-gray-400' : 'text-gray-400'
+            }`} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t('questionManagement.searchPlaceholder') || 'Search questions by content, subject, or tags...'}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+              }`}
             />
           </div>
         </div>
 
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+          <h3 className={`text-lg font-semibold flex items-center ${
+            isDark ? 'text-white' : 'text-gray-900'
+          }`}>
             <Filter className="w-5 h-5 mr-2" />
             {t('questionManagement.filters') || 'Filters'}
           </h3>
           {(filters.subject || filters.difficulty || filters.ageGroup || searchTerm) && (
-            <button onClick={clearFilters} className="text-sm text-gray-500 hover:text-gray-700 flex items-center">
+            <button onClick={clearFilters} className={`text-sm flex items-center transition-colors ${
+              isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+            }`}>
               <X className="w-4 h-4 mr-1" />
               {t('questionManagement.clearFilters') || 'Clear Filters'}
             </button>
@@ -192,11 +212,15 @@ export const QuestionManagement: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.subjects.label')}</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.subjects.label')}</label>
             <select
               value={filters.subject}
               onChange={e => setFilters(prev => ({ ...prev, subject: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500'
+              }`}
             >
               <option value="">{t('questionManagement.subjects.all')}</option>
               <option value="math">{t('questionManagement.subjects.math')}</option>
@@ -206,11 +230,15 @@ export const QuestionManagement: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.difficulty.label')}</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.difficulty.label')}</label>
             <select
               value={filters.difficulty}
               onChange={e => setFilters(prev => ({ ...prev, difficulty: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500'
+              }`}
             >
               <option value="">{t('questionManagement.difficulty.all')}</option>
               <option value="beginner">{t('questionManagement.difficulty.beginner')}</option>
@@ -222,11 +250,15 @@ export const QuestionManagement: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.ageGroups.label')}</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.ageGroups.label')}</label>
             <select
               value={filters.ageGroup}
               onChange={e => setFilters(prev => ({ ...prev, ageGroup: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500'
+              }`}
             >
               <option value="">{t('questionManagement.ageGroups.all')}</option>
               <option value="preschool">{t('questionManagement.ageGroups.preschool')}</option>
@@ -237,7 +269,9 @@ export const QuestionManagement: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-4 flex justify-between items-center text-sm text-gray-600">
+        <div className={`mt-4 flex justify-between items-center text-sm ${
+          isDark ? 'text-gray-300' : 'text-gray-600'
+        }`}>
           <span>
             {t('questionManagement.showingResults', { 
               start: startIndex + 1, 
@@ -257,7 +291,11 @@ export const QuestionManagement: React.FC = () => {
       {/* Question List */}
       <div className="grid grid-cols-1 gap-4">
         {paginatedQuestions.map(question => (
-          <div key={question.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <div key={question.id} className={`rounded-lg shadow-md p-6 border ${
+            isDark 
+              ? 'bg-gray-800 border-gray-700' 
+              : 'bg-white border-gray-200'
+          }`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-3">
@@ -292,17 +330,19 @@ export const QuestionManagement: React.FC = () => {
                   </span>
                 </div>
 
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{question.content}</h3>
+                <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>{question.content}</h3>
 
                 {question.options && (
                   <div className="mb-3">
-                    <p className="text-sm text-gray-600 mb-1">Options:</p>
+                    <p className={`text-sm mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Options:</p>
                     <div className="grid grid-cols-2 gap-2">
                       {question.options.map((option, index) => (
                         <span
                           key={index}
                           className={`px-2 py-1 rounded text-xs ${
-                            option === question.correctAnswer ? 'bg-green-100 text-green-800 font-medium' : 'bg-gray-100 text-gray-700'
+                            option === question.correctAnswer 
+                              ? (isDark ? 'bg-green-900/30 text-green-300 font-medium' : 'bg-green-100 text-green-800 font-medium')
+                              : (isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-700')
                           }`}
                         >
                           {option} {option === question.correctAnswer && '✓'}
@@ -312,31 +352,39 @@ export const QuestionManagement: React.FC = () => {
                   </div>
                 )}
 
-                <div className="text-sm text-gray-600 space-y-1">
+                <div className={`text-sm space-y-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                   <p>
-                    <strong>Correct Answer:</strong> {question.correctAnswer}
+                    <strong className={isDark ? 'text-white' : 'text-gray-900'}>Correct Answer:</strong> {question.correctAnswer}
                   </p>
                   <p>
-                    <strong>Age Groups:</strong> {question.ageGroups.join(', ')}
+                    <strong className={isDark ? 'text-white' : 'text-gray-900'}>Age Groups:</strong> {question.ageGroups.join(', ')}
                   </p>
                   <p>
-                    <strong>Tags:</strong> {question.tags.join(', ')}
+                    <strong className={isDark ? 'text-white' : 'text-gray-900'}>Tags:</strong> {question.tags.join(', ')}
                   </p>
                   {(question.explanationEN || question.explanationCN) && (
                     <p>
-                      <strong>Explanation:</strong> {question.explanationEN || question.explanationCN}
+                      <strong className={isDark ? 'text-white' : 'text-gray-900'}>Explanation:</strong> {question.explanationEN || question.explanationCN}
                     </p>
                   )}
                 </div>
               </div>
 
               <div className="flex items-center space-x-2 ml-4">
-                <button onClick={() => setEditingQuestion(question)} className="p-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <button onClick={() => setEditingQuestion(question)} className={`p-2 transition-colors ${
+                  isDark 
+                    ? 'text-gray-400 hover:text-blue-400' 
+                    : 'text-gray-500 hover:text-blue-600'
+                }`}>
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDeleteQuestion(question.id.toString())}
-                  className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                  className={`p-2 transition-colors ${
+                    isDark 
+                      ? 'text-gray-400 hover:text-red-400' 
+                      : 'text-gray-500 hover:text-red-600'
+                  }`}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -352,7 +400,11 @@ export const QuestionManagement: React.FC = () => {
           <button
             onClick={goToPreviousPage}
             disabled={currentPage === 1}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              isDark 
+                ? 'text-gray-300 bg-gray-800 border border-gray-600 hover:bg-gray-700' 
+                : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+            }`}
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
             {t('common.previous') || 'Previous'}
@@ -368,7 +420,7 @@ export const QuestionManagement: React.FC = () => {
 
               if (showEllipsis) {
                 return (
-                  <span key={`ellipsis-${page}`} className="px-3 py-2 text-sm text-gray-500">
+                  <span key={`ellipsis-${page}`} className={`px-3 py-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     ...
                   </span>
                 );
@@ -378,10 +430,10 @@ export const QuestionManagement: React.FC = () => {
                 <button
                   key={page}
                   onClick={() => goToPage(page)}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     page === currentPage
-                      ? 'text-blue-600 bg-blue-50 border border-blue-300'
-                      : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                      ? (isDark ? 'text-blue-400 bg-blue-900/30 border border-blue-600' : 'text-blue-600 bg-blue-50 border border-blue-300')
+                      : (isDark ? 'text-gray-300 bg-gray-800 border border-gray-600 hover:bg-gray-700' : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50')
                   }`}
                 >
                   {page}
@@ -393,7 +445,11 @@ export const QuestionManagement: React.FC = () => {
           <button
             onClick={goToNextPage}
             disabled={currentPage === totalPages}
-            className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              isDark 
+                ? 'text-gray-300 bg-gray-800 border border-gray-600 hover:bg-gray-700' 
+                : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+            }`}
           >
             {t('common.next') || 'Next'}
             <ChevronRight className="w-4 h-4 ml-1" />
@@ -403,15 +459,19 @@ export const QuestionManagement: React.FC = () => {
 
       {filteredQuestions.length === 0 && (
         <div className="text-center py-12">
-          <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-600 mb-2">{t('questionManagement.noQuestions')}</h3>
-          <p className="text-gray-500 mb-6">
+          <BookOpen className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+          <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('questionManagement.noQuestions')}</h3>
+          <p className={`mb-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             {questions.length === 0 ? t('questionManagement.noQuestionsCreated') : t('questionManagement.noQuestionsMatch')}
           </p>
           {questions.length === 0 ? (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
+                isDark 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               <Plus className="w-5 h-5 mr-2" />
               {t('questionManagement.createFirstQuestion')}
@@ -419,7 +479,11 @@ export const QuestionManagement: React.FC = () => {
           ) : (
             <button
               onClick={clearFilters}
-              className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
+                isDark 
+                  ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                  : 'bg-gray-600 text-white hover:bg-gray-700'
+              }`}
             >
               <X className="w-5 h-5 mr-2" />
               {t('questionManagement.clearFilters')}
@@ -451,6 +515,7 @@ interface QuestionModalProps {
 }
 
 const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose }) => {
+  const { isDark } = useThemeStore();
   const t = useTranslation();
   const [formData, setFormData] = useState({
     type: question?.type || ('multiple-choice' as const),
@@ -497,10 +562,18 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-900">{question ? t('questionManagement.modal.edit') : t('questionManagement.modal.create')}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+      <div className={`rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto ${
+        isDark ? 'bg-gray-800' : 'bg-white'
+      }`}>
+        <div className={`flex items-center justify-between p-6 border-b ${
+          isDark ? 'border-gray-700' : 'border-gray-200'
+        }`}>
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {question ? t('questionManagement.modal.edit') : t('questionManagement.modal.create')}
+          </h2>
+          <button onClick={onClose} className={`p-2 rounded-full transition-colors ${
+            isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'
+          }`}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -508,11 +581,15 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.questionType')}</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.modal.questionType')}</label>
               <select
                 value={formData.type}
                 onChange={e => setFormData(prev => ({ ...prev, type: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-400 focus:border-blue-400' 
+                    : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500'
+                }`}
               >
                 <option value="multiple-choice">{t('questionManagement.questionTypes.multiple-choice')}</option>
                 <option value="true-false">{t('questionManagement.questionTypes.true-false')}</option>
@@ -522,11 +599,15 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.subjects.label')}</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.subjects.label')}</label>
               <select
                 value={formData.subject}
                 onChange={e => setFormData(prev => ({ ...prev, subject: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-400 focus:border-blue-400' 
+                    : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500'
+                }`}
               >
                 <option value="math">{t('questionManagement.subjects.math')}</option>
                 <option value="chinese">{t('questionManagement.subjects.chinese')}</option>
@@ -535,11 +616,15 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.difficulty.label')}</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.difficulty.label')}</label>
               <select
                 value={formData.difficulty}
                 onChange={e => setFormData(prev => ({ ...prev, difficulty: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white focus:ring-blue-400 focus:border-blue-400' 
+                    : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500'
+                }`}
               >
                 <option value="beginner">{t('questionManagement.difficulty.beginner')}</option>
                 <option value="easy">{t('questionManagement.difficulty.easy')}</option>
@@ -551,11 +636,15 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.questionContent')}</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.modal.questionContent')}</label>
             <textarea
               value={formData.content}
               onChange={e => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+              }`}
               rows={3}
               required
             />
@@ -563,7 +652,7 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
 
           {formData.type === 'multiple-choice' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.options')}</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.modal.options')}</label>
               <div className="space-y-2">
                 {formData.options.map((option, index) => (
                   <input
@@ -572,7 +661,11 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
                     value={option}
                     onChange={e => handleOptionChange(index, e.target.value)}
                     placeholder={`${t('common.option') || 'Option'} ${index + 1}`}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                      isDark 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+                    }`}
                   />
                 ))}
               </div>
@@ -580,21 +673,25 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.correctAnswer')}</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.modal.correctAnswer')}</label>
             <input
               type="text"
               value={formData.correctAnswer}
               onChange={e => setFormData(prev => ({ ...prev, correctAnswer: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+              }`}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.ageGroupsLabel')}</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.modal.ageGroupsLabel')}</label>
             <div className="flex space-x-4">
               {(['preschool', 'young', 'older', 'teen'] as const).map(ageGroup => (
-                <label key={ageGroup} className="flex items-center">
+                <label key={ageGroup} className={`flex items-center ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                   <input
                     type="checkbox"
                     checked={formData.ageGroups.includes(ageGroup)}
@@ -608,43 +705,63 @@ const QuestionModal: React.FC<QuestionModalProps> = ({ question, onSave, onClose
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.tags')}</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.modal.tags')}</label>
             <input
               type="text"
               value={formData.tags}
               onChange={e => setFormData(prev => ({ ...prev, tags: e.target.value }))}
               placeholder={t('questionManagement.modal.tagsPlaceholder')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+              }`}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.explanationEN')}</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.modal.explanationEN')}</label>
             <textarea
               value={formData.explanationEN}
               onChange={e => setFormData(prev => ({ ...prev, explanationEN: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+              }`}
               rows={2}
               placeholder={t('questionManagement.modal.explanationENPlaceholder')}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{t('questionManagement.modal.explanationCN')}</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('questionManagement.modal.explanationCN')}</label>
             <textarea
               value={formData.explanationCN}
               onChange={e => setFormData(prev => ({ ...prev, explanationCN: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+              }`}
               rows={2}
               placeholder={t('questionManagement.modal.explanationCNPlaceholder')}
             />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+            <button type="button" onClick={onClose} className={`px-4 py-2 border rounded-md transition-colors ${
+              isDark 
+                ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}>
               {t('common.cancel')}
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <button type="submit" className={`px-4 py-2 rounded-md transition-colors ${
+              isDark 
+                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}>
               {question ? t('questionManagement.modal.update') : t('questionManagement.modal.create')}
             </button>
           </div>

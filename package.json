@@ -51,6 +51,9 @@
         "@capacitor/cli": "^7.4.3",
         "@capacitor/core": "^7.4.3",
         "@capacitor/ios": "^7.4.3",
+        "@reown/appkit": "^1.8.9",
+        "@reown/appkit-adapter-wagmi": "^1.8.9",
+        "@tanstack/react-query": "^5.90.2",
         "clsx": "^2.0.0",
         "date-fns": "^2.30.0",
         "ethers": "^6.15.0",
@@ -63,6 +66,8 @@
         "react-router-dom": "^6.20.1",
         "starknet": "^7.6.4",
         "tailwind-merge": "^2.2.0",
+        "viem": "^2.38.0",
+        "wagmi": "^2.18.0",
         "zustand": "^4.4.7"
     },
     "build": {
@@ -95,5 +100,8 @@
         "buildDependenciesFromSource": false,
         "nodeGypRebuild": false,
         "npmRebuild": false
+    },
+    "overrides": {
+        "@reown/appkit": "^1.8.9"
     }
 }

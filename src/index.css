@@ -42,6 +42,11 @@
     @apply bg-white rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-200;
   }
 
+  /* Dark mode card styles */
+  .dark .card-modern {
+    @apply bg-gray-800/80 border-gray-700;
+  }
+
   /* Gradient buttons */
   .btn-gradient {
     @apply bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-medium rounded-xl px-4 py-2 transition-all duration-200 shadow-lg transform hover:scale-105;
@@ -262,11 +267,23 @@
   @apply bg-gray-100;
 }
 
+.dark ::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
 ::-webkit-scrollbar-thumb {
   @apply bg-gray-400 rounded-full;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-gray-600;
+}
+
 ::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-500;
 }
 

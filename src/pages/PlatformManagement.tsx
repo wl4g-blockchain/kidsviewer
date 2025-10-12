@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
-// import { useTranslation } from '../i18n/I18nProvider'; // TODO: Add i18n support
+import { useThemeStore } from '../stores/themeStore';
+import { useTranslation } from '../i18n/I18nProvider';
 import { Plus, Edit, Trash2, Globe } from 'lucide-react';
 import { Platform } from '../types';
 
 export const PlatformManagement: React.FC = () => {
   const { apiHandler } = useAuthStore();
-  // const t = useTranslation(); // TODO: Add i18n support for platform management
+  const { isDark } = useThemeStore();
+  const t = useTranslation();
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -70,22 +72,26 @@ export const PlatformManagement: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isDark ? 'border-blue-400' : 'border-blue-600'}`}></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className={`space-y-6 p-6 min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <Globe className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">Platform Management</h1>
+          <Globe className={`w-8 h-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Platform Management</h1>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className={`inline-flex items-center px-4 py-2 rounded-lg transition-colors ${
+            isDark 
+              ? 'bg-blue-600 text-white hover:bg-blue-700' 
+              : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
         >
           <Plus className="w-5 h-5 mr-2" />
           Add Platform
@@ -95,38 +101,52 @@ export const PlatformManagement: React.FC = () => {
       {/* Platform List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {platforms.map(platform => (
-          <div key={platform.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <div key={platform.id} className={`rounded-lg shadow-md p-6 border ${
+            isDark 
+              ? 'bg-gray-800 border-gray-700' 
+              : 'bg-white border-gray-200'
+          }`}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-gray-900">{platform.nameEN}</h3>
+              <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{platform.nameEN}</h3>
               <div className="flex items-center space-x-2">
-                <button onClick={() => setEditingPlatform(platform)} className="p-2 text-gray-500 hover:text-blue-600 transition-colors">
+                <button onClick={() => setEditingPlatform(platform)} className={`p-2 transition-colors ${
+                  isDark 
+                    ? 'text-gray-400 hover:text-blue-400' 
+                    : 'text-gray-500 hover:text-blue-600'
+                }`}>
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDeletePlatform(platform.id.toString())}
-                  className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                  className={`p-2 transition-colors ${
+                    isDark 
+                      ? 'text-gray-400 hover:text-red-400' 
+                      : 'text-gray-500 hover:text-red-600'
+                  }`}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className={`space-y-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               <p>
-                <strong>Chinese Name:</strong> {platform.nameCN}
+                <strong className={isDark ? 'text-white' : 'text-gray-900'}>Chinese Name:</strong> {platform.nameCN}
               </p>
               <p>
-                <strong>URL:</strong>{' '}
-                <a href={platform.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                <strong className={isDark ? 'text-white' : 'text-gray-900'}>URL:</strong>{' '}
+                <a href={platform.url} target="_blank" rel="noopener noreferrer" className={`hover:underline ${
+                  isDark ? 'text-blue-400' : 'text-blue-600'
+                }`}>
                   {platform.url}
                 </a>
               </p>
               <p>
-                <strong>Age Groups:</strong> {platform.ageGroups.join(', ')}
+                <strong className={isDark ? 'text-white' : 'text-gray-900'}>Age Groups:</strong> {platform.ageGroups.join(', ')}
               </p>
               {platform.description && (
                 <p>
-                  <strong>Description:</strong> {platform.description}
+                  <strong className={isDark ? 'text-white' : 'text-gray-900'}>Description:</strong> {platform.description}
                 </p>
               )}
             </div>
@@ -157,6 +177,7 @@ interface PlatformModalProps {
 }
 
 const PlatformModal: React.FC<PlatformModalProps> = ({ platform, onSave, onClose }) => {
+  const { isDark } = useThemeStore();
   const [formData, setFormData] = useState({
     nameEN: platform?.nameEN || '',
     nameCN: platform?.nameCN || '',
@@ -179,51 +200,71 @@ const PlatformModal: React.FC<PlatformModalProps> = ({ platform, onSave, onClose
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-900">{platform ? 'Edit Platform' : 'Create Platform'}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+      <div className={`rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto ${
+        isDark ? 'bg-gray-800' : 'bg-white'
+      }`}>
+        <div className={`flex items-center justify-between p-6 border-b ${
+          isDark ? 'border-gray-700' : 'border-gray-200'
+        }`}>
+          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            {platform ? 'Edit Platform' : 'Create Platform'}
+          </h2>
+          <button onClick={onClose} className={`p-2 rounded-full transition-colors ${
+            isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'
+          }`}>
             ×
           </button>
         </div>
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">English Name</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>English Name</label>
               <input
                 type="text"
                 value={formData.nameEN}
                 onChange={e => setFormData(prev => ({ ...prev, nameEN: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+                }`}
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Chinese Name</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Chinese Name</label>
               <input
                 type="text"
                 value={formData.nameCN}
                 onChange={e => setFormData(prev => ({ ...prev, nameCN: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+                }`}
                 required
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">URL</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>URL</label>
             <input
               type="url"
               value={formData.url}
               onChange={e => setFormData(prev => ({ ...prev, url: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+              }`}
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Age Groups</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Age Groups</label>
             <div className="flex space-x-4">
               {(['preschool', 'young', 'older'] as const).map(ageGroup => (
-                <label key={ageGroup} className="flex items-center">
+                <label key={ageGroup} className={`flex items-center ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                   <input
                     type="checkbox"
                     checked={formData.ageGroups.includes(ageGroup)}
@@ -236,19 +277,31 @@ const PlatformModal: React.FC<PlatformModalProps> = ({ platform, onSave, onClose
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Description</label>
             <textarea
               value={formData.description}
               onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 transition-colors ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+              }`}
               rows={3}
             />
           </div>
           <div className="flex justify-end space-x-3 pt-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+            <button type="button" onClick={onClose} className={`px-4 py-2 border rounded-md transition-colors ${
+              isDark 
+                ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
+                : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}>
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            <button type="submit" className={`px-4 py-2 rounded-md transition-colors ${
+              isDark 
+                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}>
               {platform ? 'Update' : 'Create'}
             </button>
           </div>

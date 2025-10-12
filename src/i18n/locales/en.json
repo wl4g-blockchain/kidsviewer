@@ -47,7 +47,15 @@
         "invalidCredentials": "Invalid email or password",
         "userExists": "User already exists",
         "passwordsNotMatch": "Passwords do not match",
-        "parentAccountOnly": "This app is designed for parent accounts only"
+        "parentAccountOnly": "This app is designed for parent accounts only",
+        "basicLogin": "Basic Login",
+        "otherLogin": "Other Login",
+        "continueWith": "Continue with",
+        "subtitle": "Intelligently manage children's viewing time and cultivate learning interest through fun Q&A challenges",
+        "featureWeb3": "🔗 Web3 Security",
+        "featureEducation": "📚 Education First",
+        "featureFun": "🎮 Learning Through Play",
+        "divider": "or"
     },
     "parental": {
         "dashboard": "Parental Dashboard",
@@ -405,11 +413,11 @@
         "questionManagement": "Question Management", 
         "questionManagementDesc": "Manage learning questions and topics",
         "generalSettings": "General Settings",
-        "languageSelection": "Language Selection",
-        "themeMode": "Theme Mode",
-        "lightMode": "Light Mode",
-        "darkMode": "Dark Mode",
-        "autoMode": "Auto Switch",
+        "languageSelection": "Language",
+        "themeMode": "Theme",
+        "lightMode": "Light",
+        "darkMode": "Dark",
+        "autoMode": "Auto",
         "enableNotifications": "Enable Notifications",
         "notificationsDesc": "Receive important event notifications",
         "securityPrivacy": "Security & Privacy",
@@ -606,23 +614,6 @@
         "web3Disabled": "Web3 Features Disabled",
         "web3DisabledDesc": "Ask your parent to enable rewards and savings features in settings."
       },
-      "walletLauncher": {
-        "selectNetwork": "Select Network",
-        "ethereum": "Ethereum",
-        "starknet": "Starknet",
-        "walletStatus": {
-          "connected": "Connected",
-          "installed": "Installed",
-          "notInstalled": "Not Installed"
-        },
-        "installWallet": "Install Wallet",
-        "connecting": "Connecting...",
-        "processing": "Processing...",
-        "success": "Success!",
-        "error": "Error",
-        "redirecting": "Redirecting you back to the app...",
-        "backToSettings": "Back to Settings"
-        },
         "childView": {
             "rewards": "Rewards",
             "notEnabled": "Not enabled",

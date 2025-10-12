@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Settings, Save, RefreshCw, Trash2, Shield, Globe, BookOpen, ArrowRight, Coins, PiggyBank } from 'lucide-react';
 import { AppSettings, AppInfo } from '../types';
@@ -10,6 +11,7 @@ import { PiggyBankManager } from '../components/web3/PiggyBankManager';
 
 export const SettingsPage: React.FC = () => {
   const { currentUser, apiHandler } = useAuthStore();
+  const { isDark } = useThemeStore();
   const [isLoading, setIsLoading] = useState(false);
   const [currentView, setCurrentView] = useState<'settings' | 'platforms' | 'questions' | 'rewards' | 'piggybank'>('settings');
   const [settings, setSettings] = useState<Partial<AppSettings> & { autoLock: boolean; dataSync: boolean }>({
@@ -177,16 +179,26 @@ export const SettingsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-10 py-8 relative">
+    <div
+      className={`space-y-10 py-8 relative ${
+        isDark ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
+      }`}
+    >
       {/* Soft decorative background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-32 h-32 bg-blue-100 rounded-full opacity-15 animate-pulse"></div>
         <div
-          className="absolute bottom-32 left-32 w-28 h-28 bg-purple-100 rounded-full opacity-10 animate-pulse"
+          className={`absolute top-20 right-20 w-32 h-32 rounded-full opacity-15 animate-pulse ${isDark ? 'bg-blue-400' : 'bg-blue-100'}`}
+        ></div>
+        <div
+          className={`absolute bottom-32 left-32 w-28 h-28 rounded-full opacity-10 animate-pulse ${
+            isDark ? 'bg-purple-400' : 'bg-purple-100'
+          }`}
           style={{ animationDelay: '2s' }}
         ></div>
         <div
-          className="absolute top-1/2 right-40 w-20 h-20 bg-indigo-100 rounded-full opacity-20 animate-pulse"
+          className={`absolute top-1/2 right-40 w-20 h-20 rounded-full opacity-20 animate-pulse ${
+            isDark ? 'bg-indigo-400' : 'bg-indigo-100'
+          }`}
           style={{ animationDelay: '4s' }}
         ></div>
       </div>
@@ -198,26 +210,34 @@ export const SettingsPage: React.FC = () => {
             <span className="text-3xl">⚙️</span>
           </div>
         </div>
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">{t('settings.title')}</h1>
-        <p className="text-lg text-gray-600">{t('settings.subtitle')}</p>
+        <h1 className={`text-4xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('settings.title')}</h1>
+        <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('settings.subtitle')}</p>
       </div>
 
       {/* Settings Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
         {/* Data Management */}
-        <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100 lg:col-span-2">
+        <div
+          className={`rounded-2xl shadow-md p-8 border lg:col-span-2 ${
+            isDark ? 'bg-gray-800/80 border-gray-700 backdrop-blur-lg' : 'bg-white border-gray-100'
+          }`}
+        >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-orange-500 rounded-xl flex items-center justify-center mr-4 shadow-md">
               <RefreshCw className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">{t('settings.dataManagement')}</h2>
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('settings.dataManagement')}</h2>
           </div>
 
           {/* Management Modules */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div
               onClick={() => setCurrentView('platforms')}
-              className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border border-blue-200 cursor-pointer hover:shadow-md transition-all duration-200 group"
+              className={`rounded-xl p-6 border cursor-pointer hover:shadow-md transition-all duration-200 group ${
+                isDark
+                  ? 'bg-gradient-to-br from-blue-900/30 to-blue-800/30 border-blue-700'
+                  : 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200'
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -225,17 +245,25 @@ export const SettingsPage: React.FC = () => {
                     <Globe className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">{t('settings.platformManagement')}</h3>
-                    <p className="text-sm text-gray-600">{t('settings.platformManagementDesc')}</p>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      {t('settings.platformManagement')}
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('settings.platformManagementDesc')}</p>
                   </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-blue-500 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  className={`w-5 h-5 group-hover:translate-x-1 transition-transform ${isDark ? 'text-blue-400' : 'text-blue-500'}`}
+                />
               </div>
             </div>
 
             <div
               onClick={() => setCurrentView('questions')}
-              className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 border border-green-200 cursor-pointer hover:shadow-md transition-all duration-200 group"
+              className={`rounded-xl p-6 border cursor-pointer hover:shadow-md transition-all duration-200 group ${
+                isDark
+                  ? 'bg-gradient-to-br from-green-900/30 to-green-800/30 border-green-700'
+                  : 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -243,17 +271,25 @@ export const SettingsPage: React.FC = () => {
                     <BookOpen className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">{t('settings.questionManagement')}</h3>
-                    <p className="text-sm text-gray-600">{t('settings.questionManagementDesc')}</p>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      {t('settings.questionManagement')}
+                    </h3>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('settings.questionManagementDesc')}</p>
                   </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-green-500 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  className={`w-5 h-5 group-hover:translate-x-1 transition-transform ${isDark ? 'text-green-400' : 'text-green-500'}`}
+                />
               </div>
             </div>
 
             <div
               onClick={() => setCurrentView('rewards')}
-              className="bg-gradient-to-br from-yellow-50 to-orange-100 rounded-xl p-6 border border-yellow-200 cursor-pointer hover:shadow-md transition-all duration-200 group"
+              className={`rounded-xl p-6 border cursor-pointer hover:shadow-md transition-all duration-200 group ${
+                isDark
+                  ? 'bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border-yellow-700'
+                  : 'bg-gradient-to-br from-yellow-50 to-orange-100 border-yellow-200'
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -261,17 +297,23 @@ export const SettingsPage: React.FC = () => {
                     <Coins className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">Reward Vault</h3>
-                    <p className="text-sm text-gray-600">Manage learning rewards and incentives</p>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Reward Vault</h3>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Manage learning rewards and incentives</p>
                   </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-yellow-500 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  className={`w-5 h-5 group-hover:translate-x-1 transition-transform ${isDark ? 'text-yellow-400' : 'text-yellow-500'}`}
+                />
               </div>
             </div>
 
             <div
               onClick={() => setCurrentView('piggybank')}
-              className="bg-gradient-to-br from-pink-50 to-purple-100 rounded-xl p-6 border border-pink-200 cursor-pointer hover:shadow-md transition-all duration-200 group"
+              className={`rounded-xl p-6 border cursor-pointer hover:shadow-md transition-all duration-200 group ${
+                isDark
+                  ? 'bg-gradient-to-br from-pink-900/30 to-purple-900/30 border-pink-700'
+                  : 'bg-gradient-to-br from-pink-50 to-purple-100 border-pink-200'
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -279,11 +321,13 @@ export const SettingsPage: React.FC = () => {
                     <PiggyBank className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-800">Piggy Bank</h3>
-                    <p className="text-sm text-gray-600">Investment and savings management</p>
+                    <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Piggy Bank</h3>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Investment and savings management</p>
                   </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-pink-500 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight
+                  className={`w-5 h-5 group-hover:translate-x-1 transition-transform ${isDark ? 'text-pink-400' : 'text-pink-500'}`}
+                />
               </div>
             </div>
           </div>
@@ -292,7 +336,9 @@ export const SettingsPage: React.FC = () => {
             <button
               onClick={saveSettings}
               disabled={isLoading}
-              className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-lg font-medium rounded-xl text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md"
+              className={`inline-flex items-center justify-center px-6 py-3 border border-transparent text-lg font-medium rounded-xl text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md ${
+                isDark ? 'focus:ring-offset-gray-800' : 'focus:ring-offset-white'
+              }`}
             >
               <Save className="w-5 h-5 mr-2" />
               {isLoading ? t('settings.saving') : t('settings.saveSettings')}
@@ -300,7 +346,11 @@ export const SettingsPage: React.FC = () => {
 
             <button
               onClick={resetSettings}
-              className="inline-flex items-center justify-center px-6 py-3 border border-orange-300 text-lg font-medium rounded-xl text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all duration-200"
+              className={`inline-flex items-center justify-center px-6 py-3 border text-lg font-medium rounded-xl transition-all duration-200 ${
+                isDark
+                  ? 'border-orange-600 text-orange-300 bg-orange-900/30 hover:bg-orange-800/30 focus:ring-orange-500'
+                  : 'border-orange-300 text-orange-700 bg-orange-50 hover:bg-orange-100 focus:ring-orange-500'
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDark ? 'focus:ring-offset-gray-800' : 'focus:ring-offset-white'}`}
             >
               <RefreshCw className="w-5 h-5 mr-2" />
               {t('settings.restoreDefaults')}
@@ -308,7 +358,11 @@ export const SettingsPage: React.FC = () => {
 
             <button
               onClick={clearData}
-              className="inline-flex items-center justify-center px-6 py-3 border border-red-300 text-lg font-medium rounded-xl text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200"
+              className={`inline-flex items-center justify-center px-6 py-3 border text-lg font-medium rounded-xl transition-all duration-200 ${
+                isDark
+                  ? 'border-red-600 text-red-300 bg-red-900/30 hover:bg-red-800/30 focus:ring-red-500'
+                  : 'border-red-300 text-red-700 bg-red-50 hover:bg-red-100 focus:ring-red-500'
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 ${isDark ? 'focus:ring-offset-gray-800' : 'focus:ring-offset-white'}`}
             >
               <Trash2 className="w-5 h-5 mr-2" />
               {t('settings.clearData')}
@@ -317,22 +371,30 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         {/* General Settings */}
-        <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <div
+          className={`rounded-2xl shadow-md p-8 border ${
+            isDark ? 'bg-gray-800/80 border-gray-700 backdrop-blur-lg' : 'bg-white border-gray-100'
+          }`}
+        >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl flex items-center justify-center mr-4 shadow-md">
               <Settings className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">{t('settings.generalSettings')}</h2>
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('settings.generalSettings')}</h2>
           </div>
 
           <div className="space-y-8">
             {/* Language Setting */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">{t('settings.languageSelection')}</label>
+              <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                {t('settings.languageSelection')}
+              </label>
               <select
                 value={settings.language}
                 onChange={e => handleSettingChange('language', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 bg-gray-50"
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 ${
+                  isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-gray-50 border-gray-200'
+                }`}
               >
                 <option value="en">English</option>
                 <option value="zh">中文</option>
@@ -341,11 +403,15 @@ export const SettingsPage: React.FC = () => {
 
             {/* Theme Setting */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">{t('settings.themeMode')}</label>
+              <label className={`block text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                {t('settings.themeMode')}
+              </label>
               <select
                 value={settings.theme}
                 onChange={e => handleSettingChange('theme', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200 bg-gray-50"
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200 ${
+                  isDark ? 'bg-gray-700/50 border-gray-600 text-white' : 'bg-gray-50 border-gray-200'
+                }`}
               >
                 <option value="light">{t('settings.lightMode')}</option>
                 <option value="dark">{t('settings.darkMode')}</option>
@@ -354,11 +420,13 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             {/* Notifications */}
-            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
+            <div className={`rounded-xl p-6 border ${isDark ? 'bg-blue-900/30 border-blue-700' : 'bg-blue-50 border-blue-100'}`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 flex items-center">{t('settings.enableNotifications')}</label>
-                  <p className="text-sm text-gray-500 mt-1">{t('settings.notificationsDesc')}</p>
+                  <label className={`text-sm font-medium flex items-center ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t('settings.enableNotifications')}
+                  </label>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('settings.notificationsDesc')}</p>
                 </div>
                 <button
                   onClick={() =>
@@ -380,21 +448,27 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         {/* Security & Privacy */}
-        <div className="bg-white rounded-2xl shadow-md p-8 border border-gray-100">
+        <div
+          className={`rounded-2xl shadow-md p-8 border ${
+            isDark ? 'bg-gray-800/80 border-gray-700 backdrop-blur-lg' : 'bg-white border-gray-100'
+          }`}
+        >
           <div className="flex items-center mb-8">
             <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-green-500 rounded-xl flex items-center justify-center mr-4 shadow-md">
               <Shield className="w-6 h-6 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">{t('settings.securityPrivacy')}</h2>
+            <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('settings.securityPrivacy')}</h2>
           </div>
 
           <div className="space-y-8">
             {/* Auto Lock */}
-            <div className="bg-green-50 rounded-xl p-6 border border-green-100">
+            <div className={`rounded-xl p-6 border ${isDark ? 'bg-green-900/30 border-green-700' : 'bg-green-50 border-green-100'}`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 flex items-center">{t('settings.autoLock')}</label>
-                  <p className="text-sm text-gray-500 mt-1">{t('settings.autoLockDesc')}</p>
+                  <label className={`text-sm font-medium flex items-center ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t('settings.autoLock')}
+                  </label>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('settings.autoLockDesc')}</p>
                 </div>
                 <button
                   onClick={() => handleSettingChange('autoLock', !settings.autoLock)}
@@ -412,11 +486,13 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             {/* Data Sync */}
-            <div className="bg-purple-50 rounded-xl p-6 border border-purple-100">
+            <div className={`rounded-xl p-6 border ${isDark ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-100'}`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 flex items-center">{t('settings.dataSync')}</label>
-                  <p className="text-sm text-gray-500 mt-1">{t('settings.dataSyncDesc')}</p>
+                  <label className={`text-sm font-medium flex items-center ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t('settings.dataSync')}
+                  </label>
+                  <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('settings.dataSyncDesc')}</p>
                 </div>
                 <button
                   onClick={() => handleSettingChange('dataSync', !settings.dataSync)}
@@ -437,25 +513,31 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {/* App Information */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100 relative z-10">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">{t('settings.appInfo')}</h2>
+      <div
+        className={`rounded-2xl p-8 border relative z-10 ${
+          isDark
+            ? 'bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-blue-700'
+            : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-100'
+        }`}
+      >
+        <h2 className={`text-2xl font-bold mb-6 text-center ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('settings.appInfo')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className={`rounded-xl p-6 shadow-sm ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
             <div className="text-3xl mb-3">📱</div>
-            <div className="font-medium text-gray-800 mb-1">{t('settings.version')}</div>
-            <div className="text-gray-600">{appInfo?.version || 'Loading...'}</div>
+            <div className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('settings.version')}</div>
+            <div className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{appInfo?.version || 'Loading...'}</div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className={`rounded-xl p-6 shadow-sm ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
             <div className="text-3xl mb-3">🔧</div>
-            <div className="font-medium text-gray-800 mb-1">{t('settings.buildType')}</div>
-            <div className="text-gray-600">
+            <div className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('settings.buildType')}</div>
+            <div className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
               {appInfo?.buildType === 'development' ? t('settings.developmentBuild') : appInfo?.buildType || 'Loading...'}
             </div>
           </div>
-          <div className="bg-white rounded-xl p-6 shadow-sm">
+          <div className={`rounded-xl p-6 shadow-sm ${isDark ? 'bg-gray-800/50' : 'bg-white'}`}>
             <div className="text-3xl mb-3">💻</div>
-            <div className="font-medium text-gray-800 mb-1">{t('settings.runningPlatform')}</div>
-            <div className="text-gray-600">{appInfo?.platform || 'Loading...'}</div>
+            <div className={`font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('settings.runningPlatform')}</div>
+            <div className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{appInfo?.platform || 'Loading...'}</div>
           </div>
         </div>
       </div>

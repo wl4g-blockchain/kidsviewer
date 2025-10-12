@@ -47,7 +47,15 @@
         "invalidCredentials": "邮箱或密码错误",
         "userExists": "用户已存在",
         "passwordsNotMatch": "密码不匹配",
-        "parentAccountOnly": "此应用仅限家长账户使用"
+        "parentAccountOnly": "此应用仅限家长账户使用",
+        "basicLogin": "基础登录",
+        "otherLogin": "其他登录方式",
+        "continueWith": "继续使用",
+        "subtitle": "智能管理孩子的观看时间，通过有趣的问答挑战培养学习兴趣",
+        "featureWeb3": "🔗 Web3 安全",
+        "featureEducation": "📚 教育优先",
+        "featureFun": "🎮 寓教于乐",
+        "divider": "或"
     },
     "parental": {
         "dashboard": "家长控制台",
@@ -405,11 +413,11 @@
         "questionManagement": "题库管理",
         "questionManagementDesc": "管理学习问题和题目",
         "generalSettings": "通用设置",
-        "languageSelection": "语言选择",
-        "themeMode": "主题模式",
-        "lightMode": "明亮模式",
-        "darkMode": "深色模式",
-        "autoMode": "自动切换",
+        "languageSelection": "语言",
+        "themeMode": "主题",
+        "lightMode": "明亮",
+        "darkMode": "深色",
+        "autoMode": "自动",
         "enableNotifications": "启用通知",
         "notificationsDesc": "接收重要事件的通知提醒",
         "securityPrivacy": "安全隐私",
@@ -605,23 +613,6 @@
             "investingIn": "投资于 {product}（{apr}% 年化收益率）",
             "web3Disabled": "Web3 功能已禁用",
             "web3DisabledDesc": "请让家长在设置中开启奖励和储蓄功能。"
-        },
-        "walletLauncher": {
-            "selectNetwork": "选择网络",
-            "ethereum": "以太坊",
-            "starknet": "Starknet",
-            "walletStatus": {
-                "connected": "已连接",
-                "installed": "已安装",
-                "notInstalled": "未安装"
-            },
-            "installWallet": "安装钱包",
-            "connecting": "连接中...",
-            "processing": "处理中...",
-            "success": "成功！",
-            "error": "错误",
-            "redirecting": "正在重定向回应用...",
-            "backToSettings": "返回设置"
         },
         "childView": {
             "rewards": "奖励",

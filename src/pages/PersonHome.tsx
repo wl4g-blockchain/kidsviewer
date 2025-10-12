@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { useThemeStore } from '../stores/themeStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
 import { Video, Trophy, Crown, Baby, Play, AlertCircle, RefreshCw, Clock, Lock, BookOpen, ArrowLeft, Loader2, Coins, PiggyBank, TrendingUp } from 'lucide-react';
 import { ParentalPasswordModal } from '../components/ParentalPasswordModal';
@@ -23,6 +24,7 @@ interface WatchingSession {
 
 export const PersonHome: React.FC = () => {
   const { activePerson, switchToParent, apiHandler } = useAuthStore();
+  const { isDark } = useThemeStore();
   const t = useTranslation();
   const { currentLanguage } = useLanguage();
 
@@ -447,38 +449,54 @@ export const PersonHome: React.FC = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-8 py-8">
+      <div className={`flex flex-col gap-8 py-8 min-h-screen ${
+        isDark 
+          ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
+          : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
+      }`}>
         {memoizedWatchingSession ? (
           // Watching View
           <div className="space-y-6">
             {/* Header */}
-            <div className="bg-white rounded-lg shadow-md p-4">
+            <div className={`rounded-lg shadow-md p-4 backdrop-filter backdrop-blur-lg ${
+              isDark 
+                ? 'bg-gray-800/80 border border-gray-700' 
+                : 'bg-white'
+            }`}>
               <div className="flex items-center justify-between">
                 <button
                   onClick={handleStopWatching}
-                  className="inline-flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  className={`inline-flex items-center px-4 py-2 transition-colors ${
+                    isDark 
+                      ? 'text-gray-300 hover:text-white' 
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
                 >
                   <ArrowLeft className="w-5 h-5 mr-2" />
                   {t('personViewer.back')}
                 </button>
                 <div className="text-center">
-                  <h1 className="text-xl font-bold text-gray-900">{memoizedWatchingSession.platformName}</h1>
+                  <h1 className={`text-xl font-bold ${
+                    isDark ? 'text-white' : 'text-gray-900'
+                  }`}>{memoizedWatchingSession.platformName}</h1>
                   <div className="flex items-center justify-center space-x-2 mt-1">
-                    <Clock className="w-4 h-4 text-blue-600" />
-                    <span className="text-lg font-medium text-blue-600">{t('personViewer.watchingActive')}</span>
+                    <Clock className="w-4 h-4 text-blue-400" />
+                    <span className="text-lg font-medium text-blue-400">{t('personViewer.watchingActive')}</span>
                   </div>
                   {/* Countdown timer display */}
                   {memoizedWatchingSession && (
-                    <div className="mt-2 flex items-center justify-center space-x-4 text-sm text-gray-600">
+                    <div className={`mt-2 flex items-center justify-center space-x-4 text-sm ${
+                      isDark ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
                       <div className="flex items-center space-x-1">
                         <span className="font-medium">{t('personViewer.sessionTime')}:</span>
-                        <span className={`font-bold ${remainingTime <= 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                        <span className={`font-bold ${remainingTime <= 0 ? 'text-red-400' : 'text-blue-400'}`}>
                           {remainingTime <= 0 ? t('time.timeUp') : formatTime(remainingTime)}
                         </span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <span className="font-medium">{t('personViewer.dailyTime')}:</span>
-                        <span className={`font-bold ${remainingDailyTime <= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        <span className={`font-bold ${remainingDailyTime <= 0 ? 'text-red-400' : 'text-green-400'}`}>
                           {remainingDailyTime <= 0 ? t('time.timeUp') : formatTime(remainingDailyTime)}
                         </span>
                       </div>
@@ -489,7 +507,11 @@ export const PersonHome: React.FC = () => {
                   <button
                     onClick={handleRefreshClick}
                     disabled={isRefreshing}
-                    className="inline-flex items-center px-3 py-2 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`inline-flex items-center px-3 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isDark 
+                        ? 'text-gray-300 hover:text-white' 
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
                     title={t('common.refresh')}
                   >
                     {isRefreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
@@ -499,10 +521,16 @@ export const PersonHome: React.FC = () => {
             </div>
 
             {watchingError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className={`border rounded-lg p-4 backdrop-filter backdrop-blur-lg ${
+                isDark 
+                  ? 'bg-red-900/20 border-red-700' 
+                  : 'bg-red-50 border-red-200'
+              }`}>
                 <div className="flex items-center justify-between">
-                  <p className="text-red-800">{watchingError}</p>
-                  <button onClick={handleRefresh} className="ml-4 text-sm text-red-600 hover:text-red-800 underline">
+                  <p className={isDark ? 'text-red-300' : 'text-red-800'}>{watchingError}</p>
+                  <button onClick={handleRefresh} className={`ml-4 text-sm underline transition-colors ${
+                    isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-800'
+                  }`}>
                     {t('common.retry')}
                   </button>
                 </div>
@@ -510,8 +538,12 @@ export const PersonHome: React.FC = () => {
             )}
 
             {webViewerError && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-yellow-800">
+              <div className={`border rounded-lg p-4 backdrop-filter backdrop-blur-lg ${
+                isDark 
+                  ? 'bg-yellow-900/20 border-yellow-700' 
+                  : 'bg-yellow-50 border-yellow-200'
+              }`}>
+                <p className={isDark ? 'text-yellow-300' : 'text-yellow-800'}>
                   {t('personViewer.videoLoadWarning')}: {webViewerError}
                 </p>
               </div>
@@ -519,12 +551,18 @@ export const PersonHome: React.FC = () => {
 
             {/* Video Content Area */}
             {!showQuestions ? (
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className={`rounded-lg shadow-md p-6 backdrop-filter backdrop-blur-lg ${
+                isDark 
+                  ? 'bg-gray-800/80 border border-gray-700' 
+                  : 'bg-white'
+              }`}>
                 <div className="mb-4">
-                  <h3 className="text-xl font-medium text-gray-800 mb-2">
+                  <h3 className={`text-xl font-medium mb-2 ${
+                    isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                     {t('personViewer.watching')} {memoizedWatchingSession.platformName}
                   </h3>
-                  <p className="text-gray-600">{memoizedWatchingSession.description || t('personViewer.enjoyWatching')}</p>
+                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>{memoizedWatchingSession.description || t('personViewer.enjoyWatching')}</p>
                 </div>
 
                 {/* Video Player - Conditionally render based on platform */}
@@ -555,12 +593,20 @@ export const PersonHome: React.FC = () => {
                 )}
 
                 {/* Video info bar */}
-                <div className="mt-4 flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                <div className={`mt-4 flex items-center justify-between rounded-lg p-4 backdrop-filter backdrop-blur-lg ${
+                  isDark 
+                    ? 'bg-gray-700/50 border border-gray-600' 
+                    : 'bg-gray-50'
+                }`}>
                   <div className="flex items-center space-x-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-gray-700">{t('personViewer.watching')}</span>
+                    <span className={`text-sm font-medium ${
+                      isDark ? 'text-gray-200' : 'text-gray-700'
+                    }`}>{t('personViewer.watching')}</span>
                   </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <div className={`flex items-center space-x-4 text-sm ${
+                    isDark ? 'text-gray-300' : 'text-gray-600'
+                  }`}>
                     <span>
                       {t('personViewer.platform')}: {memoizedWatchingSession.platformName}
                     </span>
@@ -569,13 +615,23 @@ export const PersonHome: React.FC = () => {
               </div>
             ) : (
               /* Questions Modal */
-              <div className="bg-white rounded-lg shadow-md p-6">
+              <div className={`rounded-lg shadow-md p-6 backdrop-filter backdrop-blur-lg ${
+                isDark 
+                  ? 'bg-gray-800/80 border border-gray-700' 
+                  : 'bg-white'
+              }`}>
                 <div className="text-center mb-6">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Lock className="w-8 h-8 text-blue-600" />
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                    isDark 
+                      ? 'bg-blue-900/50 border border-blue-700' 
+                      : 'bg-blue-100'
+                  }`}>
+                    <Lock className={`w-8 h-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">{t('personViewer.answerQuestionsToContinue')}</h2>
-                  <p className="text-gray-600">
+                  <h2 className={`text-xl font-bold mb-2 ${
+                    isDark ? 'text-white' : 'text-gray-900'
+                  }`}>{t('personViewer.answerQuestionsToContinue')}</h2>
+                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
                     {t('personViewer.answerQuestionsRemaining', { count: currentQuestions.length - currentQuestionIndex })}
                   </p>
                 </div>
@@ -595,17 +651,31 @@ export const PersonHome: React.FC = () => {
                     </div>
 
                     {/* Current Question */}
-                    <div className="bg-gray-50 rounded-lg p-6 mb-6">
+                    <div className={`rounded-lg p-6 mb-6 backdrop-filter backdrop-blur-lg ${
+                      isDark 
+                        ? 'bg-gray-700/50 border border-gray-600' 
+                        : 'bg-gray-50'
+                    }`}>
                       <div className="text-center mb-4">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                          isDark 
+                            ? 'bg-blue-900/50 text-blue-300 border border-blue-700' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
                           {t(`personViewer.questions.${currentQuestions[currentQuestionIndex]?.subject}`)}
                         </span>
-                        <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                        <span className={`ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                          isDark 
+                            ? 'bg-purple-900/50 text-purple-300 border border-purple-700' 
+                            : 'bg-purple-100 text-purple-800'
+                        }`}>
                           {t(`personViewer.questions.difficulty.${currentQuestions[currentQuestionIndex]?.difficulty}`)}
                         </span>
                       </div>
 
-                      <h3 className="text-lg font-medium text-gray-900 mb-4 text-center">
+                      <h3 className={`text-lg font-medium mb-4 text-center ${
+                        isDark ? 'text-white' : 'text-gray-900'
+                      }`}>
                         {currentQuestions[currentQuestionIndex]?.content}
                       </h3>
 
@@ -618,7 +688,9 @@ export const PersonHome: React.FC = () => {
                               key={index}
                               onClick={() => setUserAnswer(option)}
                               className={`w-full p-3 text-left rounded-lg border transition-colors duration-200 ${
-                                userAnswer === option ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+                                userAnswer === option 
+                                  ? (isDark ? 'border-blue-400 bg-blue-900/30 text-white' : 'border-blue-500 bg-blue-50 text-gray-900')
+                                  : (isDark ? 'border-gray-600 bg-gray-800/50 text-gray-200 hover:border-gray-500 hover:bg-gray-700/50' : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50')
                               }`}
                             >
                               {option}
@@ -631,7 +703,11 @@ export const PersonHome: React.FC = () => {
                           value={userAnswer}
                           onChange={e => setUserAnswer(e.target.value)}
                           placeholder={t('personViewer.questions.answer')}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                            isDark 
+                              ? 'bg-gray-800/50 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-400 focus:border-blue-400' 
+                              : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500'
+                          }`}
                         />
                       )}
 
@@ -640,7 +716,11 @@ export const PersonHome: React.FC = () => {
                         <button
                           onClick={handleAnswerSubmit}
                           disabled={!userAnswer}
-                          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                          className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 ${
+                            isDark 
+                              ? 'text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 focus:ring-offset-gray-800' 
+                              : 'text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 focus:ring-offset-white'
+                          }`}
                         >
                           <BookOpen className="w-5 h-5 mr-2" />
                           {t('common.submit')}
@@ -650,12 +730,18 @@ export const PersonHome: React.FC = () => {
 
                     {/* Result Display */}
                     {showResult && (
-                      <div className={`text-center p-4 rounded-lg ${isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                      <div className={`text-center p-4 rounded-lg backdrop-filter backdrop-blur-lg ${
+                        isCorrect 
+                          ? (isDark ? 'bg-green-900/30 text-green-300 border border-green-700' : 'bg-green-50 text-green-800')
+                          : (isDark ? 'bg-red-900/30 text-red-300 border border-red-700' : 'bg-red-50 text-red-800')
+                      }`}>
                         <div className="text-lg font-medium mb-2">
                           {isCorrect ? t('personViewer.questions.correct') : t('personViewer.questions.incorrect')}
                         </div>
                         {currentQuestions[currentQuestionIndex]?.explanation && (
-                          <div className="text-sm">
+                          <div className={`text-sm ${
+                            isDark ? 'text-gray-300' : 'text-gray-600'
+                          }`}>
                             <strong>{t('personViewer.questions.explanation')}:</strong>{' '}
                             {currentQuestions[currentQuestionIndex]?.explanation}
                           </div>
@@ -675,17 +761,29 @@ export const PersonHome: React.FC = () => {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 via-emerald-500 to-cyan-500 rounded-full shadow-2xl mb-6 kids-pulse-element">
                 <Baby className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-4xl font-black bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent mb-3">
+              <h1 className={`text-4xl font-black mb-3 ${
+                isDark 
+                  ? 'bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent' 
+                  : 'bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 bg-clip-text text-transparent'
+              }`}>
                 🌟 {t('home.child.title', { name: activePerson?.alias || t('home.child.defaultName') })}
               </h1>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">✨ {t('home.child.subtitle')}</p>
+              <p className={`text-lg max-w-2xl mx-auto ${
+                isDark ? 'text-gray-300' : 'text-gray-600'
+              }`}>✨ {t('home.child.subtitle')}</p>
             </div>
 
             {/* Available platforms/URLs */}
             <div className="px-4">
-              <div className="card-modern p-6">
+              <div className={`p-6 backdrop-filter backdrop-blur-lg ${
+                isDark 
+                  ? 'bg-gray-800/80 border border-gray-700 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200' 
+                  : 'card-modern'
+              }`}>
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                  <h2 className={`text-2xl font-bold flex items-center ${
+                    isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                     <Video className="w-6 h-6 mr-2 text-green-500" />
                     🎬 {t('home.child.availablePlatforms')}
                   </h2>
@@ -693,7 +791,11 @@ export const PersonHome: React.FC = () => {
                     <button
                       onClick={handleRefresh}
                       disabled={isLoading}
-                      className="text-sm bg-gray-500 text-white rounded-lg px-3 py-1 hover:bg-gray-600 transition-colors flex items-center disabled:opacity-50"
+                      className={`text-sm rounded-lg px-3 py-1 transition-colors flex items-center disabled:opacity-50 ${
+                        isDark 
+                          ? 'bg-gray-600 text-white hover:bg-gray-500' 
+                          : 'bg-gray-500 text-white hover:bg-gray-600'
+                      }`}
                     >
                       <RefreshCw className={`w-3 h-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
                       {t('common.refresh')}
@@ -710,12 +812,20 @@ export const PersonHome: React.FC = () => {
 
                 {/* Error Alert */}
                 {error && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+                  <div className={`mb-6 p-4 border rounded-md backdrop-filter backdrop-blur-lg ${
+                    isDark 
+                      ? 'bg-red-900/20 border-red-700' 
+                      : 'bg-red-50 border-red-200'
+                  }`}>
                     <div className="flex">
                       <AlertCircle className="w-5 h-5 text-red-400" />
                       <div className="ml-3">
-                        <p className="text-sm text-red-800">{error}</p>
-                        <button onClick={handleRefresh} className="mt-2 text-sm text-red-600 hover:text-red-800 underline">
+                        <p className={`text-sm ${
+                          isDark ? 'text-red-300' : 'text-red-800'
+                        }`}>{error}</p>
+                        <button onClick={handleRefresh} className={`mt-2 text-sm underline transition-colors ${
+                          isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-800'
+                        }`}>
                           {t('common.retry')}
                         </button>
                       </div>
@@ -725,15 +835,21 @@ export const PersonHome: React.FC = () => {
 
                 {isLoading ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">{t('person.loadingAccessiblePlatforms')}</p>
+                    <div className={`animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4 ${
+                      isDark ? 'border-blue-400' : 'border-blue-600'
+                    }`}></div>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>{t('person.loadingAccessiblePlatforms')}</p>
                   </div>
                 ) : personPlatforms.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {personPlatforms.map((plat, index) => (
                       <div
                         key={index}
-                        className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200 hover:shadow-lg transition-all duration-200 group"
+                        className={`rounded-xl p-4 border hover:shadow-lg transition-all duration-200 group backdrop-filter backdrop-blur-lg ${
+                          isDark 
+                            ? 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-700 hover:border-purple-600' 
+                            : 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200'
+                        }`}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center">
@@ -741,13 +857,19 @@ export const PersonHome: React.FC = () => {
                               <Play className="w-6 h-6" />
                             </div>
                             <div>
-                              <h3 className="font-bold text-gray-800 text-lg">{getPlatformName(plat)}</h3>
+                              <h3 className={`font-bold text-lg ${
+                                isDark ? 'text-white' : 'text-gray-800'
+                              }`}>{getPlatformName(plat)}</h3>
                               {/* Difficulty and time limits are now managed at Person level */}
-                              {plat.description && <div className="text-xs text-gray-600 mt-2">{plat.description}</div>}
+                              {plat.description && <div className={`text-xs mt-2 ${
+                                isDark ? 'text-gray-400' : 'text-gray-600'
+                              }`}>{plat.description}</div>}
                             </div>
                           </div>
                         </div>
-                        {plat.description && <p className="text-sm text-gray-600 mb-4 leading-relaxed">{plat.description}</p>}
+                        {plat.description && <p className={`text-sm mb-4 leading-relaxed ${
+                          isDark ? 'text-gray-300' : 'text-gray-600'
+                        }`}>{plat.description}</p>}
                         <button
                           onClick={() => handleOpenUrl(plat)}
                           className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg py-3 px-4 font-bold hover:scale-105 transition-transform flex items-center justify-center text-lg shadow-lg"
@@ -761,8 +883,12 @@ export const PersonHome: React.FC = () => {
                 ) : (
                   <div className="text-center py-12">
                     <div className="text-8xl mb-4">📺</div>
-                    <h3 className="text-xl font-bold text-gray-700 mb-2">{t('home.child.noVideos')}</h3>
-                    <p className="text-gray-600 mb-6">{t('home.child.noVideosDesc')}</p>
+                    <h3 className={`text-xl font-bold mb-2 ${
+                      isDark ? 'text-gray-200' : 'text-gray-700'
+                    }`}>{t('home.child.noVideos')}</h3>
+                    <p className={`mb-6 ${
+                      isDark ? 'text-gray-300' : 'text-gray-600'
+                    }`}>{t('home.child.noVideosDesc')}</p>
                     <div className="flex justify-center space-x-4">
                       <button
                         onClick={handleRefresh}
@@ -786,37 +912,59 @@ export const PersonHome: React.FC = () => {
 
             {/* Quick stats */}
             <div className="px-4">
-              <div className="card-modern p-6">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+              <div className={`p-6 backdrop-filter backdrop-blur-lg ${
+                isDark 
+                  ? 'bg-gray-800/80 border border-gray-700 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200' 
+                  : 'card-modern'
+              }`}>
+                <h2 className={`text-2xl font-bold mb-6 flex items-center ${
+                  isDark ? 'text-white' : 'text-gray-800'
+                }`}>
                   <Trophy className="w-6 h-6 mr-2 text-yellow-500" />
                   🏆 {t('home.child.todayAchievements')}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="text-center bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
+                  <div className={`text-center rounded-xl p-6 border backdrop-filter backdrop-blur-lg ${
+                    isDark 
+                      ? 'bg-gradient-to-br from-blue-900/30 to-cyan-900/30 border-blue-700' 
+                      : 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200'
+                  }`}>
                     <div className="text-6xl mb-3">⏰</div>
-                    <h3 className="font-bold text-gray-800 mb-2">{t('home.child.studyTime')}</h3>
-                    <div className="text-4xl font-black text-blue-600 mb-1">0</div>
-                    <p className="text-sm text-gray-600">{t('home.child.studyTimeUnit')}</p>
+                    <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('home.child.studyTime')}</h3>
+                    <div className={`text-4xl font-black mb-1 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>0</div>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('home.child.studyTimeUnit')}</p>
                   </div>
-                  <div className="text-center bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
+                  <div className={`text-center rounded-xl p-6 border backdrop-filter backdrop-blur-lg ${
+                    isDark 
+                      ? 'bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border-yellow-700' 
+                      : 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200'
+                  }`}>
                     <div className="text-6xl mb-3">⭐</div>
-                    <h3 className="font-bold text-gray-800 mb-2">{t('home.child.stars')}</h3>
-                    <div className="text-4xl font-black text-orange-600 mb-1">0</div>
-                    <p className="text-sm text-gray-600">{t('home.child.starsDesc')}</p>
+                    <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('home.child.stars')}</h3>
+                    <div className={`text-4xl font-black mb-1 ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>0</div>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('home.child.starsDesc')}</p>
                   </div>
-                  <div className="text-center bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                  <div className={`text-center rounded-xl p-6 border backdrop-filter backdrop-blur-lg ${
+                    isDark 
+                      ? 'bg-gradient-to-br from-green-900/30 to-emerald-900/30 border-green-700' 
+                      : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'
+                  }`}>
                     <div className="text-6xl mb-3">🎯</div>
-                    <h3 className="font-bold text-gray-800 mb-2">{t('home.child.challenge')}</h3>
-                    <div className="text-4xl font-black text-green-600 mb-1">0</div>
-                    <p className="text-sm text-gray-600">{t('home.child.challengeDesc')}</p>
+                    <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>{t('home.child.challenge')}</h3>
+                    <div className={`text-4xl font-black mb-1 ${isDark ? 'text-green-400' : 'text-green-600'}`}>0</div>
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{t('home.child.challengeDesc')}</p>
                   </div>
-                  <div className="text-center bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+                  <div className={`text-center rounded-xl p-6 border backdrop-filter backdrop-blur-lg ${
+                    isDark 
+                      ? 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-700' 
+                      : 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200'
+                  }`}>
                     <div className="text-6xl mb-3">🎁</div>
-                    <h3 className="font-bold text-gray-800 mb-2">Rewards</h3>
-                    <div className="text-4xl font-black text-purple-600 mb-1">
+                    <h3 className={`font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Rewards</h3>
+                    <div className={`text-4xl font-black mb-1 ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>
                       {rewardConfig?.enabled ? '0' : '—'}
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                       {rewardConfig?.enabled ? `${rewardConfig.tokenType} earned` : 'Not enabled'}
                     </p>
                   </div>
@@ -827,8 +975,14 @@ export const PersonHome: React.FC = () => {
             {/* Web3 Rewards and Investment Section */}
             {(rewardConfig?.enabled || piggyBankConfig?.enabled) && (
               <div className="px-4">
-                <div className="card-modern p-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <div className={`p-6 backdrop-filter backdrop-blur-lg ${
+                  isDark 
+                    ? 'bg-gray-800/80 border border-gray-700 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-200' 
+                    : 'card-modern'
+                }`}>
+                  <h2 className={`text-2xl font-bold mb-6 flex items-center ${
+                    isDark ? 'text-white' : 'text-gray-800'
+                  }`}>
                     <Coins className="w-6 h-6 mr-2 text-yellow-500" />
                     💰 My Rewards & Savings
                   </h2>
@@ -836,31 +990,41 @@ export const PersonHome: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Rewards Section */}
                     {rewardConfig?.enabled && (
-                      <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200">
+                      <div className={`rounded-xl p-6 border backdrop-filter backdrop-blur-lg ${
+                        isDark 
+                          ? 'bg-gradient-to-br from-yellow-900/30 to-orange-900/30 border-yellow-700' 
+                          : 'bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200'
+                      }`}>
                         <div className="flex items-center mb-4">
                           <div className="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center mr-3">
                             <Coins className="w-5 h-5 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-bold text-gray-800">Learning Rewards</h3>
-                            <p className="text-sm text-gray-600">Earn tokens for correct answers</p>
+                            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Learning Rewards</h3>
+                            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Earn tokens for correct answers</p>
                           </div>
                         </div>
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Token Type:</span>
-                            <span className="font-semibold text-gray-800">{rewardConfig.tokenType}</span>
+                            <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Token Type:</span>
+                            <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>{rewardConfig.tokenType}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Per Answer:</span>
-                            <span className="font-semibold text-gray-800">{rewardConfig.rewardPerAnswer} {rewardConfig.tokenType}</span>
+                            <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Per Answer:</span>
+                            <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>{rewardConfig.rewardPerAnswer} {rewardConfig.tokenType}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Daily Limit:</span>
-                            <span className="font-semibold text-gray-800">{rewardConfig.dailyLimit} {rewardConfig.tokenType}</span>
+                            <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Daily Limit:</span>
+                            <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>{rewardConfig.dailyLimit} {rewardConfig.tokenType}</span>
                           </div>
-                          <div className="mt-4 p-3 bg-yellow-100 rounded-lg">
-                            <p className="text-sm text-yellow-800 text-center">
+                          <div className={`mt-4 p-3 rounded-lg backdrop-filter backdrop-blur-lg ${
+                            isDark 
+                              ? 'bg-yellow-900/30 border border-yellow-700' 
+                              : 'bg-yellow-100'
+                          }`}>
+                            <p className={`text-sm text-center ${
+                              isDark ? 'text-yellow-300' : 'text-yellow-800'
+                            }`}>
                               🎉 Keep learning to earn more rewards!
                             </p>
                           </div>
@@ -870,46 +1034,54 @@ export const PersonHome: React.FC = () => {
 
                     {/* Piggy Bank Section */}
                     {piggyBankConfig?.enabled && piggyBankBalance && (
-                      <div className="bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl p-6 border border-pink-200">
+                      <div className={`rounded-xl p-6 border backdrop-filter backdrop-blur-lg ${
+                        isDark 
+                          ? 'bg-gradient-to-br from-pink-900/30 to-purple-900/30 border-pink-700' 
+                          : 'bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200'
+                      }`}>
                         <div className="flex items-center mb-4">
                           <div className="w-10 h-10 bg-pink-500 rounded-lg flex items-center justify-center mr-3">
                             <PiggyBank className="w-5 h-5 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-bold text-gray-800">My Piggy Bank</h3>
-                            <p className="text-sm text-gray-600">Smart savings with interest</p>
+                            <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>My Piggy Bank</h3>
+                            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Smart savings with interest</p>
                           </div>
                         </div>
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Total Balance:</span>
-                            <span className="font-bold text-lg text-pink-600">
+                            <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Total Balance:</span>
+                            <span className={`font-bold text-lg ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>
                               {piggyBankBalance.formattedBalance} {piggyBankBalance.token.symbol}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Daily Earnings:</span>
-                            <span className="font-semibold text-green-600 flex items-center">
+                            <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Daily Earnings:</span>
+                            <span className={`font-semibold flex items-center ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                               <TrendingUp className="w-4 h-4 mr-1" />
                               +{piggyBankBalance.dailyEarnings} {piggyBankBalance.token.symbol}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Total Earnings:</span>
-                            <span className="font-semibold text-green-600">
+                            <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Total Earnings:</span>
+                            <span className={`font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                               +{piggyBankBalance.totalEarnings} {piggyBankBalance.token.symbol}
                             </span>
                           </div>
                           
                           {/* Real-time earnings display */}
-                          <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className={`mt-4 p-3 rounded-lg border backdrop-filter backdrop-blur-lg ${
+                            isDark 
+                              ? 'bg-green-900/30 border-green-700' 
+                              : 'bg-green-50 border-green-200'
+                          }`}>
                             <div className="flex items-center justify-between">
-                              <span className="text-sm text-green-700">Live Growth:</span>
-                              <span className="text-sm font-mono text-green-600">
+                              <span className={`text-sm ${isDark ? 'text-green-300' : 'text-green-700'}`}>Live Growth:</span>
+                              <span className={`text-sm font-mono ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                                 +{realTimeEarnings.toFixed(6)} {piggyBankBalance.token.symbol}
                               </span>
                             </div>
-                            <p className="text-xs text-green-600 mt-1">
+                            <p className={`text-xs mt-1 ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                               * Actual earnings subject to final settlement
                             </p>
                           </div>
@@ -917,28 +1089,28 @@ export const PersonHome: React.FC = () => {
                           {/* DeFi Investment Products */}
                           {investmentConfig?.isEnabled && availableAaveProducts.length > 0 && (
                             <div className="mt-4">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Choose Investment Product</h4>
+                              <h4 className={`text-sm font-semibold mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Choose Investment Product</h4>
                               <div className="space-y-2">
                                 {availableAaveProducts.map((product) => (
                                   <div 
                                     key={product.id}
-                                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                                    className={`p-3 rounded-lg border cursor-pointer transition-all backdrop-filter backdrop-blur-lg ${
                                       selectedAaveProduct?.id === product.id
-                                        ? 'bg-blue-100 border-blue-300'
-                                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                                        ? (isDark ? 'bg-blue-900/30 border-blue-600' : 'bg-blue-100 border-blue-300')
+                                        : (isDark ? 'bg-gray-800/50 border-gray-600 hover:bg-gray-700/50' : 'bg-gray-50 border-gray-200 hover:bg-gray-100')
                                     }`}
                                     onClick={() => setSelectedAaveProduct(product)}
                                   >
                                     <div className="flex items-center justify-between">
                                       <div>
-                                        <div className="font-medium text-sm">{product.name}</div>
-                                        <div className="text-xs text-gray-600">{product.symbol}</div>
+                                        <div className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-900'}`}>{product.name}</div>
+                                        <div className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{product.symbol}</div>
                                       </div>
                                       <div className="text-right">
-                                        <div className="text-sm font-semibold text-green-600">
+                                        <div className={`text-sm font-semibold ${isDark ? 'text-green-400' : 'text-green-600'}`}>
                                           {product.apr}% APR
                                         </div>
-                                        <div className="text-xs text-gray-500">Annual Rate</div>
+                                        <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Annual Rate</div>
                                       </div>
                                     </div>
                                   </div>
@@ -946,8 +1118,14 @@ export const PersonHome: React.FC = () => {
                               </div>
                               
                               {selectedAaveProduct && (
-                                <div className="mt-3 p-3 bg-blue-100 rounded-lg">
-                                  <p className="text-sm text-blue-800 text-center">
+                                <div className={`mt-3 p-3 rounded-lg backdrop-filter backdrop-blur-lg ${
+                                  isDark 
+                                    ? 'bg-blue-900/30 border border-blue-700' 
+                                    : 'bg-blue-100'
+                                }`}>
+                                  <p className={`text-sm text-center ${
+                                    isDark ? 'text-blue-300' : 'text-blue-800'
+                                  }`}>
                                     💎 Investing in {selectedAaveProduct.name} 
                                     ({selectedAaveProduct.apr}% APR)
                                   </p>
@@ -957,14 +1135,14 @@ export const PersonHome: React.FC = () => {
                           )}
 
                           {/* Withdrawal Request Button */}
-                          <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className={`mt-4 pt-4 border-t ${isDark ? 'border-gray-600' : 'border-gray-200'}`}>
                             <button
                               onClick={() => setShowWithdrawalModal(true)}
                               className="w-full bg-orange-500 text-white py-2 px-4 rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
                             >
                               💰 Request Withdrawal
                             </button>
-                            <p className="text-xs text-gray-500 mt-2 text-center">
+                            <p className={`text-xs mt-2 text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                               Ask your parent for permission to withdraw money
                             </p>
                           </div>
@@ -977,8 +1155,8 @@ export const PersonHome: React.FC = () => {
                   {!rewardConfig?.enabled && !piggyBankConfig?.enabled && (
                     <div className="text-center py-8">
                       <div className="text-6xl mb-4">🔒</div>
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">Web3 Features Disabled</h3>
-                      <p className="text-gray-600">
+                      <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Web3 Features Disabled</h3>
+                      <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
                         Ask your parent to enable rewards and savings features in settings.
                       </p>
                     </div>
@@ -989,12 +1167,20 @@ export const PersonHome: React.FC = () => {
 
             {/* Encouragement message */}
             <div className="px-4 pb-8">
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200 text-center">
+              <div className={`rounded-2xl p-6 border text-center backdrop-filter backdrop-blur-lg ${
+                isDark 
+                  ? 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-700' 
+                  : 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200'
+              }`}>
                 <div className="text-6xl mb-4">🌟✨🚀</div>
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-3">
+                <h3 className={`text-2xl font-bold mb-3 ${
+                  isDark 
+                    ? 'bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent' 
+                    : 'bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent'
+                }`}>
                   {t('home.child.encouragement', { name: activePerson?.alias || t('home.child.defaultName') })}
                 </h3>
-                <p className="text-gray-700 leading-relaxed">{t('home.child.encouragementDesc')}</p>
+                <p className={`leading-relaxed ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('home.child.encouragementDesc')}</p>
               </div>
             </div>
           </>
@@ -1012,12 +1198,16 @@ export const PersonHome: React.FC = () => {
       {/* Withdrawal Request Modal */}
       {showWithdrawalModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Request Withdrawal</h3>
+          <div className={`rounded-xl p-6 w-full max-w-md backdrop-filter backdrop-blur-lg ${
+            isDark 
+              ? 'bg-gray-800/90 border border-gray-700' 
+              : 'bg-white'
+          }`}>
+            <h3 className={`text-xl font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Request Withdrawal</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                   Amount to Withdraw
                 </label>
                 <div className="flex items-center">
@@ -1028,16 +1218,20 @@ export const PersonHome: React.FC = () => {
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                      isDark 
+                        ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:ring-orange-400 focus:border-orange-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-orange-500 focus:border-orange-500'
+                    }`}
                   />
-                  <span className="ml-2 text-gray-600">
+                  <span className={`ml-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                     {piggyBankBalance?.token.symbol || 'USDC'}
                   </span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                   Reason for Withdrawal
                 </label>
                 <textarea
@@ -1045,12 +1239,20 @@ export const PersonHome: React.FC = () => {
                   onChange={(e) => setWithdrawalReason(e.target.value)}
                   placeholder="Why do you need this money? (e.g., buy a toy, save for something special)"
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                    isDark 
+                      ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400 focus:ring-orange-400 focus:border-orange-400' 
+                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-orange-500 focus:border-orange-500'
+                  }`}
                 />
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <p className="text-sm text-yellow-800">
+              <div className={`border rounded-lg p-3 backdrop-filter backdrop-blur-lg ${
+                isDark 
+                  ? 'bg-yellow-900/30 border-yellow-700' 
+                  : 'bg-yellow-50 border-yellow-200'
+              }`}>
+                <p className={`text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>
                   ⚠️ Your parent will review this request before approving it.
                 </p>
               </div>
@@ -1059,7 +1261,11 @@ export const PersonHome: React.FC = () => {
             <div className="flex space-x-3 mt-6">
               <button
                 onClick={() => setShowWithdrawalModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className={`flex-1 px-4 py-2 border rounded-lg transition-colors ${
+                  isDark 
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700/50' 
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
               >
                 Cancel
               </button>

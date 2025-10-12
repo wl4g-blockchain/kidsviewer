@@ -5,7 +5,6 @@ import { ParentalHome } from './pages/ParentalHome';
 import { PersonHome } from './pages/PersonHome';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthPage } from './pages/AuthPage';
-import { WalletCallback } from './pages/web3/WalletCallback';
 import { useAuthStore } from './stores/authStore';
 import { useEffect } from 'react';
 
@@ -87,12 +86,6 @@ function App() {
             <AuthPage />
           </ProtectedRoute>
         }
-      />
-
-      {/* Wallet callback page - no protection needed */}
-      <Route
-        path="/wallet-callback"
-        element={<WalletCallback />}
       />
 
       {/* Protected routes */}

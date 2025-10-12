@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { Coins, Wallet, AlertCircle, CheckCircle, Loader2, ExternalLink } from 'lucide-react';
-import { WalletConnectModal } from './WalletConnectModal';
+import { Coins, Wallet, AlertCircle, CheckCircle, Loader2, ExternalLink, Link, Unlink, Globe } from 'lucide-react';
+import { useThemeStore } from '../../stores/themeStore';
 import { EthereumUtils, StarknetUtils, Web3Utils } from '../../utils/web3/web3Utils';
+import { getAppKit } from '../../config/appkit';
 import {
   WalletConnection,
   RewardConfig,
@@ -19,16 +20,20 @@ import {
   SUPPORTED_NETWORKS,
 } from '../../types/web3';
 import { web3Service } from '../../services/web3Service';
+import { useAuthStore } from '../../stores/authStore';
 
 interface RewardVaultManagerProps {
   onConfigUpdate: (config: RewardConfig) => void;
 }
 
 export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfigUpdate }) => {
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
+  const { isDark } = useThemeStore();
   const [walletConnection, setWalletConnection] = useState<WalletConnection | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Get auth state from store
+  const { web3AuthState, boundWallet, bindWallet, getWalletConnection } = useAuthStore();
 
   // Reward configuration state
   const [rewardConfig, setRewardConfig] = useState<RewardConfig>({
@@ -68,6 +73,14 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
       loadAvailableAaveProducts();
     }
   }, [walletConnection]);
+
+  // Update wallet connection from auth store
+  useEffect(() => {
+    const currentWallet = getWalletConnection();
+    if (currentWallet) {
+      setWalletConnection(currentWallet);
+    }
+  }, [web3AuthState, boundWallet, getWalletConnection]);
 
   // Load withdrawal requests when child is selected
   useEffect(() => {
@@ -146,11 +159,18 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     }
   };
 
-  const handleWalletConnect = (connection: WalletConnection) => {
-    setWalletConnection(connection);
-    setError(null);
-    setSuccess('Wallet connected successfully!');
-    setTimeout(() => setSuccess(null), 3000);
+  const handleBindWallet = async () => {
+    try {
+      const success = await bindWallet();
+      if (success) {
+        setSuccess('Wallet bound successfully!');
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        setError('Failed to bind wallet');
+      }
+    } catch (error) {
+      setError('Failed to bind wallet');
+    }
   };
 
   const handleEnableRewards = () => {
@@ -300,18 +320,22 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
           <Coins className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Reward Vault</h2>
-          <p className="text-gray-600">Manage rewards and incentives for your child's learning</p>
+          <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Reward Vault</h2>
+          <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Manage rewards and incentives for your child's learning</p>
         </div>
       </div>
 
       {/* Experimental Notice */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+      <div className={`border rounded-xl p-4 ${
+        isDark 
+          ? 'bg-yellow-900/30 border-yellow-700' 
+          : 'bg-yellow-50 border-yellow-200'
+      }`}>
         <div className="flex items-start">
           <AlertCircle className="w-5 h-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-yellow-800 font-medium text-sm">Experimental Feature</p>
-            <p className="text-yellow-700 text-sm mt-1">
+            <p className={`font-medium text-sm ${isDark ? 'text-yellow-300' : 'text-yellow-800'}`}>Experimental Feature</p>
+            <p className={`text-sm mt-1 ${isDark ? 'text-yellow-400' : 'text-yellow-700'}`}>
               This feature helps children understand money concepts and motivates learning. Use with caution and only with small amounts.
             </p>
           </div>
@@ -319,11 +343,15 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
       </div>
 
       {/* Enable Rewards Toggle */}
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
+      <div className={`rounded-xl p-6 border ${
+        isDark 
+          ? 'bg-gray-800 border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">Enable Rewards</h3>
-            <p className="text-gray-600 text-sm mt-1">Allow your child to earn tokens for correct answers</p>
+            <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>Enable Rewards</h3>
+            <p className={`text-sm mt-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Allow your child to earn tokens for correct answers</p>
           </div>
           <button
             onClick={handleEnableRewards}
@@ -342,49 +370,132 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
       {/* Wallet Connection */}
       {rewardConfig.enabled && (
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Wallet Connection</h3>
+        <div className={`rounded-xl p-6 border ${
+          isDark 
+            ? 'bg-gray-800 border-gray-700' 
+            : 'bg-white border-gray-200'
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Wallet Connection</h3>
 
-          {!walletConnection ? (
+          {/* Show different UI based on auth method */}
+          {web3AuthState?.authMethod === 'email' || web3AuthState?.authMethod === 'social' ? (
+            /* Social/Email login - show wallet binding option */
+            <div className="space-y-4">
+              <div className={`p-4 rounded-lg ${
+                isDark 
+                  ? 'bg-blue-900/30 border border-blue-700' 
+                  : 'bg-blue-50'
+              }`}>
+                <div className="flex items-center mb-2">
+                  <Globe className="w-5 h-5 text-blue-500 mr-2" />
+                  <p className={`font-medium ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>{web3AuthState.authMethod === 'email' ? 'Email' : 'Social'} Login Detected</p>
+                </div>
+                <p className={`text-sm mb-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                  You logged in with {web3AuthState.authMethod === 'email' ? 'email' : web3AuthState.socialProvider}. To manage rewards, you
+                  need to bind a wallet.
+                </p>
+
+                {!boundWallet ? (
+                  <button
+                    onClick={handleBindWallet}
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-lg font-medium hover:scale-105 transition-transform flex items-center gap-2"
+                  >
+                    <Link className="w-4 h-4" />
+                    Bind Wallet
+                  </button>
+                ) : (
+                  <div className={`flex items-center justify-between p-3 rounded-lg ${
+                    isDark 
+                      ? 'bg-green-900/30 border border-green-700' 
+                      : 'bg-green-50'
+                  }`}>
+                    <div className="flex items-center">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                      <div>
+                        <p className={`font-medium ${isDark ? 'text-green-300' : 'text-green-800'}`}>Wallet Bound</p>
+                        <p className={`text-sm ${isDark ? 'text-green-400' : 'text-green-600'}`}>{formatAddress(boundWallet.address)}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setWalletConnection(null)}
+                      className={`text-sm underline flex items-center gap-1 ${
+                        isDark 
+                          ? 'text-gray-400 hover:text-gray-300' 
+                          : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <Unlink className="w-3 h-3" />
+                      Unbind
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : /* Traditional wallet login */
+          !walletConnection ? (
             <div className="text-center py-6">
-              <Wallet className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-4">Connect your wallet to manage rewards</p>
-              <button
-                onClick={() => setIsWalletModalOpen(true)}
-                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:scale-105 transition-transform"
-              >
-                Connect Wallet
-              </button>
+              <Wallet className={`w-12 h-12 mx-auto mb-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+              <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Connect your wallet to manage rewards</p>
+                <button
+                  onClick={async () => {
+                    console.log('RewardVaultManager: Opening wallet-only AppKit');
+                    try {
+                      const appKit = await getAppKit();
+                      await appKit.open();
+                    } catch (error) {
+                      console.error('Failed to open wallet connection:', error);
+                    }
+                  }}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:scale-105 transition-transform"
+                >
+                  Connect Wallet
+                </button>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+              <div className={`flex items-center justify-between p-4 rounded-lg ${
+                isDark 
+                  ? 'bg-green-900/30 border border-green-700' 
+                  : 'bg-green-50'
+              }`}>
                 <div className="flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
                   <div>
-                    <p className="font-medium text-green-800">Wallet Connected</p>
-                    <p className="text-sm text-green-600">{formatAddress(walletConnection.address)}</p>
+                    <p className={`font-medium ${isDark ? 'text-green-300' : 'text-green-800'}`}>Wallet Connected</p>
+                    <p className={`text-sm ${isDark ? 'text-green-400' : 'text-green-600'}`}>{formatAddress(walletConnection.address)}</p>
                   </div>
                 </div>
-                <button onClick={() => setWalletConnection(null)} className="text-sm text-gray-500 hover:text-gray-700 underline">
+                <button onClick={() => setWalletConnection(null)} className={`text-sm underline ${
+                  isDark 
+                    ? 'text-gray-400 hover:text-gray-300' 
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}>
                   Disconnect
                 </button>
               </div>
 
               {/* Vault Balance */}
               {vaultBalance && (
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className={`p-4 rounded-lg ${
+                  isDark 
+                    ? 'bg-blue-900/30 border border-blue-700' 
+                    : 'bg-blue-50'
+                }`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-blue-800">Vault Balance</p>
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className={`font-medium ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>Vault Balance</p>
+                      <p className={`text-2xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
                         {vaultBalance.formattedBalance} {vaultBalance.token.symbol}
                       </p>
                     </div>
                     <button
                       onClick={loadVaultBalance}
                       disabled={isLoadingBalance}
-                      className="p-2 text-blue-500 hover:text-blue-700 disabled:opacity-50"
+                      className={`p-2 disabled:opacity-50 ${
+                        isDark 
+                          ? 'text-blue-400 hover:text-blue-300' 
+                          : 'text-blue-500 hover:text-blue-700'
+                      }`}
                     >
                       {isLoadingBalance ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
                     </button>
@@ -394,14 +505,18 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
               {/* Deposit Section */}
               <div className="space-y-4">
-                <h4 className="font-medium text-gray-800">Deposit to Vault</h4>
+                <h4 className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>Deposit to Vault</h4>
                 <div className="flex space-x-3">
                   <input
                     type="number"
                     value={depositAmount}
                     onChange={e => setDepositAmount(e.target.value)}
                     placeholder="Amount to deposit"
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      isDark 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'border-gray-300'
+                    }`}
                     step="0.01"
                     min="0"
                   />
@@ -421,17 +536,25 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
       {/* Reward Configuration */}
       {rewardConfig.enabled && (
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Reward Configuration</h3>
+        <div className={`rounded-xl p-6 border ${
+          isDark 
+            ? 'bg-gray-800 border-gray-700' 
+            : 'bg-white border-gray-200'
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Reward Configuration</h3>
 
           <div className="space-y-4">
             {/* Token Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Token Type</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Token Type</label>
               <select
                 value={rewardConfig.tokenType}
                 onChange={e => handleConfigChange('tokenType', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'border-gray-300'
+                }`}
               >
                 <option value="USDC">USDC</option>
                 <option value="USDT">USDT</option>
@@ -441,52 +564,63 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
             {/* Reward Per Answer */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Reward per Correct Answer</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Reward per Correct Answer</label>
               <div className="flex items-center space-x-2">
                 <input
                   type="number"
                   value={rewardConfig.rewardPerAnswer}
                   onChange={e => handleConfigChange('rewardPerAnswer', parseFloat(e.target.value))}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    isDark 
+                      ? 'bg-gray-700 border-gray-600 text-white' 
+                      : 'border-gray-300'
+                  }`}
                   step="0.01"
                   min="0"
                 />
-                <span className="text-gray-600">{rewardConfig.tokenType}</span>
+                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{rewardConfig.tokenType}</span>
               </div>
             </div>
 
             {/* Daily Limit */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Daily Reward Limit</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Daily Reward Limit</label>
               <div className="flex items-center space-x-2">
                 <input
                   type="number"
                   value={rewardConfig.dailyLimit}
                   onChange={e => handleConfigChange('dailyLimit', parseFloat(e.target.value))}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    isDark 
+                      ? 'bg-gray-700 border-gray-600 text-white' 
+                      : 'border-gray-300'
+                  }`}
                   step="0.1"
                   min="0"
                 />
-                <span className="text-gray-600">{rewardConfig.tokenType}</span>
+                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{rewardConfig.tokenType}</span>
               </div>
             </div>
 
             {/* Settlement Mode */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Reward Settlement Mode</label>
+              <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Reward Settlement Mode</label>
               <select
                 value={rewardConfig.settlementMode}
                 onChange={e => handleConfigChange('settlementMode', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDark 
+                    ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'border-gray-300'
+                }`}
               >
                 <option value="realtime">Real-time Settlement</option>
                 <option value="daily">Daily Settlement (Reduces Gas Fees)</option>
               </select>
-              <p className="text-sm text-gray-500 mt-1">
-                {rewardConfig.settlementMode === 'realtime' 
+              <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                {rewardConfig.settlementMode === 'realtime'
                   ? 'Rewards are distributed immediately after each correct answer'
-                  : 'Rewards are accumulated and distributed once per day to reduce transaction costs'
-                }
+                  : 'Rewards are accumulated and distributed once per day to reduce transaction costs'}
               </p>
             </div>
           </div>
@@ -495,24 +629,44 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
       {/* KRC Holdings Display */}
       {krcHoldings && (
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">KRC Platform Benefits</h3>
+        <div className={`rounded-xl p-6 border ${
+          isDark 
+            ? 'bg-gray-800 border-gray-700' 
+            : 'bg-white border-gray-200'
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>KRC Platform Benefits</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="text-2xl font-bold text-blue-600">{krcHoldings.balance} KRC</div>
-              <div className="text-sm text-blue-800">Balance</div>
+            <div className={`rounded-lg p-4 ${
+              isDark 
+                ? 'bg-blue-900/30 border border-blue-700' 
+                : 'bg-blue-50'
+            }`}>
+              <div className={`text-2xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>{krcHoldings.balance} KRC</div>
+              <div className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>Balance</div>
             </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <div className="text-2xl font-bold text-green-600">{krcHoldings.feeDiscount / 100}%</div>
-              <div className="text-sm text-green-800">Fee Discount</div>
+            <div className={`rounded-lg p-4 ${
+              isDark 
+                ? 'bg-green-900/30 border border-green-700' 
+                : 'bg-green-50'
+            }`}>
+              <div className={`text-2xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>{krcHoldings.feeDiscount / 100}%</div>
+              <div className={`text-sm ${isDark ? 'text-green-300' : 'text-green-800'}`}>Fee Discount</div>
             </div>
-            <div className="bg-purple-50 rounded-lg p-4">
-              <div className="text-2xl font-bold text-purple-600">+{krcHoldings.yieldBoost / 100}%</div>
-              <div className="text-sm text-purple-800">Yield Boost</div>
+            <div className={`rounded-lg p-4 ${
+              isDark 
+                ? 'bg-purple-900/30 border border-purple-700' 
+                : 'bg-purple-50'
+            }`}>
+              <div className={`text-2xl font-bold ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>+{krcHoldings.yieldBoost / 100}%</div>
+              <div className={`text-sm ${isDark ? 'text-purple-300' : 'text-purple-800'}`}>Yield Boost</div>
             </div>
-            <div className="bg-orange-50 rounded-lg p-4">
-              <div className="text-2xl font-bold text-orange-600">{krcHoldings.governancePower} KRC</div>
-              <div className="text-sm text-orange-800">Voting Power</div>
+            <div className={`rounded-lg p-4 ${
+              isDark 
+                ? 'bg-orange-900/30 border border-orange-700' 
+                : 'bg-orange-50'
+            }`}>
+              <div className={`text-2xl font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{krcHoldings.governancePower} KRC</div>
+              <div className={`text-sm ${isDark ? 'text-orange-300' : 'text-orange-800'}`}>Voting Power</div>
             </div>
           </div>
         </div>
@@ -520,16 +674,24 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
       {/* Child Management */}
       {walletConnection?.isConnected && (
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Child Management</h3>
-          
+        <div className={`rounded-xl p-6 border ${
+          isDark 
+            ? 'bg-gray-800 border-gray-700' 
+            : 'bg-white border-gray-200'
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Child Management</h3>
+
           {/* Child Selection */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Child</label>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Select Child</label>
             <select
               value={selectedChild}
               onChange={e => setSelectedChild(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                isDark 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'border-gray-300'
+              }`}
             >
               <option value="">Select a child...</option>
               {/* In a real app, this would be populated from the user's children */}
@@ -541,17 +703,21 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
           {/* Withdrawal Requests */}
           {selectedChild && withdrawalRequests.length > 0 && (
             <div className="mb-6">
-              <h4 className="font-medium text-gray-800 mb-3">Pending Withdrawal Requests</h4>
+              <h4 className={`font-medium mb-3 ${isDark ? 'text-white' : 'text-gray-800'}`}>Pending Withdrawal Requests</h4>
               <div className="space-y-3">
-                {withdrawalRequests.map((request) => (
-                  <div key={request.id} className="bg-gray-50 rounded-lg p-4">
+                {withdrawalRequests.map(request => (
+                  <div key={request.id} className={`rounded-lg p-4 ${
+                    isDark 
+                      ? 'bg-gray-700 border border-gray-600' 
+                      : 'bg-gray-50'
+                  }`}>
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium">{request.amount} {request.token}</div>
-                        <div className="text-sm text-gray-600">{request.reason}</div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(request.timestamp * 1000).toLocaleString()}
+                        <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                          {request.amount} {request.token}
                         </div>
+                        <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{request.reason}</div>
+                        <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{new Date(request.timestamp * 1000).toLocaleString()}</div>
                       </div>
                       <div className="flex space-x-2">
                         <button
@@ -561,7 +727,9 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
                           Approve
                         </button>
                         <button
-                          onClick={() => {/* Handle reject */}}
+                          onClick={() => {
+                            /* Handle reject */
+                          }}
                           className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
                         >
                           Reject
@@ -577,21 +745,17 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
           {/* Investment Configuration */}
           {selectedChild && (
             <div>
-              <h4 className="font-medium text-gray-800 mb-3">DeFi Investment Settings</h4>
+              <h4 className={`font-medium mb-3 ${isDark ? 'text-white' : 'text-gray-800'}`}>DeFi Investment Settings</h4>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-medium">Enable DeFi Investment</div>
-                    <div className="text-sm text-gray-600">Allow child to invest in AAVE products</div>
+                    <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>Enable DeFi Investment</div>
+                    <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Allow child to invest in AAVE products</div>
                   </div>
                   <button
                     onClick={() => {
                       const currentConfig = investmentConfigs.get(selectedChild);
-                      handleSetInvestmentConfig(
-                        selectedChild, 
-                        !currentConfig?.isEnabled, 
-                        currentConfig?.maxInvestmentAmount || '100'
-                      );
+                      handleSetInvestmentConfig(selectedChild, !currentConfig?.isEnabled, currentConfig?.maxInvestmentAmount || '100');
                     }}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
                       investmentConfigs.get(selectedChild)?.isEnabled ? 'bg-green-500' : 'bg-gray-300'
@@ -608,13 +772,17 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
                 {/* AAVE Product Approvals */}
                 {investmentConfigs.get(selectedChild)?.isEnabled && (
                   <div>
-                    <div className="font-medium mb-2">Approved AAVE Products</div>
+                    <div className={`font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>Approved AAVE Products</div>
                     <div className="space-y-2">
-                      {availableAaveProducts.map((product) => (
-                        <div key={product.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                      {availableAaveProducts.map(product => (
+                        <div key={product.id} className={`flex items-center justify-between rounded-lg p-3 ${
+                          isDark 
+                            ? 'bg-gray-700 border border-gray-600' 
+                            : 'bg-gray-50'
+                        }`}>
                           <div>
-                            <div className="font-medium">{product.name}</div>
-                            <div className="text-sm text-gray-600">APR: {product.apr}%</div>
+                            <div className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{product.name}</div>
+                            <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>APR: {product.apr}%</div>
                           </div>
                           <button
                             onClick={() => handleApproveAaveProduct(selectedChild, product.address, true)}
@@ -635,21 +803,26 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
       {/* Status Messages */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
+        <div className={`border rounded-lg p-4 flex items-start ${
+          isDark 
+            ? 'bg-red-900/30 border-red-700' 
+            : 'bg-red-50 border-red-200'
+        }`}>
           <AlertCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
-          <p className="text-red-800">{error}</p>
+          <p className={`${isDark ? 'text-red-300' : 'text-red-800'}`}>{error}</p>
         </div>
       )}
 
       {success && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start">
+        <div className={`border rounded-lg p-4 flex items-start ${
+          isDark 
+            ? 'bg-green-900/30 border-green-700' 
+            : 'bg-green-50 border-green-200'
+        }`}>
           <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-          <p className="text-green-800">{success}</p>
+          <p className={`${isDark ? 'text-green-300' : 'text-green-800'}`}>{success}</p>
         </div>
       )}
-
-      {/* Wallet Connect Modal */}
-      <WalletConnectModal isOpen={isWalletModalOpen} onClose={() => setIsWalletModalOpen(false)} onConnect={handleWalletConnect} />
     </div>
   );
 };
