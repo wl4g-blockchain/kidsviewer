@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
-import { useTranslation } from '../i18n/I18nProvider';
 import { Plus, Edit, Trash2, Globe } from 'lucide-react';
 import { Platform } from '../types';
 
 export const PlatformManagement: React.FC = () => {
   const { apiHandler } = useAuthStore();
   const { isDark } = useThemeStore();
-  const t = useTranslation();
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);

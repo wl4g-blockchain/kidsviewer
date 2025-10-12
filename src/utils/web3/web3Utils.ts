@@ -16,13 +16,13 @@ export class EthereumUtils {
             }
 
             // Request account access
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            const accounts = await (window.ethereum as any).request({ method: 'eth_requestAccounts' });
             if (accounts.length === 0) {
                 throw new Error('No accounts found');
             }
 
             // Create provider and signer
-            this.provider = new ethers.BrowserProvider(window.ethereum);
+            this.provider = new ethers.BrowserProvider(window.ethereum as any);
             this.signer = await this.provider.getSigner();
 
             // Get network info
@@ -51,14 +51,14 @@ export class EthereumUtils {
         }
 
         try {
-            await window.ethereum.request({
+            await (window.ethereum as any).request({
                 method: 'wallet_switchEthereumChain',
                 params: [{ chainId: '0x1' }], // Ethereum mainnet
             });
         } catch (error: any) {
             // If the chain doesn't exist, add it
             if (error.code === 4902) {
-                await window.ethereum.request({
+                await (window.ethereum as any).request({
                     method: 'wallet_addEthereumChain',
                     params: [{
                         chainId: '0x1',
@@ -272,13 +272,5 @@ export class Web3Utils {
         if (window.ethereum) return 'ethereum';
         if (window.starknet) return 'starknet';
         return null;
-    }
-}
-
-// Extend Window interface for TypeScript
-declare global {
-    interface Window {
-        ethereum?: any;
-        starknet?: any;
     }
 }

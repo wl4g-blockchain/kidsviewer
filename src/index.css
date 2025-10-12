@@ -12,6 +12,18 @@
     @apply antialiased;
   }
 
+  /* Fix for Phosphor icons SVG attributes */
+  svg[width=""], svg[height=""] {
+    width: 1em;
+    height: 1em;
+  }
+  
+  /* Ensure all SVG elements have proper dimensions */
+  svg:not([width]):not([height]) {
+    width: 1em;
+    height: 1em;
+  }
+
   /* iOS safe area support */
   @supports (padding-top: env(safe-area-inset-top)) {
     .ios-safe-area {

@@ -4,7 +4,7 @@ import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 
 export const ThemeSwitcher: React.FC = () => {
-  const { mode, setMode, toggleTheme, isDark } = useThemeStore();
+  const { mode, setMode } = useThemeStore();
   const t = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 

@@ -7,12 +7,7 @@ import { useThemeStore } from '../../stores/themeStore';
 
 // Custom Google G Icon Component
 const GoogleIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <svg
-    className={className}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+  <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
       fill="#4285F4"
@@ -158,7 +153,7 @@ async function loginWithGoogleOIDC(): Promise<SocialLoginResult> {
   try {
     // Google OIDC configuration
     const googleConfig = {
-      clientId: process.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID',
+      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID',
       redirectUri: `${window.location.origin}/auth/callback`,
       scope: 'openid email profile',
       responseType: 'code',
@@ -221,9 +216,17 @@ async function loginWithGoogleOIDC(): Promise<SocialLoginResult> {
 // GitHub OIDC Login
 async function loginWithGitHubOIDC(): Promise<SocialLoginResult> {
   try {
+    // Debug: Log environment variables
+    console.log('Environment variables:', {
+      VITE_GITHUB_CLIENT_ID: import.meta.env.VITE_GITHUB_CLIENT_ID,
+      VITE_GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      NODE_ENV: import.meta.env.NODE_ENV,
+      MODE: import.meta.env.MODE,
+    });
+
     // GitHub OIDC configuration
     const githubConfig = {
-      clientId: process.env.VITE_GITHUB_CLIENT_ID || 'YOUR_GITHUB_CLIENT_ID',
+      clientId: import.meta.env.VITE_GITHUB_CLIENT_ID || 'YOUR_GITHUB_CLIENT_ID',
       redirectUri: `${window.location.origin}/auth/callback`,
       scope: 'user:email',
     };

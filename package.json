@@ -7,6 +7,7 @@
     "homepage": "./",
     "scripts": {
         "dev": "vite",
+        "dev:env": "cross-env VITE_GITHUB_CLIENT_ID=$VITE_GITHUB_CLIENT_ID VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID VITE_WALLETCONNECT_PROJECT_ID=$VITE_WALLETCONNECT_PROJECT_ID vite",
         "build": "tsc && vite build",
         "build-debug": "tsc && vite build --debug",
         "preview": "vite preview",
@@ -34,6 +35,8 @@
         "@vitejs/plugin-react": "^4.2.1",
         "autoprefixer": "^10.4.21",
         "concurrently": "^8.2.2",
+        "cross-env": "^10.1.0",
+        "dotenv": "^17.2.3",
         "electron": "^37.4.0",
         "electron-builder": "^26.0.12",
         "eslint": "^8.55.0",

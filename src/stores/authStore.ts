@@ -280,7 +280,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     name: authState.socialProvider ?
                         `${authState.socialProvider.charAt(0).toUpperCase() + authState.socialProvider.slice(1)} User` :
                         'Web3 User',
-                    password: '', // No password for Web3 auth
+                    userType: 'PARENTAL',
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    controlPassword: '', // No password for Web3 auth
                     persons: [],
                     rewardConfig: {
                         enabled: false,

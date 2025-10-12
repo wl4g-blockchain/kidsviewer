@@ -3,7 +3,7 @@
 
 import { createAppKit } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { mainnet, arbitrum, polygon } from 'viem/chains'
+import { mainnet, arbitrum, polygon, sepolia } from 'viem/chains'
 import { createConfig, http } from 'wagmi'
 
 // Get project ID from environment or use default
@@ -11,11 +11,12 @@ const projectId = (import.meta as any).env.VITE_WALLETCONNECT_PROJECT_ID || 'YOU
 
 // Create wagmi config
 export const wagmiConfig = createConfig({
-    chains: [mainnet, arbitrum, polygon],
+    chains: [mainnet, arbitrum, polygon, sepolia],
     transports: {
         [mainnet.id]: http(),
         [arbitrum.id]: http(),
         [polygon.id]: http(),
+        [sepolia.id]: http(),
     },
 })
 
@@ -56,10 +57,10 @@ export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit
 
     try {
         console.log('Initializing Reown AppKit on demand...')
-        
+
         // Create wagmi adapter
         const wagmiAdapter = new WagmiAdapter({
-            networks: [mainnet, arbitrum, polygon],
+            networks: [mainnet, arbitrum, polygon, sepolia],
             projectId,
         })
 
@@ -67,7 +68,7 @@ export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit
         appKitInstance = createAppKit({
             adapters: [wagmiAdapter],
             projectId,
-            networks: [mainnet, arbitrum, polygon],
+            networks: [mainnet, arbitrum, polygon, sepolia],
             metadata,
             features: {
                 email: false, // Disable email login

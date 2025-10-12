@@ -14,6 +14,21 @@ export interface Parental extends User {
     userType: 'PARENTAL';
     controlPassword: string;
     persons: Person[];
+    rewardConfig?: {
+        enabled: boolean;
+        tokenType: 'USDC' | 'USDT' | 'KRC';
+        rewardPerAnswer: number;
+        dailyLimit: number;
+        settlementMode: 'realtime' | 'daily';
+    };
+    piggyBankConfig?: {
+        enabled: boolean;
+        investmentPercentage: number;
+        dailyMaxInvestment: number;
+        cumulativeMaxInvestment: number;
+        defiEnabled: boolean;
+        approvedAaveProducts: string[];
+    };
 }
 
 export interface Person {

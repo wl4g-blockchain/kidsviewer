@@ -21,13 +21,6 @@ const getSystemTheme = (): 'light' | 'dark' => {
   return hour >= 6 && hour < 18 ? 'light' : 'dark';
 };
 
-// 检测系统主题偏好
-const getSystemPreference = (): 'light' | 'dark' => {
-  if (typeof window === 'undefined') return 'light';
-  
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-};
-
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({

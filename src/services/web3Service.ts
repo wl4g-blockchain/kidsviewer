@@ -105,6 +105,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -137,6 +140,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const vaultAddress = CONTRACT_ADDRESSES.ethereum.KidsViewerVault;
             const vaultContract = new ethers.Contract(vaultAddress, KIDSVIEWER_VAULT_ABI, provider);
@@ -173,6 +179,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -204,6 +213,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -235,6 +247,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const piggyBankAddress = CONTRACT_ADDRESSES.ethereum.KidsViewerPiggyBank;
             const piggyBankContract = new ethers.Contract(piggyBankAddress, KIDSVIEWER_PIGGYBANK_ABI, provider);
@@ -299,6 +314,9 @@ export class Web3Service {
         }
 
         if (this.walletConnection.chainId === 1) {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
             const [balance, decimals] = await Promise.all([
@@ -330,6 +348,9 @@ export class Web3Service {
         }
 
         if (this.walletConnection.chainId === 1) {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
             const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
@@ -424,6 +445,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -455,6 +479,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -482,6 +509,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const piggyBankAddress = CONTRACT_ADDRESSES.ethereum.KidsViewerPiggyBank;
             const piggyBankContract = new ethers.Contract(piggyBankAddress, KIDSVIEWER_PIGGYBANK_ABI, provider);
@@ -516,6 +546,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -547,6 +580,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -574,6 +610,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const piggyBankAddress = CONTRACT_ADDRESSES.ethereum.KidsViewerPiggyBank;
             const piggyBankContract = new ethers.Contract(piggyBankAddress, KIDSVIEWER_PIGGYBANK_ABI, provider);
@@ -601,6 +640,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const krcAddress = CONTRACT_ADDRESSES.ethereum.KRC;
             const krcContract = new ethers.Contract(krcAddress, KRC_ABI, provider);
@@ -635,6 +677,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -665,6 +710,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -693,6 +741,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -722,6 +773,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
@@ -749,6 +803,9 @@ export class Web3Service {
         }
 
         try {
+            if (!window.ethereum) {
+                throw new Error('No Ethereum wallet found');
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
             const krcAddress = CONTRACT_ADDRESSES.ethereum.KRC;
             const krcContract = new ethers.Contract(krcAddress, KRC_ABI, provider);
