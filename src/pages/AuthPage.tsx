@@ -350,7 +350,7 @@ export const AuthPage: React.FC = () => {
           position: absolute;
           width: 60px;
           height: 60px;
-          background: rgba(255, 255, 255, 0.05);
+          background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'};
           border: 1px solid rgba(0, 212, 255, 0.2);
           border-radius: 50%;
           display: flex;
@@ -487,7 +487,7 @@ export const AuthPage: React.FC = () => {
           position: relative;
           width: 80px;
           height: 80px;
-          background: linear-gradient(45deg, #1a1a2e, #16213e);
+          background: ${isDark ? 'linear-gradient(45deg, #1a1a2e, #16213e)' : 'linear-gradient(45deg, #f8fafc, #e2e8f0)'};
           border: 2px solid rgba(0, 212, 255, 0.3);
           border-radius: 50%;
           display: flex;
@@ -556,7 +556,7 @@ export const AuthPage: React.FC = () => {
 
         .app-subtitle {
           font-size: 1rem;
-          color: rgba(255, 255, 255, 0.8);
+          color: ${isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.7)'};
           font-weight: 500;
           margin-bottom: 1rem;
           line-height: 1.5;
@@ -572,12 +572,12 @@ export const AuthPage: React.FC = () => {
 
         .tag {
           padding: 0.375rem 0.75rem;
-          background: rgba(255, 255, 255, 0.1);
+          background: ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
           border: 1px solid rgba(0, 212, 255, 0.3);
           border-radius: 16px;
           font-size: 0.75rem;
           font-weight: 600;
-          color: rgba(255, 255, 255, 0.9);
+          color: ${isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.8)'};
           backdrop-filter: blur(10px);
           transition: all 0.3s ease;
         }
@@ -590,11 +590,11 @@ export const AuthPage: React.FC = () => {
 
         .auth-form-container {
           position: relative;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)'};
+          border: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'};
           border-radius: 24px;
           backdrop-filter: blur(20px);
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          box-shadow: ${isDark ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' : '0 25px 50px -12px rgba(0, 0, 0, 0.1)'};
           overflow: hidden;
         }
 
@@ -631,7 +631,7 @@ export const AuthPage: React.FC = () => {
           gap: 0.5rem;
           font-size: 0.875rem;
           font-weight: 700;
-          color: rgba(255, 255, 255, 0.9);
+          color: ${isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.8)'};
           margin-bottom: 0.75rem;
         }
 
@@ -660,23 +660,23 @@ export const AuthPage: React.FC = () => {
         .auth-input {
           width: 100%;
           padding: 1rem 1rem 1rem 3rem;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: ${isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'};
+          border: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'};
           border-radius: 12px;
           font-size: 1rem;
           font-weight: 500;
-          color: rgba(255, 255, 255, 0.9);
+          color: ${isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.8)'};
           backdrop-filter: blur(10px);
           transition: all 0.3s ease;
           outline: none;
         }
 
         .auth-input::placeholder {
-          color: rgba(255, 255, 255, 0.5);
+          color: ${isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)'};
         }
 
         .auth-input:focus {
-          background: rgba(255, 255, 255, 0.1);
+          background: ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
           border-color: rgba(0, 212, 255, 0.5);
         }
 
@@ -692,14 +692,14 @@ export const AuthPage: React.FC = () => {
           background: none;
           border: none;
           cursor: pointer;
-          color: rgba(255, 255, 255, 0.6);
+          color: ${isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.5)'};
           padding: 0.25rem;
           border-radius: 0.25rem;
           transition: color 0.2s ease;
         }
 
         .password-toggle:hover {
-          color: rgba(255, 255, 255, 0.9);
+          color: ${isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.8)'};
         }
 
         .toggle-icon {
@@ -739,7 +739,7 @@ export const AuthPage: React.FC = () => {
 
         .social-login-title {
           text-align: center;
-          color: rgba(255, 255, 255, 0.7);
+          color: ${isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'};
           font-size: 0.75rem;
           font-weight: 500;
         }

@@ -4,7 +4,7 @@ import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 
 export const ThemeSwitcher: React.FC = () => {
-  const { mode, setMode } = useThemeStore();
+  const { mode, setMode, isDark } = useThemeStore();
   const t = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -41,10 +41,16 @@ export const ThemeSwitcher: React.FC = () => {
       {/* Theme Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-center w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all duration-200 backdrop-blur-sm group"
+        className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-all duration-200 backdrop-blur-sm group ${
+          isDark 
+            ? 'bg-white/10 hover:bg-white/20 border-white/20' 
+            : 'bg-black/10 hover:bg-black/20 border-black/20'
+        }`}
         title={`${t('settings.themeMode')}: ${currentOption.label}`}
       >
-        <currentOption.icon className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+        <currentOption.icon className={`w-5 h-5 group-hover:scale-110 transition-transform ${
+          isDark ? 'text-white' : 'text-black'
+        }`} />
       </button>
 
       {/* Theme Options Dropdown */}
@@ -95,13 +101,21 @@ export const ThemeToggleButton: React.FC = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="flex items-center justify-center w-10 h-10 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all duration-200 backdrop-blur-sm group"
+      className={`flex items-center justify-center w-10 h-10 rounded-lg border transition-all duration-200 backdrop-blur-sm group ${
+        isDark 
+          ? 'bg-white/10 hover:bg-white/20 border-white/20' 
+          : 'bg-black/10 hover:bg-black/20 border-black/20'
+      }`}
       title={isDark ? '切换到明亮模式' : '切换到深色模式'}
     >
       {isDark ? (
-        <Sun className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+        <Sun className={`w-5 h-5 group-hover:scale-110 transition-transform ${
+          isDark ? 'text-white' : 'text-black'
+        }`} />
       ) : (
-        <Moon className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
+        <Moon className={`w-5 h-5 group-hover:scale-110 transition-transform ${
+          isDark ? 'text-white' : 'text-black'
+        }`} />
       )}
     </button>
   );

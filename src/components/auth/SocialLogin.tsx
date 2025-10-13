@@ -4,6 +4,8 @@
 import React, { useState } from 'react';
 import { Github, Loader2 } from 'lucide-react';
 import { useThemeStore } from '../../stores/themeStore';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 // Custom Google G Icon Component
 const GoogleIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
@@ -171,19 +173,23 @@ async function loginWithGoogleOIDC(): Promise<SocialLoginResult> {
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 
-    // Open popup window for OAuth
-    const popup = window.open(authUrl, 'google-login', 'width=500,height=600,scrollbars=yes,resizable=yes');
+    // Check if running in iOS native environment
+    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
+      // Use Capacitor Browser for iOS with popup-style presentation
+      await Browser.open({
+        url: authUrl,
+        presentationStyle: 'popover', // Use popover instead of fullscreen
+        toolbarColor: '#4285F4',
+        windowName: 'google-login',
+      });
 
-    if (!popup) {
-      throw new Error('Popup blocked. Please allow popups for this site.');
-    }
-
-    // Wait for popup to complete
-    return new Promise((resolve, reject) => {
-      const checkClosed = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(checkClosed);
-          // In a real implementation, you would handle the callback
+      // Wait for browser to close and handle the result
+      return new Promise((resolve, reject) => {
+        const handleBrowserFinished = () => {
+          Browser.removeAllListeners();
+          console.log('Google OAuth browser closed');
+          
+          // In a real implementation, you would check for successful authentication
           // For now, return a mock success
           resolve({
             success: true,
@@ -194,16 +200,52 @@ async function loginWithGoogleOIDC(): Promise<SocialLoginResult> {
               provider: 'google',
             },
           });
-        }
-      }, 1000);
+        };
 
-      // Timeout after 5 minutes
-      setTimeout(() => {
-        clearInterval(checkClosed);
-        popup.close();
-        reject(new Error('Login timeout'));
-      }, 300000);
-    });
+        Browser.addListener('browserFinished', handleBrowserFinished);
+
+        // Timeout after 5 minutes
+        setTimeout(() => {
+          Browser.removeAllListeners();
+          Browser.close();
+          reject(new Error('Login timeout'));
+        }, 300000);
+      });
+    } else {
+      // Use popup window for web/desktop
+      const popup = window.open(authUrl, 'google-login', 'width=500,height=600,scrollbars=yes,resizable=yes');
+
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups for this site.');
+      }
+
+      // Wait for popup to complete
+      return new Promise((resolve, reject) => {
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            // In a real implementation, you would handle the callback
+            // For now, return a mock success
+            resolve({
+              success: true,
+              user: {
+                id: 'mock-google-user-id',
+                email: 'user@gmail.com',
+                name: 'Google User',
+                provider: 'google',
+              },
+            });
+          }
+        }, 1000);
+
+        // Timeout after 5 minutes
+        setTimeout(() => {
+          clearInterval(checkClosed);
+          popup.close();
+          reject(new Error('Login timeout'));
+        }, 300000);
+      });
+    }
   } catch (error: any) {
     console.error('Google OIDC login failed:', error);
     return {
@@ -240,19 +282,23 @@ async function loginWithGitHubOIDC(): Promise<SocialLoginResult> {
 
     const authUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
 
-    // Open popup window for OAuth
-    const popup = window.open(authUrl, 'github-login', 'width=500,height=600,scrollbars=yes,resizable=yes');
+    // Check if running in iOS native environment
+    if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
+      // Use Capacitor Browser for iOS
+      await Browser.open({
+        url: authUrl,
+        presentationStyle: 'fullscreen',
+        toolbarColor: '#24292e',
+        windowName: 'github-login',
+      });
 
-    if (!popup) {
-      throw new Error('Popup blocked. Please allow popups for this site.');
-    }
-
-    // Wait for popup to complete
-    return new Promise((resolve, reject) => {
-      const checkClosed = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(checkClosed);
-          // In a real implementation, you would handle the callback
+      // Wait for browser to close and handle the result
+      return new Promise((resolve, reject) => {
+        const handleBrowserFinished = () => {
+          Browser.removeAllListeners();
+          console.log('GitHub OAuth browser closed');
+          
+          // In a real implementation, you would check for successful authentication
           // For now, return a mock success
           resolve({
             success: true,
@@ -263,16 +309,52 @@ async function loginWithGitHubOIDC(): Promise<SocialLoginResult> {
               provider: 'github',
             },
           });
-        }
-      }, 1000);
+        };
 
-      // Timeout after 5 minutes
-      setTimeout(() => {
-        clearInterval(checkClosed);
-        popup.close();
-        reject(new Error('Login timeout'));
-      }, 300000);
-    });
+        Browser.addListener('browserFinished', handleBrowserFinished);
+
+        // Timeout after 5 minutes
+        setTimeout(() => {
+          Browser.removeAllListeners();
+          Browser.close();
+          reject(new Error('Login timeout'));
+        }, 300000);
+      });
+    } else {
+      // Use popup window for web/desktop
+      const popup = window.open(authUrl, 'github-login', 'width=500,height=600,scrollbars=yes,resizable=yes');
+
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups for this site.');
+      }
+
+      // Wait for popup to complete
+      return new Promise((resolve, reject) => {
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            // In a real implementation, you would handle the callback
+            // For now, return a mock success
+            resolve({
+              success: true,
+              user: {
+                id: 'mock-github-user-id',
+                email: 'user@github.com',
+                name: 'GitHub User',
+                provider: 'github',
+              },
+            });
+          }
+        }, 1000);
+
+        // Timeout after 5 minutes
+        setTimeout(() => {
+          clearInterval(checkClosed);
+          popup.close();
+          reject(new Error('Login timeout'));
+        }, 300000);
+      });
+    }
   } catch (error: any) {
     console.error('GitHub OIDC login failed:', error);
     return {

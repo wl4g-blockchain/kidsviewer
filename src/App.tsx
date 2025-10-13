@@ -5,6 +5,7 @@ import { ParentalHome } from './pages/ParentalHome';
 import { PersonHome } from './pages/PersonHome';
 import { SettingsPage } from './pages/SettingsPage';
 import { AuthPage } from './pages/AuthPage';
+import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { useAuthStore } from './stores/authStore';
 import { useEffect } from 'react';
 
@@ -84,6 +85,16 @@ function App() {
         element={
           <ProtectedRoute requireAuth={false}>
             <AuthPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* OAuth callback page - no protection needed */}
+      <Route
+        path="/auth/callback"
+        element={
+          <ProtectedRoute requireAuth={false}>
+            <AuthCallbackPage />
           </ProtectedRoute>
         }
       />
