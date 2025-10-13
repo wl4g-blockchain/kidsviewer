@@ -175,12 +175,22 @@ async function loginWithGoogleOIDC(): Promise<SocialLoginResult> {
 
     // Check if running in iOS native environment
     if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
-      // Use Capacitor Browser for iOS with popup-style presentation
+      // Use Capacitor Browser for iOS with popover presentation (non-fullscreen)
+      // Note: iOS has limitations on true sub-window behavior due to platform restrictions
+      // 'popover' is the closest we can get to a non-fullscreen experience
       await Browser.open({
         url: authUrl,
-        presentationStyle: 'popover', // Use popover instead of fullscreen
+        presentationStyle: 'popover', // Use popover for non-fullscreen experience
         toolbarColor: '#4285F4',
         windowName: 'google-login',
+        // Try to make the popover larger
+        ...(Capacitor.getPlatform() === 'ios' && {
+          // These options might help make the popover larger
+          width: 500,
+          height: 600,
+          // Additional iOS-specific options for larger popover
+          preferredContentSize: { width: 800, height: 900 },
+        }),
       });
 
       // Wait for browser to close and handle the result
@@ -284,12 +294,22 @@ async function loginWithGitHubOIDC(): Promise<SocialLoginResult> {
 
     // Check if running in iOS native environment
     if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios') {
-      // Use Capacitor Browser for iOS
+      // Use Capacitor Browser for iOS with popover presentation (non-fullscreen)
+      // Note: iOS has limitations on true sub-window behavior due to platform restrictions
+      // 'popover' is the closest we can get to a non-fullscreen experience
       await Browser.open({
         url: authUrl,
-        presentationStyle: 'fullscreen',
+        presentationStyle: 'popover', // Use popover for non-fullscreen experience
         toolbarColor: '#24292e',
         windowName: 'github-login',
+        // Try to make the popover larger
+        ...(Capacitor.getPlatform() === 'ios' && {
+          // These options might help make the popover larger
+          width: 500,
+          height: 600,
+          // Additional iOS-specific options for larger popover
+          preferredContentSize: { width: 800, height: 900 },
+        }),
       });
 
       // Wait for browser to close and handle the result
