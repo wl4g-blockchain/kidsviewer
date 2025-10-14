@@ -61,7 +61,7 @@ export const NextAuthLoginPage: React.FC = () => {
   const { openAuthModal } = useWeb3Auth();
 
   // Get wagmi state for monitoring connection
-  const { address: wagmiAddress, isConnected: wagmiIsConnected, chainId: wagmiChainId } = useAccount();
+  const { address: wagmiAddress, isConnected: wagmiIsConnected, chain, chainId: wagmiChainId } = useAccount();
   const { signMessageAsync } = useSignMessage();
 
   useEffect(() => {
@@ -116,8 +116,6 @@ export const NextAuthLoginPage: React.FC = () => {
       handleWalletLogin();
     }
   }, [wagmiIsConnected, wagmiAddress, wagmiChainId, isWalletConnecting]);
-
-
 
   // Cleanup timeout on component unmount
   useEffect(() => {
@@ -235,8 +233,9 @@ export const NextAuthLoginPage: React.FC = () => {
     setError(null);
 
     try {
-      // Create a message to sign
-      const message = `Sign this message to authenticate with KidsViewer at ${new Date().toISOString()}`;
+      // Create a message to sign - format should match backend expectations
+      const timestamp = new Date().toISOString();
+      const message = `KidsViewer Authentication\n\nTimestamp: ${timestamp}\nAddress: ${wagmiAddress}`;
 
       // Request signature from wallet using wagmi
       const signature = await signMessageAsync({ message });
@@ -245,15 +244,14 @@ export const NextAuthLoginPage: React.FC = () => {
         throw new Error('Failed to get signature from wallet');
       }
 
-      // Determine chain information
-      const chain = wagmiChainId === 1 ? 'ethereum' : 'starknet';
+      const chainName = chain?.name || '';
       const chainId = wagmiChainId || 1;
 
       console.log('Wallet login data:', {
         address: wagmiAddress,
         signature,
         message,
-        chain,
+        chain: chainName,
         chainId,
       });
 
@@ -262,7 +260,7 @@ export const NextAuthLoginPage: React.FC = () => {
         address: wagmiAddress,
         signature: signature,
         message: message,
-        chain: chain,
+        chainName: chainName,
         chainId: chainId,
       });
 
@@ -286,7 +284,6 @@ export const NextAuthLoginPage: React.FC = () => {
       setIsLoading(false);
     }
   };
-
 
   const handleWalletConnect = async () => {
     // Clear any existing timeout

@@ -10,16 +10,19 @@ import {
     optimism,
     avalanche, avalancheFuji,
     bsc, bscTestnet,
+    astar, astarZkEVM, astarZkyoto,
     base,
+    kakarotStarknetSepolia,
 } from 'viem/chains'
 import { createConfig, http } from 'wagmi'
 
 // Get project ID from environment or use default
 const projectId = import.meta.env.VITE_WALLETCONNECT_APP_ID || 'YOUR-PROJECT-ID'
 
-// Create wagmi config
+// Create wagmi config.
+const enableNetworks = [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base, kakarotStarknetSepolia, astar, astarZkEVM, astarZkyoto]
 export const wagmiConfig = createConfig({
-    chains: [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base,],
+    chains: enableNetworks as any,
     transports: {
         [mainnet.id]: http(),
         [sepolia.id]: http(),
@@ -31,6 +34,10 @@ export const wagmiConfig = createConfig({
         [bsc.id]: http(),
         [bscTestnet.id]: http(),
         [base.id]: http(),
+        [astar.id]: http(),
+        [astarZkEVM.id]: http(),
+        [astarZkyoto.id]: http(),
+        [kakarotStarknetSepolia.id]: http(),
     },
 })
 
@@ -81,7 +88,7 @@ export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit
 
         // Create wagmi adapter
         const wagmiAdapter = new WagmiAdapter({
-            networks: [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base,],
+            networks: enableNetworks,
             projectId,
         })
 
@@ -89,7 +96,7 @@ export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit
         appKitInstance = createAppKit({
             adapters: [wagmiAdapter],
             projectId,
-            networks: [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base,],
+            networks: enableNetworks as any,
             metadata,
             features: {
                 email: false, // Disable email login

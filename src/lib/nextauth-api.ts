@@ -165,7 +165,7 @@ export class NextAuthAPI {
         address: string
         signature: string
         message: string
-        chain: string
+        chainName: string
         chainId: number
     }) {
         try {

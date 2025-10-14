@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as unknown as {
 
 // Configure Prisma logging based on environment variables
 const getPrismaLogConfig = () => {
-    const logLevel = process.env.PRISMA_LOG_LEVEL || 'error'
+    const logLevel = process.env.APP_NEXT_PRISMA_LOG_LEVEL || 'error'
     const enableQueryLog = process.env.PRISMA_QUERY_LOG === 'true'
 
     const logConfig: any[] = [
@@ -30,7 +30,7 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
 })
 
 // Add query logging if enabled
-if (process.env.PRISMA_QUERY_LOG === 'true') {
+if (process.env.APP_NEXT_PRISMA_QUERY_LOG === 'true') {
     (prisma as any).$on('query', (e: any) => {
         console.log('🔍 Prisma Query:', e.query)
         console.log('📊 Params:', e.params)

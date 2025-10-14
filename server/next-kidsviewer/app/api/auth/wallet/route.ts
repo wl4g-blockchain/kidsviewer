@@ -17,7 +17,7 @@ interface WalletLoginRequest {
     address: string
     signature: string
     message: string
-    chain: string
+    chainName: string
     chainId: number
 }
 
@@ -35,6 +35,9 @@ interface WalletVerificationResponse {
     error?: string
 }
 
+const EVM_CHAINS = ['ethereum', 'sepolia', 'arbitrum', 'polygon', 'optimism', 'avalanche', 'avalancheFuji', 'bsc', 'bscTestnet', 'base', 'astar', 'kakarotStarknetSepolia', 'astarZkEVM', 'astarZkyoto']
+const STARKNET_CHAINS = ['starknet']
+
 /**
  * Verify wallet signature and authenticate user
  * POST /api/auth/wallet
@@ -42,13 +45,13 @@ interface WalletVerificationResponse {
 export async function POST(request: NextRequest): Promise<NextResponse<WalletVerificationResponse>> {
     try {
         const body: WalletLoginRequest = await request.json()
-        const { address, signature, message, chain, chainId } = body
+        const { address, signature, message, chainName, chainId } = body
 
         // Validate required fields
-        if (!address || !signature || !message || !chain || !chainId) {
+        if (!address || !signature || !message || !chainName || !chainId) {
             return NextResponse.json({
                 success: false,
-                error: 'Missing required fields: address, signature, message, chain, chainId'
+                error: 'Missing required fields: address, signature, message, chainName, chainId'
             }, { status: 400 })
         }
 
@@ -57,11 +60,26 @@ export async function POST(request: NextRequest): Promise<NextResponse<WalletVer
         let recoveredAddress = ''
 
         try {
-            if (chain === 'ethereum') {
+            console.log('Signature verification debug:', {
+                chainName,
+                chainId,
+                address,
+                message,
+                signature: signature.substring(0, 20) + '...',
+                signatureLength: signature.length
+            })
+
+            if (EVM_CHAINS.includes(chainName.toLowerCase())) {
                 // Verify Ethereum signature
+                console.log('Verifying Ethereum signature...')
                 recoveredAddress = ethers.verifyMessage(message, signature)
                 isValidSignature = recoveredAddress.toLowerCase() === address.toLowerCase()
-            } else if (chain === 'starknet') {
+                console.log('Ethereum verification result:', {
+                    recoveredAddress,
+                    providedAddress: address,
+                    isValidSignature
+                })
+            } else if (STARKNET_CHAINS.includes(chainName.toLowerCase())) {
                 // Verify Starknet signature using starknet.js
                 try {
                     // Calculate message hash using Pedersen hash
@@ -96,7 +114,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WalletVer
             } else {
                 return NextResponse.json({
                     success: false,
-                    error: `Unsupported chain: ${chain}`
+                    error: `Unsupported chain: ${chainName}`
                 }, { status: 400 })
             }
         } catch (error) {
@@ -121,7 +139,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WalletVer
                 wallets: {
                     path: ['$'],
                     array_contains: [{
-                        chain: chain,
+                        chain: chainName,
                         address: address.toLowerCase(),
                         chainId: chainId
                     }]
@@ -177,10 +195,10 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
         }
 
         const body: WalletLoginRequest = await request.json()
-        const { address, signature, message, chain, chainId } = body
+        const { address, signature, message, chainName, chainId } = body
 
         // Validate required fields
-        if (!address || !signature || !message || !chain || !chainId) {
+        if (!address || !signature || !message || !chainName || !chainId) {
             return NextResponse.json({
                 success: false,
                 error: 'Missing required fields: address, signature, message, chain, chainId'
@@ -192,10 +210,10 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
         let recoveredAddress = ''
 
         try {
-            if (chain === 'ethereum') {
+            if (EVM_CHAINS.includes(chainName.toLowerCase())) {
                 recoveredAddress = ethers.verifyMessage(message, signature)
                 isValidSignature = recoveredAddress.toLowerCase() === address.toLowerCase()
-            } else if (chain === 'starknet') {
+            } else if (STARKNET_CHAINS.includes(chainName.toLowerCase())) {
                 // Verify Starknet signature using starknet.js
                 try {
                     // Calculate message hash using Pedersen hash
@@ -230,7 +248,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
             } else {
                 return NextResponse.json({
                     success: false,
-                    error: `Unsupported chain: ${chain}`
+                    error: `Unsupported chain: ${chainName}`
                 }, { status: 400 })
             }
         } catch (error) {
@@ -265,7 +283,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
         // Check if wallet already exists
         const walletExists = existingWallets.some(wallet =>
-            wallet.chain === chain &&
+            wallet.chain === chainName &&
             wallet.address.toLowerCase() === address.toLowerCase() &&
             wallet.chainId === chainId
         )
@@ -279,7 +297,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
         // Add new wallet address
         const newWallet: WalletAddress = {
-            chain: chain,
+            chain: chainName,
             address: address.toLowerCase(),
             chainId: chainId
         }
