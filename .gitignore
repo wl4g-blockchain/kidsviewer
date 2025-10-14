@@ -99,7 +99,6 @@ temp/
 
 # Electron specific
 out/
-app/
 packages/
 
 # Local development

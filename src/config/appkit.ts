@@ -3,20 +3,34 @@
 
 import { createAppKit } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { mainnet, arbitrum, polygon, sepolia } from 'viem/chains'
+import {
+    mainnet, sepolia,
+    arbitrum,
+    polygon,
+    optimism,
+    avalanche, avalancheFuji,
+    bsc, bscTestnet,
+    base,
+} from 'viem/chains'
 import { createConfig, http } from 'wagmi'
 
 // Get project ID from environment or use default
-const projectId = (import.meta as any).env.VITE_WALLETCONNECT_PROJECT_ID || 'YOUR-PROJECT-ID'
+const projectId = import.meta.env.VITE_WALLETCONNECT_APP_ID || 'YOUR-PROJECT-ID'
 
 // Create wagmi config
 export const wagmiConfig = createConfig({
-    chains: [mainnet, arbitrum, polygon, sepolia],
+    chains: [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base,],
     transports: {
         [mainnet.id]: http(),
+        [sepolia.id]: http(),
         [arbitrum.id]: http(),
         [polygon.id]: http(),
-        [sepolia.id]: http(),
+        [optimism.id]: http(),
+        [avalanche.id]: http(),
+        [avalancheFuji.id]: http(),
+        [bsc.id]: http(),
+        [bscTestnet.id]: http(),
+        [base.id]: http(),
     },
 })
 
@@ -34,8 +48,10 @@ let isInitializing = false
 
 // Function to initialize AppKit on demand
 export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit>> => {
+    // Force recreation to ensure new settings take effect
     if (appKitInstance) {
-        return appKitInstance
+        console.log('Recreating AppKit instance with new settings...')
+        appKitInstance = null
     }
 
     if (isInitializing) {
@@ -56,11 +72,16 @@ export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit
     isInitializing = true
 
     try {
-        console.log('Initializing Reown AppKit on demand...')
+        console.log('Initializing Reown AppKit on demand with Project ID:', projectId, "...")
+
+        // Validate project ID
+        if (!projectId || projectId === 'YOUR-PROJECT-ID') {
+            throw new Error('WalletConnect Project ID is not configured. Please set VITE_WALLETCONNECT_APP_ID in your environment variables.')
+        }
 
         // Create wagmi adapter
         const wagmiAdapter = new WagmiAdapter({
-            networks: [mainnet, arbitrum, polygon, sepolia],
+            networks: [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base,],
             projectId,
         })
 
@@ -68,7 +89,7 @@ export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit
         appKitInstance = createAppKit({
             adapters: [wagmiAdapter],
             projectId,
-            networks: [mainnet, arbitrum, polygon, sepolia],
+            networks: [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base,],
             metadata,
             features: {
                 email: false, // Disable email login
@@ -76,6 +97,13 @@ export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit
                 emailShowWallets: false, // Don't show email options
             },
             allWallets: 'SHOW', // Show all wallets
+            enableNetworkSwitch: false,
+            enableReconnect: false,
+            enableWalletGuide: true,
+            enableWalletConnect: true,
+            enableAuthLogger: true,
+            experimental_preferUniversalLinks: true,
+            debug: true,
         })
 
         console.log('Reown AppKit initialized successfully')

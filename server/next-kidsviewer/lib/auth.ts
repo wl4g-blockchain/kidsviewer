@@ -1,20 +1,102 @@
-import { NextAuthOptions } from "next-auth"
+import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GitHubProvider from "next-auth/providers/github"
 import GoogleProvider from "next-auth/providers/google"
 import { prisma } from "@/lib/prisma"
 import crypto from "crypto"
 import NodeRSA from "node-rsa"
+import { ethers } from "ethers"
+import { ec, hash } from "starknet"
 
-export const authOptions: NextAuthOptions = {
+// NextAuth.js v4 configuration
+const authOptions = {
+    secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-key',
+    debug: process.env.NODE_ENV === 'development',
+    trustHost: true,
+    useSecureCookies: process.env.NODE_ENV === 'production',
+    // Ensure the base URL is correct for OAuth callbacks
+    basePath: '/api/auth',
+    cookies: {
+        sessionToken: {
+            name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+            options: {
+                httpOnly: true,
+                sameSite: 'lax' as const,
+                path: '/',
+                secure: process.env.NODE_ENV === 'production',
+            },
+        },
+    },
+    events: {
+        async signIn(message: any) {
+            console.log('Sign in event:', message)
+        },
+        async signOut(message: any) {
+            console.log('Sign out event:', message)
+        },
+        async createUser(message: any) {
+            console.log('Create user event:', message)
+        },
+        async updateUser(message: any) {
+            console.log('Update user event:', message)
+        },
+        async linkAccount(message: any) {
+            console.log('Link account event:', message)
+        },
+        async session(message: any) {
+            console.log('Session event:', message)
+        },
+    },
+    adapter: undefined, // disable adapter, use JWT
+    logger: {
+        error: (code: string, metadata: any) => {
+            console.error('NextAuth Error:', code, metadata)
+        },
+        warn: (code: string) => {
+            console.warn('NextAuth Warning:', code)
+        },
+        debug: (code: string, metadata: any) => {
+            console.log('NextAuth Debug:', code, metadata)
+        }
+    },
     providers: [
-        GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID!,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-        }),
         GitHubProvider({
-            clientId: process.env.GITHUB_CLIENT_ID!,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+            clientId: process.env.GITHUB_CLIENT_ID || '',
+            clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+            authorization: {
+                params: {
+                    scope: 'read:user user:email',
+                },
+            },
+            profile(profile) {
+                return {
+                    id: profile.id.toString(),
+                    name: profile.name || profile.login,
+                    email: profile.email,
+                    image: profile.avatar_url,
+                    tenantId: '1', // 默认租户ID
+                    userType: 1, // 默认用户类型
+                }
+            },
+        }),
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID || '',
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+            authorization: {
+                params: {
+                    scope: 'openid email profile',
+                },
+            },
+            profile(profile) {
+                return {
+                    id: profile.sub,
+                    name: profile.name,
+                    email: profile.email,
+                    image: profile.picture,
+                    tenantId: '1', // 默认租户ID
+                    userType: 1, // 默认用户类型
+                }
+            },
         }),
         CredentialsProvider({
             name: "credentials",
@@ -32,11 +114,15 @@ export const authOptions: NextAuthOptions = {
                 let password = credentials.password
                 if (credentials.encryptedPassword) {
                     try {
-                        const privateKeyBase64 = process.env.RSA_PRIVATE_KEY!
+                        const privateKeyBase64 = process.env.NEXTAUTH_RSA_PRIVATE_KEY
+                        if (!privateKeyBase64) {
+                            console.error('RSA private key not configured')
+                            return null
+                        }
                         // Decode base64 to get the actual PEM format
                         const privateKeyPem = Buffer.from(privateKeyBase64, 'base64').toString('utf8')
                         const key = new NodeRSA(privateKeyPem)
-                        password = key.decrypt(credentials.encryptedPassword, 'utf8')
+                        password = key.decrypt(credentials.encryptedPassword as string, 'utf8')
                     } catch (error) {
                         console.error('Password decryption failed:', error)
                         return null
@@ -59,34 +145,141 @@ export const authOptions: NextAuthOptions = {
                     return null
                 }
 
-                // Verify password using SHA256 hash comparison
-                const hashedPassword = crypto.createHash('sha256').update(password).digest('hex')
+                // Verify password using double SHA512 hash comparison
+                // Database stores: sha512(sha512(password))
+                // We need to compare: sha512(sha512(inputPassword))
+                const firstHash = crypto.createHash('sha512').update(password as string).digest('hex')
+                const hashedPassword = crypto.createHash('sha512').update(firstHash).digest('hex')
                 if (hashedPassword !== user.password) {
                     return null
                 }
 
                 return {
                     id: user.id.toString(),
-                    email: user.email || '',
-                    name: user.name || '',
+                    email: user.email,
+                    name: user.name,
                     tenantId: user.tenantId.toString(),
                     userType: user.userType,
                 }
             },
         }),
+        CredentialsProvider({
+            name: "wallet",
+            credentials: {
+                address: { label: "Wallet Address", type: "text" },
+                signature: { label: "Signature", type: "text" },
+                message: { label: "Message", type: "text" },
+                chain: { label: "Chain", type: "text" },
+                chainId: { label: "Chain ID", type: "text" },
+            },
+            async authorize(credentials) {
+                if (!credentials?.address || !credentials?.signature || !credentials?.message || !credentials?.chain || !credentials?.chainId) {
+                    return null
+                }
+
+                const { address, signature, message, chain, chainId } = credentials
+
+                try {
+                    // Verify signature based on chain
+                    let isValidSignature = false
+                    let recoveredAddress = ''
+
+                    if (chain === 'ethereum') {
+                        // Verify Ethereum signature
+                        recoveredAddress = ethers.verifyMessage(message, signature)
+                        isValidSignature = recoveredAddress.toLowerCase() === address.toLowerCase()
+                    } else if (chain === 'starknet') {
+                        // Verify Starknet signature using starknet.js
+                        try {
+                            // Calculate message hash using Pedersen hash
+                            const messageHash = hash.computeHashOnElements([message])
+                            
+                            // Parse signature - Starknet signatures are typically in format [r, s]
+                            let signatureArray
+                            if (typeof signature === 'string') {
+                                // Try to parse as JSON array first, then as comma-separated values
+                                try {
+                                    signatureArray = JSON.parse(signature)
+                                } catch {
+                                    signatureArray = signature.split(',').map(s => s.trim())
+                                }
+                            } else {
+                                signatureArray = signature
+                            }
+                            
+                            // Verify signature using starkCurve
+                            // Note: verify(signature, msgHash, pubKey) - signature should be in format [r, s]
+                            isValidSignature = ec.starkCurve.verify(
+                                signatureArray,
+                                messageHash,
+                                address
+                            )
+                            recoveredAddress = address
+                        } catch (error) {
+                            console.error('Starknet signature verification failed:', error)
+                            isValidSignature = false
+                            recoveredAddress = ''
+                        }
+                    } else {
+                        console.error(`Unsupported chain: ${chain}`)
+                        return null
+                    }
+
+                    if (!isValidSignature) {
+                        console.error('Signature verification failed')
+                        return null
+                    }
+
+                    // Find user by wallet address
+                    const user = await prisma.sysUser.findFirst({
+                        where: {
+                            delFlag: 0,
+                            wallets: {
+                                path: ['$'],
+                                array_contains: [{
+                                    chain: chain,
+                                    address: address.toLowerCase(),
+                                    chainId: parseInt(chainId)
+                                }]
+                            }
+                        },
+                        include: {
+                            sys_tenant: true
+                        }
+                    })
+
+                    if (!user) {
+                        console.error('User not found for wallet address:', address)
+                        return null
+                    }
+
+                    return {
+                        id: user.id.toString(),
+                        email: user.email,
+                        name: user.name,
+                        tenantId: user.tenantId.toString(),
+                        userType: user.userType,
+                    }
+
+                } catch (error) {
+                    console.error('Wallet authentication error:', error)
+                    return null
+                }
+            },
+        }),
     ],
     session: {
-        strategy: "jwt",
+        strategy: "jwt" as const,
     },
     callbacks: {
-        async jwt({ token, user, account }) {
+        async jwt({ token, user, account }: any) {
             if (user) {
                 token.tenantId = parseInt(user.tenantId)
-                token.userType = user.userType
+                token.userType = user.userType || 1
             }
 
-            // Handle Google/GitHub login - fetch user data from database
-            if ((account?.provider === 'google' || account?.provider === 'github') && user?.email) {
+            // Handle GitHub/Google login - fetch user data from database
+            if ((account?.provider === 'github' || account?.provider === 'google') && user?.email) {
                 try {
                     const dbUser = await prisma.sysUser.findFirst({
                         where: {
@@ -108,22 +301,22 @@ export const authOptions: NextAuthOptions = {
 
             return token
         },
-        async session({ session, token }) {
+        async session({ session, token }: any) {
             if (token) {
                 session.user.id = token.sub!
-                session.user.tenantId = token.tenantId as number
-                session.user.userType = token.userType as number
+                    ; (session.user as any).tenantId = token.tenantId as number
+                    ; (session.user as any).userType = token.userType as number
                 session.user.properties = token.properties as any
-                
+
                 // Ensure tenant information is available in session
                 if (token.tenantId) {
                     try {
                         const tenant = await prisma.sysTenant.findUnique({
                             where: { id: token.tenantId as number },
                         })
-                        
+
                         if (tenant) {
-                            session.user.tenant = {
+                            ; (session.user as any).tenant = {
                                 properties: tenant.properties as any
                             }
                         }
@@ -137,5 +330,10 @@ export const authOptions: NextAuthOptions = {
     },
     pages: {
         signIn: "/login",
+        error: "/login",
     },
 }
+
+// Export both the handler and authOptions for v4 compatibility
+export default NextAuth(authOptions)
+export { authOptions }

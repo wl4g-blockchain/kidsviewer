@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
+import { useSessionData } from './providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
 import { Users, ChevronDown, LogOut, Crown, Baby, Lock, Sun, Moon, Monitor, Globe, Settings } from 'lucide-react';
@@ -9,7 +9,7 @@ import { Person } from '../types';
 import { ParentalPasswordModal } from './ParentalPasswordModal';
 
 export const UserSwitcher: React.FC = () => {
-  const { currentUser, activePerson, viewMode, switchToPerson, switchToParent, logout, apiHandler } = useAuthStore();
+  const { data: session, signOut } = useSessionData();
   const { mode, setMode, isDark } = useThemeStore();
   const { currentLanguage, changeLanguage } = useLanguage();
   const navigate = useNavigate();
@@ -19,7 +19,27 @@ export const UserSwitcher: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
+  const [activePerson, setActivePerson] = useState<Person | null>(null);
   const t = useTranslation();
+
+  // Get current user from session
+  const currentUser = session?.user;
+
+  // Mock functions for now - these should be replaced with actual API calls
+  const switchToPerson = (person: Person) => {
+    setActivePerson(person);
+    setViewMode('child');
+  };
+
+  const switchToParent = () => {
+    setActivePerson(null);
+    setViewMode('parent');
+  };
+
+  const logout = async () => {
+    await signOut();
+  };
 
   // Load persons when component mounts or currentUser changes
   useEffect(() => {
@@ -33,9 +53,21 @@ export const UserSwitcher: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await apiHandler.getPersons(currentUser.id.toString());
-      if (response.errcode === '200' && response.data) {
-        setPersons(response.data);
+      // Call real API to get persons
+      const response = await fetch('/api/tenant/sub-accounts', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setPersons(data.data);
+        }
+      } else {
+        console.error('Failed to load persons:', response.status);
       }
     } catch (error) {
       console.error('Failed to load persons:', error);
@@ -69,13 +101,27 @@ export const UserSwitcher: React.FC = () => {
     }
 
     try {
-      const response = await apiHandler.verifyParentalPassword(password);
-      if (response.errcode === '200' && response.data) {
-        switchToParent();
-        setShowPasswordModal(false);
-        setPasswordError('');
+      // Call real API to verify parental password
+      const response = await fetch('/api/auth/verify-parental-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          switchToParent();
+          setShowPasswordModal(false);
+          setPasswordError('');
+        } else {
+          setPasswordError(data.error || t('errors.invalidInput'));
+        }
       } else {
-        setPasswordError(response.errmsg || t('errors.invalidInput'));
+        const errorData = await response.json();
+        setPasswordError(errorData.error || t('errors.invalidInput'));
       }
     } catch (error) {
       setPasswordError(t('errors.unknownError'));

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../stores/authStore';
+// import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Plus, Edit, Trash2, BookOpen, Filter, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { QuestionTemplate } from '../types';
 
 export const QuestionManagement: React.FC = () => {
-  const { apiHandler } = useAuthStore();
+  // const { .* } = useAuthStore();
   const { isDark } = useThemeStore();
   const t = useTranslation();
   const [questions, setQuestions] = useState<QuestionTemplate[]>([]);
@@ -48,7 +48,7 @@ export const QuestionManagement: React.FC = () => {
   const loadQuestions = async () => {
     try {
       setIsLoading(true);
-      const response = await apiHandler.getQuestionTemplates();
+      // const response = await apiHandler.getQuestionTemplates();
       if (response.errcode === '200' && response.data) {
         setQuestions(response.data);
       }
@@ -88,7 +88,7 @@ export const QuestionManagement: React.FC = () => {
 
   const handleCreateQuestion = async (questionData: Partial<QuestionTemplate>) => {
     try {
-      const response = await apiHandler.createQuestionTemplate(questionData);
+      // const response = await apiHandler.createQuestionTemplate(questionData);
       if (response.errcode === '200' && response.data) {
         setQuestions(prev => [...prev, response.data!]);
         setShowCreateModal(false);
@@ -100,7 +100,7 @@ export const QuestionManagement: React.FC = () => {
 
   const handleUpdateQuestion = async (questionId: string, questionData: Partial<QuestionTemplate>) => {
     try {
-      const response = await apiHandler.updateQuestionTemplate(questionId, questionData);
+      // const response = await apiHandler.updateQuestionTemplate(questionId, questionData);
       if (response.errcode === '200' && response.data) {
         setQuestions(prev => prev.map(q => (q.id === parseInt(questionId) ? response.data! : q)));
         setEditingQuestion(null);
@@ -114,7 +114,7 @@ export const QuestionManagement: React.FC = () => {
     if (!confirm(t('common.confirmDelete') || 'Are you sure you want to delete this question?')) return;
 
     try {
-      const response = await apiHandler.deleteQuestionTemplate(questionId);
+      // const response = await apiHandler.deleteQuestionTemplate(questionId);
       if (response.errcode === '200') {
         setQuestions(prev => prev.filter(q => q.id !== parseInt(questionId)));
       }

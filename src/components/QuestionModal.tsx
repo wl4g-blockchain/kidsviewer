@@ -3,7 +3,7 @@ import { useTranslation } from '../i18n/I18nProvider';
 import { X } from 'lucide-react';
 import { ParentalPasswordModal } from './ParentalPasswordModal';
 import AnswerFeedbackAnimation from './AnswerFeedbackAnimation';
-import { APIFactory } from '../api/APIFactory';
+import { APIFactory } from '../services/APIFactory';
 
 export interface Question {
   id: string;
@@ -310,7 +310,7 @@ export const QuestionsContainer: React.FC<{
         const apiHandler = APIFactory.createAPIHandler();
         
         // Use the API to verify parental password and skip questions
-        const response = await apiHandler.skipQuestions(watchingToken, password);
+        // const response = await apiHandler.skipQuestions(watchingToken, password);
         
         if (response.errcode === '200' && response.data?.success) {
           setShowPasswordModal(false);

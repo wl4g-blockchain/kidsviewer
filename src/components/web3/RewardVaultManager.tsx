@@ -20,7 +20,7 @@ import {
   SUPPORTED_NETWORKS,
 } from '../../types/web3';
 import { web3Service } from '../../services/web3Service';
-import { useAuthStore } from '../../stores/authStore';
+// import { useSessionData } from '../../components/providers/AuthProvider';
 
 interface RewardVaultManagerProps {
   onConfigUpdate: (config: RewardConfig) => void;
@@ -33,7 +33,7 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
   const [success, setSuccess] = useState<string | null>(null);
 
   // Get auth state from store
-  const { web3AuthState, boundWallet, bindWallet, getWalletConnection } = useAuthStore();
+  // const { .* } = useAuthStore();
 
   // Reward configuration state
   const [rewardConfig, setRewardConfig] = useState<RewardConfig>({

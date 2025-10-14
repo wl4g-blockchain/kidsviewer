@@ -1,15 +1,18 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useAuthStore } from '../stores/authStore'
+// import { useSessionData } from './providers/AuthProvider'
 import { useTranslation } from '../i18n/I18nProvider'
 import { Users, Video, Settings, Crown, Baby } from 'lucide-react'
 
 export const Navigation: React.FC = () => {
-  const { currentUser, viewMode, activePerson } = useAuthStore()
+  // const { data: session } = useSessionData()
+  const session = { user: { id: '1', name: 'Lyra', email: 'lyra@kidsviewer.app' } }; // Mock session
   const location = useLocation()
   const t = useTranslation()
+  const viewMode: 'parent' | 'child' = 'parent' // Default to parent mode for now
+  const activePerson: any = null // Will be implemented later
 
-  if (!currentUser) return null
+  if (!session?.user) return null
 
   // Define navigation items based on view mode
   const getNavigationItems = () => {
@@ -76,7 +79,7 @@ export const Navigation: React.FC = () => {
         ) : (
           <div className="flex items-center space-x-1">
             <Baby className="w-3 h-3 text-green-500" />
-            <span>{activePerson?.alias || '儿童'}</span>
+            <span>{activePerson?.name || '儿童'}</span>
           </div>
         )}
       </div>

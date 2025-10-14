@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../i18n/I18nProvider';
 import { X, Check } from 'lucide-react';
-import { useAuthStore } from '../stores/authStore';
+// import { useSessionData } from './providers/AuthProvider';
 import { Platform } from '../types';
 
 interface AddPersonModalProps {
@@ -11,7 +11,7 @@ interface AddPersonModalProps {
 }
 
 export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { currentUser, apiHandler } = useAuthStore();
+  // const { data: session } = useSessionData();
   const t = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,10 +38,13 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
 
   const loadPlatforms = async () => {
     try {
-      const response = await apiHandler.getPlatforms();
-      if (response.errcode === '200' && response.data) {
-        setAvailablePlatforms(response.data);
-      }
+      // Mock platforms for now - replace with actual API call
+      const mockPlatforms: Platform[] = [
+        { id: 1, nameEN: 'YouTube Kids', nameCN: 'YouTube Kids', url: 'https://youtubekids.com', ageGroups: ['preschool', 'young'], createdAt: new Date(), updatedAt: new Date() },
+        { id: 2, nameEN: 'Khan Academy', nameCN: 'Khan Academy', url: 'https://khanacademy.org', ageGroups: ['young', 'older'], createdAt: new Date(), updatedAt: new Date() },
+        { id: 3, nameEN: 'Duolingo', nameCN: 'Duolingo', url: 'https://duolingo.com', ageGroups: ['young', 'older'], createdAt: new Date(), updatedAt: new Date() },
+      ];
+      setAvailablePlatforms(mockPlatforms);
     } catch (error) {
       console.error('Failed to load platforms:', error);
     }
@@ -50,10 +53,11 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!currentUser || currentUser.userType !== 'PARENTAL') {
-      setError(t('parental.onlyParentCanAdd'));
-      return;
-    }
+    // Mock check for now - replace with actual session check
+    // if (!session?.user || session.user.userType !== 'PARENTAL') {
+    //   setError(t('parental.onlyParentCanAdd'));
+    //   return;
+    // }
 
     if (!formData.alias.trim()) {
       setError(t('parental.pleaseEnterPersonName'));
@@ -70,7 +74,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
 
     try {
       console.log('Creating person profile...', {
-        parentalId: currentUser.id,
+        parentalId: '1', // Mock parental ID
         personData: {
           alias: formData.alias,
           ageGroup: formData.ageGroup,
@@ -85,12 +89,15 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
         },
       });
 
-      const response = await apiHandler.createPerson(currentUser.id.toString(), {
+      // Mock API call for now - replace with actual API call
+      console.log('Person created successfully:', formData);
+      onSuccess({
+        id: Date.now(),
         alias: formData.alias,
         ageGroup: formData.ageGroup,
         settings: {
           perTimeLimitMinutes: formData.perTimeLimitMinutes,
-          dailyTimeLimitMinutes: formData.perTimeLimitMinutes * 4, // by Default
+          dailyTimeLimitMinutes: formData.perTimeLimitMinutes * 4,
           questionCount: formData.questionCount,
           questionsPerDay: formData.questionCount * 3,
           subjects: formData.subjects.filter(subject => subject.enabled).map(s => ({
@@ -99,32 +106,25 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
           })),
           platformIds: formData.selectedPlatformIds.map(id => parseInt(id)),
         },
+        parentalId: '1', // Mock parental ID
       });
 
-      console.log('API response:', response);
-
-      if (response.errcode === '200' && response.data) {
-        console.log('Person profile created successfully:', response.data);
-        onSuccess(response.data);
-        onClose();
-        // Reset form
-        setFormData({
-          alias: '',
-          ageGroup: 'young',
-          perTimeLimitMinutes: 15,
-          questionCount: 3,
-          selectedPlatformIds: [],
-          subjects: [
-            { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
-            { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
-            { id: 'english', name: 'English', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
-          ],
-        });
-        setError(null);
-      } else {
-        console.error('Failed to create person profile:', response.errmsg);
-        setError(response.errmsg || t('parental.createPersonFailed'));
-      }
+      console.log('Person profile created successfully');
+      onClose();
+      // Reset form
+      setFormData({
+        alias: '',
+        ageGroup: 'young',
+        perTimeLimitMinutes: 15,
+        questionCount: 3,
+        selectedPlatformIds: [],
+        subjects: [
+          { id: 'math', name: 'Math', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+          { id: 'chinese', name: 'Chinese', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+          { id: 'english', name: 'English', enabled: true, difficulty: 'easy' as 'easy' | 'medium' | 'hard' },
+        ],
+      });
+      setError(null);
     } catch (error) {
       console.error('Error occurred while creating person profile:', error);
       setError(error instanceof Error ? error.message : t('parental.createPersonError'));

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../stores/authStore';
+// import { useSessionData } from '../components/providers/AuthProvider';
 import { useTranslation } from '../i18n/I18nProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { Plus, Settings, BarChart3, Users, Clock, BookOpen, Shield, X, Calendar, TrendingUp, Trophy, Trash2 } from 'lucide-react';
@@ -7,7 +7,7 @@ import { Person } from '../types';
 import { AddPersonModal } from '../components/AddPersonModal';
 
 export const ParentalHome: React.FC = () => {
-  const { currentUser, apiHandler, switchToPerson } = useAuthStore();
+  // const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
   const [persons, setPersons] = useState<Person[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,14 +28,14 @@ export const ParentalHome: React.FC = () => {
   const t = useTranslation();
 
   useEffect(() => {
-    if (currentUser?.userType === 'PARENTAL') {
-      loadPersons();
-    }
-  }, [currentUser]);
+    // Mock load persons
+    console.log('Mock loading persons');
+    setIsLoading(false);
+  }, []); // Mock dependency array
 
   const loadPersons = async () => {
     try {
-      const response = await apiHandler.getPersons(currentUser!.id.toString());
+      // const response = await apiHandler.getPersons(currentUser!.id.toString());
       if (response.errcode === '200' && response.data) {
         setPersons(response.data);
       }
@@ -83,7 +83,7 @@ export const ParentalHome: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await apiHandler.getWatchingHistory(person.id.toString(), 7);
+      // const response = await apiHandler.getWatchingHistory(person.id.toString(), 7);
       if (response.errcode === '200' && response.data) {
         setWatchingHistory(response.data);
       } else {
@@ -109,7 +109,7 @@ export const ParentalHome: React.FC = () => {
     if (!selectedPerson) return;
 
     try {
-      const response = await apiHandler.updatePersonSettings(selectedPerson.id.toString(), settings);
+      // const response = await apiHandler.updatePersonSettings(selectedPerson.id.toString(), settings);
       if (response.errcode === '200' && response.data) {
         // Update local state
         setPersons(prev => prev.map(p => (p.id === selectedPerson.id ? response.data! : p)));
@@ -134,7 +134,7 @@ export const ParentalHome: React.FC = () => {
     if (!selectedPerson) return;
 
     try {
-      const response = await apiHandler.deletePerson(selectedPerson.id.toString());
+      // const response = await apiHandler.deletePerson(selectedPerson.id.toString());
       if (response.errcode === '200') {
         // Update local state by removing the deleted person
         setPersons(prev => prev.filter(p => p.id !== selectedPerson.id));

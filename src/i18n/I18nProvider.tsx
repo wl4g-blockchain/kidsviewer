@@ -16,7 +16,7 @@ i18n
       en: { translation: en },
       zh: { translation: zh },
     },
-    lng: 'en', // 默认语言设置为英文
+    lng: 'en', // Default language set to English
     fallbackLng: 'en',
     debug: process.env.NODE_ENV === 'development',
 

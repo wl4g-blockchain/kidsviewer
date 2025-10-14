@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../stores/authStore';
+// import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Settings, Save, RefreshCw, Trash2, Shield, Globe, BookOpen, ArrowRight, Coins, PiggyBank } from 'lucide-react';
@@ -10,7 +10,7 @@ import { RewardVaultManager } from '../components/web3/RewardVaultManager';
 import { PiggyBankManager } from '../components/web3/PiggyBankManager';
 
 export const SettingsPage: React.FC = () => {
-  const { currentUser, apiHandler } = useAuthStore();
+  // const { .* } = useAuthStore();
   const { isDark } = useThemeStore();
   const [isLoading, setIsLoading] = useState(false);
   const [currentView, setCurrentView] = useState<'settings' | 'platforms' | 'questions' | 'rewards' | 'piggybank'>('settings');
@@ -31,7 +31,7 @@ export const SettingsPage: React.FC = () => {
 
   const loadSettings = async () => {
     try {
-      const response = await apiHandler.getAppSettings();
+      // const response = await apiHandler.getAppSettings();
       if (response.errcode === '200' && response.data) {
         setSettings(prev => ({ ...prev, ...response.data }));
       }
@@ -42,7 +42,7 @@ export const SettingsPage: React.FC = () => {
 
   const loadAppInfo = async () => {
     try {
-      const response = await apiHandler.getAppInfo();
+      // const response = await apiHandler.getAppInfo();
       if (response.errcode === '200' && response.data) {
         setAppInfo(response.data);
       }
@@ -58,7 +58,7 @@ export const SettingsPage: React.FC = () => {
   const saveSettings = async () => {
     setIsLoading(true);
     try {
-      const response = await apiHandler.updateAppSettings(settings);
+      // const response = await apiHandler.updateAppSettings(settings);
       if (response.errcode === '200') {
         // Show success message
         console.log('Settings saved successfully');

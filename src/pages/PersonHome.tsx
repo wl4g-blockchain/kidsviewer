@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useAuthStore } from '../stores/authStore';
+// import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
 import { Video, Trophy, Crown, Baby, Play, AlertCircle, RefreshCw, Clock, Lock, BookOpen, ArrowLeft, Loader2, Coins, PiggyBank, TrendingUp } from 'lucide-react';
@@ -23,7 +23,7 @@ interface WatchingSession {
 }
 
 export const PersonHome: React.FC = () => {
-  const { activePerson, switchToParent, apiHandler } = useAuthStore();
+  // const { .* } = useAuthStore();
   const { isDark } = useThemeStore();
   const t = useTranslation();
   const { currentLanguage } = useLanguage();
@@ -111,7 +111,7 @@ export const PersonHome: React.FC = () => {
     try {
       console.log(`Loading person platforms for person ${activePerson.alias} (ID: ${activePerson.id})...`);
 
-      const response = await apiHandler.getPersonPlatforms(activePerson.id.toString());
+      // const response = await apiHandler.getPersonPlatforms(activePerson.id.toString());
       console.info('Loaded the person person platforms response:', response);
 
       if (response.errcode === '200' && response.data) {
@@ -257,7 +257,7 @@ export const PersonHome: React.FC = () => {
     }
 
     try {
-      const response = await apiHandler.verifyParentalPassword(password);
+      // const response = await apiHandler.verifyParentalPassword(password);
       if (response.errcode === '200' && response.data) {
         switchToParent();
         setShowPasswordModal(false);
@@ -311,7 +311,7 @@ export const PersonHome: React.FC = () => {
     const question = currentQuestions[currentQuestionIndex];
 
     try {
-      const response = await apiHandler.verifyQuestion(watchingSession.watchingToken, question.content, userAnswer);
+      // const response = await apiHandler.verifyQuestion(watchingSession.watchingToken, question.content, userAnswer);
 
       if (response.errcode === '200' && response.data) {
         const { correct } = response.data;

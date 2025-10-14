@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../stores/authStore';
+// import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { Plus, Edit, Trash2, Globe } from 'lucide-react';
 import { Platform } from '../types';
 
 export const PlatformManagement: React.FC = () => {
-  const { apiHandler } = useAuthStore();
+  // const { .* } = useAuthStore();
   const { isDark } = useThemeStore();
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +19,7 @@ export const PlatformManagement: React.FC = () => {
   const loadPlatforms = async () => {
     try {
       setIsLoading(true);
-      const response = await apiHandler.getPlatforms();
+      // const response = await apiHandler.getPlatforms();
       if (response.errcode === '200' && response.data) {
         setPlatforms(response.data);
       }
@@ -32,7 +32,7 @@ export const PlatformManagement: React.FC = () => {
 
   const handleCreatePlatform = async (platformData: Partial<Platform>) => {
     try {
-      const response = await apiHandler.createPlatform(platformData);
+      // const response = await apiHandler.createPlatform(platformData);
       if (response.errcode === '200' && response.data) {
         setPlatforms(prev => [...prev, response.data!]);
         setShowCreateModal(false);
@@ -44,7 +44,7 @@ export const PlatformManagement: React.FC = () => {
 
   const handleUpdatePlatform = async (platformId: string, platformData: Partial<Platform>) => {
     try {
-      const response = await apiHandler.updatePlatform(platformId, platformData);
+      // const response = await apiHandler.updatePlatform(platformId, platformData);
       if (response.errcode === '200' && response.data) {
         setPlatforms(prev => prev.map(p => (p.id === parseInt(platformId) ? response.data! : p)));
         setEditingPlatform(null);
@@ -58,7 +58,7 @@ export const PlatformManagement: React.FC = () => {
     if (!confirm('Are you sure you want to delete this platform?')) return;
 
     try {
-      const response = await apiHandler.deletePlatform(platformId);
+      // const response = await apiHandler.deletePlatform(platformId);
       if (response.errcode === '200') {
         setPlatforms(prev => prev.filter(p => p.id !== parseInt(platformId)));
       }

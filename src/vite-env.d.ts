@@ -12,11 +12,11 @@ interface Window {
 }
 
 interface ImportMetaEnv {
-    readonly VITE_GITHUB_CLIENT_ID: string
     readonly VITE_GOOGLE_CLIENT_ID: string
-    readonly VITE_WALLETCONNECT_PROJECT_ID: string
     readonly VITE_GOOGLE_CLIENT_SECRET: string
+    readonly VITE_GITHUB_CLIENT_ID: string
     readonly VITE_GITHUB_CLIENT_SECRET: string
+    readonly VITE_WALLETCONNECT_APP_ID: string
 }
 
 interface ImportMeta {

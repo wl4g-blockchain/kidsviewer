@@ -43,7 +43,7 @@ KidsViewer 现已集成 Reown AppKit，支持多种登录方式和 Web3 功能�
 ### 1. 环境配置
 创建 `.env` 文件：
 ```env
-VITE_WALLETCONNECT_PROJECT_ID=your-project-id-here
+VITE_WALLETCONNECT_APP_ID=your-project-id-here
 ```
 
 ### 2. 获取 WalletConnect Project ID

@@ -1,7 +1,7 @@
 // Web3 Authentication Service for KidsViewer
 
 import { getAppKit } from '../config/appkit'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { useSignMessage } from 'wagmi'
 import { WalletConnection } from '../types/web3'
 
 export interface Web3AuthState {
@@ -12,6 +12,7 @@ export interface Web3AuthState {
     authMethod?: 'email' | 'social' | 'wallet'
     socialProvider?: string
     email?: string
+    signMessage?: (message: string) => Promise<string>
 }
 
 export class ReownConnectAuthService {
@@ -19,6 +20,7 @@ export class ReownConnectAuthService {
     private authState: Web3AuthState = {
         isConnected: false,
     }
+    private isConnecting = false
 
     static getInstance(): ReownConnectAuthService {
         if (!ReownConnectAuthService.instance) {
@@ -30,30 +32,51 @@ export class ReownConnectAuthService {
     // Open AppKit modal for authentication
     async openAuthModal(): Promise<Web3AuthState | null> {
         try {
+            this.isConnecting = true
             // Initialize AppKit on demand
             const appKit = await getAppKit()
-            
+
             // Open AppKit modal
             await appKit.open()
 
-            // For now, return a simple success state
-            // In a real implementation, you would listen for connection events
-            // or use React hooks to detect connection state
             console.log('AppKit modal opened successfully')
-            
-            // Return a mock success state for now
-            // This should be replaced with actual connection detection
-            return {
-                isConnected: true,
-                address: '0x0000000000000000000000000000000000000000', // Mock address
-                chainId: 1, // Mock chain ID
-                walletId: 'mock-wallet',
-                authMethod: 'wallet',
-            }
+
+            // Return null to indicate modal is open but connection is pending
+            // The actual connection state will be handled by the useWeb3Auth hook
+            // which listens to wagmi connection events
+            return null
         } catch (error) {
+            this.isConnecting = false
             console.error('Failed to open auth modal:', error)
             throw error
         }
+    }
+
+    // Update connection state when wallet connects through our modal
+    updateConnectionState(address: string, chainId: number, signMessage: (message: string) => Promise<string>) {
+        this.authState = {
+            isConnected: true,
+            address,
+            chainId,
+            authMethod: 'wallet',
+            signMessage,
+        }
+        this.isConnecting = false
+        console.log('✅ Wallet connection state updated:', this.authState)
+    }
+
+    // Reset connection state
+    resetConnectionState() {
+        this.authState = {
+            isConnected: false,
+        }
+        this.isConnecting = false
+        console.log('🔄 Wallet connection state reset')
+    }
+
+    // Check if currently connecting
+    isCurrentlyConnecting(): boolean {
+        return this.isConnecting
     }
 
     // Close AppKit modal
@@ -119,14 +142,14 @@ export class ReownConnectAuthService {
         try {
             // Initialize AppKit on demand
             const appKit = await getAppKit()
-            
+
             // Open wallet connection modal for additional wallet binding
             await appKit.open()
 
             // For now, return a mock wallet connection
             // This should be replaced with actual connection detection
             console.log('Wallet binding modal opened successfully')
-            
+
             return {
                 address: '0x0000000000000000000000000000000000000000', // Mock address
                 chainId: 1, // Mock chain ID
@@ -145,25 +168,32 @@ export const reownConnectAuthService = ReownConnectAuthService.getInstance()
 
 // React hooks for Web3 authentication
 export const useWeb3Auth = () => {
-    const { address, isConnected, chainId } = useAccount()
-    const { connect } = useConnect()
-    const { disconnect } = useDisconnect()
+    const { signMessageAsync } = useSignMessage()
 
+    // Get current state from service instance
+    const serviceAuthState = reownConnectAuthService.getAuthState()
+    
+    // Only use wagmi state if we're currently connecting through our modal
     const authState: Web3AuthState = {
-        isConnected: isConnected && !!address,
-        address,
-        chainId,
+        isConnected: serviceAuthState.isConnected,
+        address: serviceAuthState.address,
+        chainId: serviceAuthState.chainId,
         authMethod: 'wallet', // Default for wallet connection
+        signMessage: async (message: string) => {
+            const result = await signMessageAsync({ message })
+            return result
+        },
     }
 
     return {
         authState,
-        connect,
-        disconnect,
         openAuthModal: reownConnectAuthService.openAuthModal.bind(reownConnectAuthService),
         closeAuthModal: reownConnectAuthService.closeAuthModal.bind(reownConnectAuthService),
         signOut: reownConnectAuthService.signOut.bind(reownConnectAuthService),
         needsWalletBinding: reownConnectAuthService.needsWalletBinding.bind(reownConnectAuthService),
         bindWallet: reownConnectAuthService.bindWallet.bind(reownConnectAuthService),
+        updateConnectionState: reownConnectAuthService.updateConnectionState.bind(reownConnectAuthService),
+        resetConnectionState: reownConnectAuthService.resetConnectionState.bind(reownConnectAuthService),
+        isCurrentlyConnecting: reownConnectAuthService.isCurrentlyConnecting.bind(reownConnectAuthService),
     }
 }

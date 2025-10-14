@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useAuthStore } from '../stores/authStore';
+// import { useSessionData } from './providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Navigation } from './Navigation';
@@ -10,10 +10,11 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { currentUser, viewMode } = useAuthStore();
+  // const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
   const t = useTranslation();
   const [isIOS, setIsIOS] = useState(false);
+  const [viewMode] = useState<'parent' | 'child'>('parent');
 
   // Detect if running in iOS environment
   useEffect(() => {
@@ -85,7 +86,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Right side - responsive layout with fixed width to prevent overlap */}
             <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0 min-w-[160px] justify-end">
-              {currentUser && <UserSwitcher />}
+              {true && <UserSwitcher />}
             </div>
           </div>
         </div>
@@ -103,7 +104,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       </div>
 
       {/* View mode indicator - helpful visual cue */}
-      {currentUser && (
+      {true && (
         <div className={`border-b relative z-5 ${
           isDark 
             ? 'bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-purple-700' 

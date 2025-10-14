@@ -1,26 +1,22 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { AuthGuard } from './components/auth/AuthGuard';
+import { AuthProvider } from './components/providers/AuthProvider';
 import { ParentalHome } from './pages/ParentalHome';
 import { PersonHome } from './pages/PersonHome';
 import { SettingsPage } from './pages/SettingsPage';
-import { AuthPage } from './pages/AuthPage';
-import { AuthCallbackPage } from './pages/AuthCallbackPage';
-import { useAuthStore } from './stores/authStore';
-import { useEffect } from 'react';
+import { NextAuthLoginPage } from './pages/NextAuthLoginPage';
+import { useSessionData } from './components/providers/AuthProvider';
+import { useState } from 'react';
 
-function App() {
-  const { isInitialized, viewMode, activePerson, initializeAuth } = useAuthStore();
+// App content component that uses session
+function AppContent() {
+  const { status } = useSessionData();
+  const [viewMode] = useState<'parent' | 'child'>('parent');
+  const [activePerson] = useState<any>(null);
 
-  // Initialize auth on app start
-  useEffect(() => {
-    if (!isInitialized) {
-      initializeAuth();
-    }
-  }, [isInitialized, initializeAuth]);
-
-  // Show loading screen while initializing
-  if (!isInitialized) {
+  // Show loading screen while checking authentication
+  if (status === 'loading') {
     return (
       <div
         style={{
@@ -56,7 +52,7 @@ function App() {
               marginBottom: '0.5rem',
             }}
           >
-            🚀 正在启动 KidsViewer
+            🚀 Starting KidsViewer...
           </h2>
           <p
             style={{
@@ -64,7 +60,7 @@ function App() {
               fontSize: '1rem',
             }}
           >
-            请稍候...
+            Please wait...
           </p>
           <style>{`
             @keyframes spin {
@@ -80,30 +76,13 @@ function App() {
   return (
     <Routes>
       {/* Auth page - no protection needed */}
-      <Route
-        path="/auth"
-        element={
-          <ProtectedRoute requireAuth={false}>
-            <AuthPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* OAuth callback page - no protection needed */}
-      <Route
-        path="/auth/callback"
-        element={
-          <ProtectedRoute requireAuth={false}>
-            <AuthCallbackPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/auth" element={<NextAuthLoginPage />} />
 
       {/* Protected routes */}
       <Route
         path="/*"
         element={
-          <ProtectedRoute requireAuth={true}>
+          <AuthGuard>
             <Layout>
               <Routes>
                 {/* Auto redirect to corresponding home page based on view mode */}
@@ -128,10 +107,19 @@ function App() {
                 <Route path="*" element={<Navigate to={viewMode === 'parent' ? '/parental-page' : '/person-page'} replace />} />
               </Routes>
             </Layout>
-          </ProtectedRoute>
+          </AuthGuard>
         }
       />
     </Routes>
+  );
+}
+
+// Main App component with AuthProvider
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
