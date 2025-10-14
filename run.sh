@@ -324,7 +324,7 @@ electron_fix_macos() {
     fi
 }
 
-# iOS development with live reload
+# ----- iOS development with live reload -----
 ios_dev() {
     print_header "Starting iOS Development with Live Reload"
 
@@ -551,7 +551,6 @@ EOF
     mv capacitor.config.json.bak capacitor.config.json
 }
 
-# iOS simulator management functions
 ios_simulator_list() {
     print_header "Listing iOS Simulators"
 
@@ -697,8 +696,8 @@ ios_simulator_reset() {
     fi
 }
 
-# iOS build for personal device without Apple Developer account
 ios_build() {
+    # iOS build for personal device without Apple Developer account
     print_header "Building iOS Package for Personal Device"
 
     check_dependencies
@@ -749,7 +748,7 @@ ios_build() {
     print_info "Follow the on-screen instructions to complete the build process"
 }
 
-# Start for web development
+# ----- Start for web development -----
 web_dev() {
     print_header "Starting Web Development Mode"
 
@@ -769,7 +768,7 @@ web_dev() {
     wait
 }
 
-# Build for web production
+# ----- Build for web production -----
 web_build() {
     print_header "Building for Production"
 
@@ -780,7 +779,7 @@ web_build() {
     print_success "Production build completed!"
 }
 
-# Ethereum contracts functions
+# ----- Ethereum contracts functions -----
 ethereum_build() {
     print_header "Building Ethereum Contracts"
 
@@ -811,7 +810,7 @@ ethereum_test() {
     cd ..
 }
 
-# Starknet contracts functions
+# ----- Starknet contracts functions -----
 starknet_build() {
     print_header "Building Starknet Contracts"
 
@@ -842,7 +841,7 @@ starknet_test() {
     cd ..
 }
 
-# Combined contracts functions
+# ----- All contracts functions -----
 contracts_build() {
     print_header "Building All Contracts"
 
@@ -873,7 +872,7 @@ contracts_test() {
     cd ..
 }
 
-# Next.js Backend functions
+# ----- Next.js Backend functions -----
 next_backend_build() {
     print_header "Building Next.js Backend Service"
 
@@ -1060,53 +1059,7 @@ next_backend_setup() {
     cd ../..
 }
 
-# Backend Go service functions
-go_backend_build() {
-    print_header "Building Go Backend Service"
-
-    # Check if Go is installed
-    if ! command -v go &>/dev/null; then
-        print_error "Go not found, please install Go 1.21+ first"
-        print_info "Install Go: https://golang.org/doc/install"
-        exit 1
-    fi
-
-    # Check Go version
-    GO_VERSION=$(go version | grep -o 'go[0-9]\+\.[0-9]\+' | cut -d'v' -f2)
-    REQUIRED_VERSION="1.21"
-    if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$GO_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
-        print_error "Go version too low, requires $REQUIRED_VERSION+, current: $GO_VERSION"
-        exit 1
-    fi
-
-    # Navigate to Go backend directory
-    if [ ! -d "server/go-kidsviewer" ]; then
-        print_error "Go backend directory not found"
-        exit 1
-    fi
-
-    cd server/go-kidsviewer
-
-    print_info "Building Go backend service..."
-
-    # Build with CGO enabled for SQLite support
-    CGO_ENABLED=1 go build \
-        -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-        -trimpath \
-        -o kidsviewer-server \
-        ./cmd/main.go
-
-    if [ $? -ne 0 ]; then
-        print_error "Go backend build failed"
-        cd ../..
-        exit 1
-    fi
-
-    print_success "Go backend service built successfully"
-    print_info "Binary is available at: server/go-kidsviewer/kidsviewer-server"
-    cd ../..
-}
-
+# ----- Backend Go service functions -----
 go_backend_dev() {
     print_header "Starting Go Backend Development Mode"
 
@@ -1191,6 +1144,52 @@ go_backend_test() {
     fi
 
     print_success "Go backend tests passed"
+    cd ../..
+}
+
+go_backend_build() {
+    print_header "Building Go Backend Service"
+
+    # Check if Go is installed
+    if ! command -v go &>/dev/null; then
+        print_error "Go not found, please install Go 1.21+ first"
+        print_info "Install Go: https://golang.org/doc/install"
+        exit 1
+    fi
+
+    # Check Go version
+    GO_VERSION=$(go version | grep -o 'go[0-9]\+\.[0-9]\+' | cut -d'v' -f2)
+    REQUIRED_VERSION="1.21"
+    if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$GO_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]; then
+        print_error "Go version too low, requires $REQUIRED_VERSION+, current: $GO_VERSION"
+        exit 1
+    fi
+
+    # Navigate to Go backend directory
+    if [ ! -d "server/go-kidsviewer" ]; then
+        print_error "Go backend directory not found"
+        exit 1
+    fi
+
+    cd server/go-kidsviewer
+
+    print_info "Building Go backend service..."
+
+    # Build with CGO enabled for SQLite support
+    CGO_ENABLED=1 go build \
+        -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        -trimpath \
+        -o kidsviewer-server \
+        ./cmd/main.go
+
+    if [ $? -ne 0 ]; then
+        print_error "Go backend build failed"
+        cd ../..
+        exit 1
+    fi
+
+    print_success "Go backend service built successfully"
+    print_info "Binary is available at: server/go-kidsviewer/kidsviewer-server"
     cd ../..
 }
 
@@ -1402,13 +1401,13 @@ show_help() {
     echo "  web-build                 Build project for production"
     echo ""
     echo "Backend Commands:"
-    echo "  next-backend-build        Build Next.js backend service (npm run build)"
+    echo "  next-backend-setup        Setup Next.js backend service (install deps, generate keys)"
     echo "  next-backend-dev          Run Next.js backend in development mode (npm run dev)"
     echo "  next-backend-test         Test Next.js backend service (npm run lint)"
-    echo "  next-backend-setup        Setup Next.js backend service (install deps, generate keys)"
-    echo "  go-backend-build          Build Go backend service (go build)"
+    echo "  next-backend-build        Build Next.js backend service (npm run build)"
     echo "  go-backend-dev            Run Go backend in development mode with hot reload"
     echo "  go-backend-test           Test Go backend service (go test)"
+    echo "  go-backend-build          Build Go backend service (go build)"
     echo "  go-backend-migrate-up     Run Go backend database migrations"
     echo "  go-backend-migrate-status Check Go backend migration status"
     echo ""
@@ -1434,19 +1433,19 @@ show_help() {
     echo "  $0 ios-simulator-reset    Reset iOS simulator (erase all data)"
     echo "  $0 web-dev                Start web development server"
     echo "  $0 web-build              Build project for production"
-    echo "  $0 ethereum-build         Build Ethereum contracts"
     echo "  $0 ethereum-test          Test Ethereum contracts"
-    echo "  $0 starknet-build         Build Starknet contracts"
+    echo "  $0 ethereum-build         Build Ethereum contracts"
     echo "  $0 starknet-test          Test Starknet contracts"
-    echo "  $0 contracts-build        Build all contracts"
+    echo "  $0 starknet-build         Build Starknet contracts"
     echo "  $0 contracts-test         Test all contracts"
-    echo "  $0 next-backend-build     Build Next.js backend service"
+    echo "  $0 contracts-build        Build all contracts"
+    echo "  $0 next-backend-setup     Setup Next.js backend service"
     echo "  $0 next-backend-dev       Run Next.js backend in development mode"
     echo "  $0 next-backend-test      Test Next.js backend service"
-    echo "  $0 next-backend-setup     Setup Next.js backend service"
-    echo "  $0 go-backend-build       Build Go backend service"
+    echo "  $0 next-backend-build     Build Next.js backend service"
     echo "  $0 go-backend-dev         Run Go backend in development mode"
     echo "  $0 go-backend-test        Test Go backend service"
+    echo "  $0 go-backend-build       Build Go backend service"
     echo "  $0 go-backend-migrate-up  Run Go backend database migrations"
     echo "  $0 go-backend-migrate-status Check Go backend migration status"
     echo ""
@@ -1505,8 +1504,8 @@ case "${1:-help}" in
 "dev-start")
     dev_start
     ;;
-"next-backend-build")
-    next_backend_build
+"next-backend-setup")
+    next_backend_setup
     ;;
 "next-backend-dev")
     next_backend_dev
@@ -1514,17 +1513,17 @@ case "${1:-help}" in
 "next-backend-test")
     next_backend_test
     ;;
-"next-backend-setup")
-    next_backend_setup
-    ;;
-"go-backend-build")
-    go_backend_build
+"next-backend-build")
+    next_backend_build
     ;;
 "go-backend-dev")
     go_backend_dev
     ;;
 "go-backend-test")
     go_backend_test
+    ;;
+"go-backend-build")
+    go_backend_build
     ;;
 "go-backend-migrate-up")
     go_backend_migrate_up
