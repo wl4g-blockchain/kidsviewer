@@ -56,6 +56,7 @@ export default defineConfig(({ command, mode }) => {
             'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
             // Use loaded env variables
             'import.meta.env.VITE_GITHUB_CLIENT_ID': JSON.stringify(env.VITE_GITHUB_CLIENT_ID),
+            'import.meta.env.VITE_GITHUB_CLIENT_SECRET': JSON.stringify(env.VITE_GITHUB_CLIENT_SECRET),
             'import.meta.env.VITE_GOOGLE_CLIENT_ID': JSON.stringify(env.VITE_GOOGLE_CLIENT_ID),
             'import.meta.env.VITE_WALLETCONNECT_PROJECT_ID': JSON.stringify(env.VITE_WALLETCONNECT_PROJECT_ID),
         },

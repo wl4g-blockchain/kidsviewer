@@ -873,9 +873,196 @@ contracts_test() {
     cd ..
 }
 
+# Next.js Backend functions
+next_backend_build() {
+    print_header "Building Next.js Backend Service"
+
+    # Check if Node.js is installed
+    if ! command -v node &>/dev/null; then
+        print_error "Node.js not found, please install Node.js 18+ first"
+        print_info "Install Node.js: https://nodejs.org/"
+        exit 1
+    fi
+
+    # Navigate to Next.js backend directory
+    if [ ! -d "server/next-kidsviewer" ]; then
+        print_error "Next.js backend directory not found"
+        exit 1
+    fi
+
+    cd server/next-kidsviewer
+
+    print_info "Installing Next.js backend dependencies..."
+    npm install
+
+    if [ $? -ne 0 ]; then
+        print_error "Failed to install Next.js backend dependencies"
+        cd ../..
+        exit 1
+    fi
+
+    print_info "Building Next.js backend service..."
+    npm run build
+
+    if [ $? -ne 0 ]; then
+        print_error "Next.js backend build failed"
+        cd ../..
+        exit 1
+    fi
+
+    print_success "Next.js backend service built successfully"
+    print_info "Built files are available in server/next-kidsviewer/.next"
+    cd ../..
+}
+
+next_backend_dev() {
+    print_header "Starting Next.js Backend Development Mode"
+
+    # Check if Node.js is installed
+    if ! command -v node &>/dev/null; then
+        print_error "Node.js not found, please install Node.js 18+ first"
+        print_info "Install Node.js: https://nodejs.org/"
+        exit 1
+    fi
+
+    # Navigate to Next.js backend directory
+    if [ ! -d "server/next-kidsviewer" ]; then
+        print_error "Next.js backend directory not found"
+        exit 1
+    fi
+
+    cd server/next-kidsviewer
+
+    # Check if .env.local exists, create from example if not
+    if [ ! -f ".env.local" ] && [ -f "env.example" ]; then
+        print_info "Creating .env.local from example..."
+        cp env.example .env.local
+        print_warning "Please edit .env.local with your settings before running the server"
+    fi
+
+    print_info "Installing Next.js backend dependencies..."
+    npm install
+
+    if [ $? -ne 0 ]; then
+        print_error "Failed to install Next.js backend dependencies"
+        cd ../..
+        exit 1
+    fi
+
+    print_info "Starting Next.js backend service in development mode..."
+    print_info "Server will be available at: http://localhost:3001"
+    print_warning "Press Ctrl+C to stop the server"
+    echo ""
+
+    npm run dev &
+    PIDS+=($!)
+
+    # Wait for all background processes
+    wait
+
+    cd ../..
+}
+
+next_backend_test() {
+    print_header "Testing Next.js Backend Service"
+
+    # Check if Node.js is installed
+    if ! command -v node &>/dev/null; then
+        print_error "Node.js not found, please install Node.js 18+ first"
+        print_info "Install Node.js: https://nodejs.org/"
+        exit 1
+    fi
+
+    # Navigate to Next.js backend directory
+    if [ ! -d "server/next-kidsviewer" ]; then
+        print_error "Next.js backend directory not found"
+        exit 1
+    fi
+
+    cd server/next-kidsviewer
+
+    print_info "Installing Next.js backend dependencies..."
+    npm install
+
+    if [ $? -ne 0 ]; then
+        print_error "Failed to install Next.js backend dependencies"
+        cd ../..
+        exit 1
+    fi
+
+    print_info "Running Next.js backend tests..."
+    npm run lint
+
+    if [ $? -ne 0 ]; then
+        print_error "Next.js backend linting failed"
+        cd ../..
+        exit 1
+    fi
+
+    print_success "Next.js backend tests passed"
+    cd ../..
+}
+
+next_backend_setup() {
+    print_header "Setting up Next.js Backend Service"
+
+    # Check if Node.js is installed
+    if ! command -v node &>/dev/null; then
+        print_error "Node.js not found, please install Node.js 18+ first"
+        print_info "Install Node.js: https://nodejs.org/"
+        exit 1
+    fi
+
+    # Navigate to Next.js backend directory
+    if [ ! -d "server/next-kidsviewer" ]; then
+        print_error "Next.js backend directory not found"
+        exit 1
+    fi
+
+    cd server/next-kidsviewer
+
+    print_info "Setting up Next.js backend service..."
+
+    # Run setup script if exists
+    if [ -f "setup.sh" ]; then
+        print_info "Running setup script..."
+        chmod +x setup.sh
+        ./setup.sh
+    else
+        print_info "Installing dependencies..."
+        npm install
+
+        if [ $? -ne 0 ]; then
+            print_error "Failed to install Next.js backend dependencies"
+            cd ../..
+            exit 1
+        fi
+
+        # Generate RSA keys if script exists
+        if [ -f "scripts/generate-rsa-keys.sh" ]; then
+            print_info "Generating RSA keys..."
+            chmod +x scripts/generate-rsa-keys.sh
+            ./scripts/generate-rsa-keys.sh
+        fi
+
+        # Create .env.local from example if not exists
+        if [ ! -f ".env.local" ] && [ -f "env.example" ]; then
+            print_info "Creating .env.local from example..."
+            cp env.example .env.local
+            print_warning "Please edit .env.local with your settings"
+        fi
+    fi
+
+    print_success "Next.js backend setup completed"
+    print_info "Next steps:"
+    print_info "1. Edit server/next-kidsviewer/.env.local with your configuration"
+    print_info "2. Run: ./run.sh next-backend-dev"
+    cd ../..
+}
+
 # Backend Go service functions
-backend_build() {
-    print_header "Building Backend Go Service"
+go_backend_build() {
+    print_header "Building Go Backend Service"
 
     # Check if Go is installed
     if ! command -v go &>/dev/null; then
@@ -892,13 +1079,13 @@ backend_build() {
         exit 1
     fi
 
-    # Navigate to server directory
-    if [ ! -d "server" ]; then
-        print_error "Server directory not found"
+    # Navigate to Go backend directory
+    if [ ! -d "server/go-kidsviewer" ]; then
+        print_error "Go backend directory not found"
         exit 1
     fi
 
-    cd server
+    cd server/go-kidsviewer
 
     print_info "Building Go backend service..."
 
@@ -906,21 +1093,22 @@ backend_build() {
     CGO_ENABLED=1 go build \
         -ldflags="-s -w -X main.version=dev -X main.buildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
         -trimpath \
-        -o main \
+        -o kidsviewer-server \
         ./cmd/main.go
 
     if [ $? -ne 0 ]; then
-        print_error "Backend build failed"
-        cd ..
+        print_error "Go backend build failed"
+        cd ../..
         exit 1
     fi
 
-    print_success "Backend service built successfully"
-    cd ..
+    print_success "Go backend service built successfully"
+    print_info "Binary is available at: server/go-kidsviewer/kidsviewer-server"
+    cd ../..
 }
 
-backend_dev() {
-    print_header "Starting Backend Development Mode"
+go_backend_dev() {
+    print_header "Starting Go Backend Development Mode"
 
     # Check if Go is installed
     if ! command -v go &>/dev/null; then
@@ -929,13 +1117,13 @@ backend_dev() {
         exit 1
     fi
 
-    # Navigate to server directory
-    if [ ! -d "server" ]; then
-        print_error "Server directory not found"
+    # Navigate to Go backend directory
+    if [ ! -d "server/go-kidsviewer" ]; then
+        print_error "Go backend directory not found"
         exit 1
     fi
 
-    cd server
+    cd server/go-kidsviewer
 
     # Check if config file exists, create from example if not
     if [ ! -f "config.yaml" ] && [ -f "config.example.yaml" ]; then
@@ -964,11 +1152,11 @@ backend_dev() {
             ./cmd/main.go
     fi
 
-    cd ..
+    cd ../..
 }
 
-backend_test() {
-    print_header "Testing Backend Go Service"
+go_backend_test() {
+    print_header "Testing Go Backend Service"
 
     # Check if Go is installed
     if ! command -v go &>/dev/null; then
@@ -977,13 +1165,13 @@ backend_test() {
         exit 1
     fi
 
-    # Navigate to server directory
-    if [ ! -d "server" ]; then
-        print_error "Server directory not found"
+    # Navigate to Go backend directory
+    if [ ! -d "server/go-kidsviewer" ]; then
+        print_error "Go backend directory not found"
         exit 1
     fi
 
-    cd server
+    cd server/go-kidsviewer
 
     print_info "Running Go backend tests..."
 
@@ -991,8 +1179,8 @@ backend_test() {
     go test -v -race -coverprofile=coverage.out ./...
 
     if [ $? -ne 0 ]; then
-        print_error "Backend tests failed"
-        cd ..
+        print_error "Go backend tests failed"
+        cd ../..
         exit 1
     fi
 
@@ -1002,12 +1190,12 @@ backend_test() {
         go tool cover -func=coverage.out | tail -1
     fi
 
-    print_success "Backend tests passed"
-    cd ..
+    print_success "Go backend tests passed"
+    cd ../..
 }
 
-backend_migrate_up() {
-    print_header "Running Database Migrations"
+go_backend_migrate_up() {
+    print_header "Running Go Backend Database Migrations"
 
     # Check if Go is installed
     if ! command -v go &>/dev/null; then
@@ -1016,13 +1204,13 @@ backend_migrate_up() {
         exit 1
     fi
 
-    # Navigate to server directory
-    if [ ! -d "server" ]; then
-        print_error "Server directory not found"
+    # Navigate to Go backend directory
+    if [ ! -d "server/go-kidsviewer" ]; then
+        print_error "Go backend directory not found"
         exit 1
     fi
 
-    cd server
+    cd server/go-kidsviewer
 
     # Check if config file exists
     if [ ! -f "config.yaml" ]; then
@@ -1032,7 +1220,7 @@ backend_migrate_up() {
             print_warning "Please edit config.yaml with your settings before running migrations"
         else
             print_error "No config file found. Please create config.yaml first"
-            cd ..
+            cd ../..
             exit 1
         fi
     fi
@@ -1045,16 +1233,16 @@ backend_migrate_up() {
 
     if [ $? -ne 0 ]; then
         print_error "Migration failed"
-        cd ..
+        cd ../..
         exit 1
     fi
 
     print_success "Database migrations completed successfully"
-    cd ..
+    cd ../..
 }
 
-backend_migrate_status() {
-    print_header "Checking Migration Status"
+go_backend_migrate_status() {
+    print_header "Checking Go Backend Migration Status"
 
     # Check if Go is installed
     if ! command -v go &>/dev/null; then
@@ -1063,13 +1251,13 @@ backend_migrate_status() {
         exit 1
     fi
 
-    # Navigate to server directory
-    if [ ! -d "server" ]; then
-        print_error "Server directory not found"
+    # Navigate to Go backend directory
+    if [ ! -d "server/go-kidsviewer" ]; then
+        print_error "Go backend directory not found"
         exit 1
     fi
 
-    cd server
+    cd server/go-kidsviewer
 
     # Check if config file exists
     if [ ! -f "config.yaml" ]; then
@@ -1079,7 +1267,7 @@ backend_migrate_status() {
             print_warning "Please edit config.yaml with your settings before checking migration status"
         else
             print_error "No config file found. Please create config.yaml first"
-            cd ..
+            cd ../..
             exit 1
         fi
     fi
@@ -1090,7 +1278,106 @@ backend_migrate_status() {
     go build -o kidsviewer-server ./cmd/main.go ./cmd/migrate.go
     ./kidsviewer-server migrate status
 
-    cd ..
+    cd ../..
+}
+
+# Unified development start
+dev_start() {
+    print_header "Starting Unified Development Environment (Frontend + Next.js Backend)..."
+    echo ""
+
+    check_dependencies
+
+    # --- Start frontend ---
+    print_header "Starting Frontend (React + Vite)..."
+
+    print_info "Installing frontend dependencies..."
+    if [ ! -d "node_modules" ]; then
+        npm install
+    fi
+
+    print_info "Starting Vite development server..."
+    print_info "Frontend will be available at: http://localhost:5173"
+
+    npm run dev &
+    FRONTEND_PID=$!
+    PIDS+=($FRONTEND_PID)
+
+    # Wait for frontend to start.
+    sleep 3
+    print_success "Frontend started (PID: $FRONTEND_PID)"
+
+    # --- Start backend ---
+    print_header "Starting Backend (Next.js Backend)..."
+
+    if [ ! -d "server/next-kidsviewer" ]; then
+        print_error "Next.js backend directory not found"
+        exit 1
+    fi
+
+    cd server/next-kidsviewer
+
+    print_info "Installing backend dependencies..."
+    if [ ! -d "node_modules" ]; then
+        npm install
+    fi
+
+    print_info "Starting Next.js development server..."
+    print_info "Backend will be available at: http://localhost:3001"
+
+    npm run dev &
+    BACKEND_PID=$!
+    PIDS+=($BACKEND_PID)
+
+    cd ../..
+
+    # Wait for backend to start.
+    sleep 5
+    print_success "Backend started (PID: $BACKEND_PID)"
+
+    # --- Check the services---
+    sleep 2
+
+    # Checking the frontend server
+    print_info "Checking the frontend..."
+    for port in 5173 5174 5175; do
+        if curl -s -o /dev/null -w "%{http_code}" http://localhost:$port | grep -q "200"; then
+            print_success "Frontend accessible at http://localhost:$port"
+            break
+        fi
+    done
+
+    # Checking the backend server.
+    print_info "Checking the backend..."
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost:3001 | grep -q "200"; then
+        print_success "Backend accessible at http://localhost:3001"
+    else
+        print_warning "Backend not yet ready, may need more time..."
+    fi
+
+    # --- Show status ---
+    print_header "Development Environment Status"
+    echo ""
+    print_info "Services running:"
+    for pid in "${PIDS[@]}"; do
+        if ps -p $pid >/dev/null 2>&1; then
+            print_success "Process $pid is running"
+        else
+            print_error "Process $pid has stopped"
+        fi
+    done
+
+    echo ""
+    print_info "Access URLs:"
+    print_info "Frontend: http://localhost:5173 (or 5174/5175)"
+    print_info "Backend API: http://localhost:3001/api"
+    print_info "Backend Login: http://localhost:3001/login"
+
+    echo ""
+    print_warning "Press Ctrl+C to stop all services"
+
+    # Wait for all background processes
+    wait
 }
 
 # Show help
@@ -1098,6 +1385,9 @@ show_help() {
     echo -e "${BLUE}KidsViewer Unified Run Script${NC}"
     echo ""
     echo "Usage: $0 <command>"
+    echo ""
+    echo "Development Commands:"
+    echo "  dev-start                 Start unified development environment (frontend + backend)"
     echo ""
     echo "Frontend Commands:"
     echo "  electron-dev              Start Electron development mode (with hot reload)"
@@ -1112,11 +1402,15 @@ show_help() {
     echo "  web-build                 Build project for production"
     echo ""
     echo "Backend Commands:"
-    echo "  backend-build             Build Go backend service (go build)"
-    echo "  backend-dev               Run Go backend in development mode with hot reload"
-    echo "  backend-test              Test Go backend service (go test)"
-    echo "  backend-migrate-up        Run database migrations"
-    echo "  backend-migrate-status    Check migration status"
+    echo "  next-backend-build        Build Next.js backend service (npm run build)"
+    echo "  next-backend-dev          Run Next.js backend in development mode (npm run dev)"
+    echo "  next-backend-test         Test Next.js backend service (npm run lint)"
+    echo "  next-backend-setup        Setup Next.js backend service (install deps, generate keys)"
+    echo "  go-backend-build          Build Go backend service (go build)"
+    echo "  go-backend-dev            Run Go backend in development mode with hot reload"
+    echo "  go-backend-test           Test Go backend service (go test)"
+    echo "  go-backend-migrate-up     Run Go backend database migrations"
+    echo "  go-backend-migrate-status Check Go backend migration status"
     echo ""
     echo "Contract Commands:"
     echo "  ethereum-build            Build Ethereum contracts (forge build)"
@@ -1130,6 +1424,7 @@ show_help() {
     echo "  help                      Show this help message"
     echo ""
     echo "Examples:"
+    echo "  $0 dev-start              Start unified development environment"
     echo "  $0 electron-dev           Start Electron development with hot reload"
     echo "  $0 electron-build         Build Electron application for production"
     echo "  $0 electron-build-debug   Build Electron with detailed debug output"
@@ -1145,11 +1440,15 @@ show_help() {
     echo "  $0 starknet-test          Test Starknet contracts"
     echo "  $0 contracts-build        Build all contracts"
     echo "  $0 contracts-test         Test all contracts"
-    echo "  $0 backend-build          Build Go backend service"
-    echo "  $0 backend-dev            Run Go backend in development mode"
-    echo "  $0 backend-test           Test Go backend service"
-    echo "  $0 backend-migrate-up     Run database migrations"
-    echo "  $0 backend-migrate-status Check migration status"
+    echo "  $0 next-backend-build     Build Next.js backend service"
+    echo "  $0 next-backend-dev       Run Next.js backend in development mode"
+    echo "  $0 next-backend-test      Test Next.js backend service"
+    echo "  $0 next-backend-setup     Setup Next.js backend service"
+    echo "  $0 go-backend-build       Build Go backend service"
+    echo "  $0 go-backend-dev         Run Go backend in development mode"
+    echo "  $0 go-backend-test        Test Go backend service"
+    echo "  $0 go-backend-migrate-up  Run Go backend database migrations"
+    echo "  $0 go-backend-migrate-status Check Go backend migration status"
     echo ""
 }
 
@@ -1203,20 +1502,35 @@ case "${1:-help}" in
 "contracts-test")
     contracts_test
     ;;
-"backend-build")
-    backend_build
+"dev-start")
+    dev_start
     ;;
-"backend-dev")
-    backend_dev
+"next-backend-build")
+    next_backend_build
     ;;
-"backend-test")
-    backend_test
+"next-backend-dev")
+    next_backend_dev
     ;;
-"backend-migrate-up")
-    backend_migrate_up
+"next-backend-test")
+    next_backend_test
     ;;
-"backend-migrate-status")
-    backend_migrate_status
+"next-backend-setup")
+    next_backend_setup
+    ;;
+"go-backend-build")
+    go_backend_build
+    ;;
+"go-backend-dev")
+    go_backend_dev
+    ;;
+"go-backend-test")
+    go_backend_test
+    ;;
+"go-backend-migrate-up")
+    go_backend_migrate_up
+    ;;
+"go-backend-migrate-status")
+    go_backend_migrate_status
     ;;
 "help" | "-h" | "--help")
     show_help

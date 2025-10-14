@@ -1,0 +1,7 @@
+{
+    "buildCommand": "cd server/next-kidsviewer && npm run build",
+    "outputDirectory": "server/next-kidsviewer/.next",
+    "installCommand": "cd server/next-kidsviewer && npm install",
+    "framework": "nextjs",
+    "rootDirectory": "server/next-kidsviewer"
+}
