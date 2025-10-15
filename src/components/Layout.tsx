@@ -80,7 +80,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
 
             {/* Navigation - centered and responsive */}
-            <div className="hidden lg:flex flex-1 justify-center px-8">
+            <div className="hidden lg:flex flex-1 justify-center px-8 max-w-md">
               <Navigation />
             </div>
 

@@ -54,7 +54,7 @@ export const UserSwitcher: React.FC = () => {
   if (!currentUser) return null;
 
   return (
-    <div className="relative z-50" ref={dropdownRef}>
+    <div className="relative z-[60]" ref={dropdownRef}>
       {/* Current user display button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -68,7 +68,7 @@ export const UserSwitcher: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-1 text-left min-w-0">
+        <div className="flex-1 text-left min-w-[80px]">
           <div className="flex items-center space-x-1 sm:space-x-2">
             <span className={`font-bold text-xs sm:text-sm lg:text-base truncate ${isDark ? 'text-white' : 'text-gray-800'}`}>
               {currentUser.name}
@@ -76,8 +76,8 @@ export const UserSwitcher: React.FC = () => {
             <Crown className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 flex-shrink-0" />
           </div>
           <div className={`text-xs sm:text-sm flex items-center space-x-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-            <Users className="w-2 h-2 sm:w-3 sm:h-3" />
-            <span className="truncate">{t('navigation.parental')}</span>
+            <Users className="w-2 h-2 sm:w-3 sm:h-3 flex-shrink-0" />
+            <span className="whitespace-nowrap">{t('navigation.parental')}</span>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export const UserSwitcher: React.FC = () => {
 
       {/* Dropdown menu */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 w-56 sm:w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-[99999]">
+        <div className="absolute right-0 top-full mt-1 w-[201px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-[100]" style={{ top: '102px' }}>
           <div className="py-1">
             {/* User Info Section */}
             <div className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">

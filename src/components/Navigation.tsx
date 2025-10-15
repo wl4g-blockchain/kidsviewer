@@ -50,7 +50,7 @@ export const Navigation: React.FC = () => {
   const navigationItems = getNavigationItems();
 
   return (
-    <nav className="flex flex-wrap justify-center lg:justify-center space-x-3 sm:space-x-6 lg:space-x-8">
+    <nav className="flex flex-nowrap justify-center lg:justify-center space-x-3 sm:space-x-6 lg:space-x-8">
       {navigationItems.map((item) => {
         const Icon = item.icon
         return (
