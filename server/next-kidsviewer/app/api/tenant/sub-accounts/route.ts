@@ -126,6 +126,112 @@ export async function POST(request: NextRequest) {
     }
 }
 
+// PUT /api/tenant/sub-accounts - Update a sub account
+export async function PUT(request: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions)
+
+        if (!session?.user) {
+            return NextResponse.json(
+                { error: 'User not authenticated' },
+                { status: 401 }
+            )
+        }
+
+        // Check if current user is main account (userType = 1)
+        if (session.user.userType !== 1) {
+            return NextResponse.json(
+                { error: 'Only main account can edit sub accounts' },
+                { status: 403 }
+            )
+        }
+
+        const body = await request.json()
+        const { id, name, email, password } = body
+
+        if (!id) {
+            return NextResponse.json(
+                { error: 'Account ID is required' },
+                { status: 400 }
+            )
+        }
+
+        // Check if the sub account exists and belongs to current tenant
+        const existingSubAccount = await prisma.sysUser.findFirst({
+            where: {
+                id: parseInt(id),
+                tenantId: session.user.tenantId,
+                userType: 2, // Sub account
+                delFlag: 0,
+            },
+        })
+
+        if (!existingSubAccount) {
+            return NextResponse.json(
+                { error: 'Sub account not found' },
+                { status: 404 }
+            )
+        }
+
+        // Check if email already exists (if email is being changed)
+        if (email && email !== existingSubAccount.email) {
+            const emailExists = await prisma.sysUser.findFirst({
+                where: {
+                    email: email,
+                    delFlag: 0,
+                    id: { not: parseInt(id) },
+                },
+            })
+
+            if (emailExists) {
+                return NextResponse.json(
+                    { error: 'Email already exists' },
+                    { status: 409 }
+                )
+            }
+        }
+
+        // Prepare update data
+        const updateData: any = {
+            updateDate: new Date(),
+        }
+
+        if (name) {
+            updateData.name = name
+        }
+
+        if (email) {
+            updateData.email = email
+        }
+
+        if (password) {
+            // Create sub account with double SHA512 encryption
+            const crypto = require('crypto')
+            const firstHash = crypto.createHash('sha512').update(password).digest('hex')
+            const hashedPassword = crypto.createHash('sha512').update(firstHash).digest('hex')
+            updateData.password = hashedPassword
+        }
+
+        // Update the sub account
+        const updatedSubAccount = await prisma.sysUser.update({
+            where: {
+                id: parseInt(id),
+            },
+            data: updateData,
+        })
+
+        const serializedSubAccount = serializeObj(updatedSubAccount)
+
+        return NextResponse.json(serializedSubAccount)
+    } catch (error) {
+        console.error('Error updating sub account:', error)
+        return NextResponse.json(
+            { error: 'Failed to update sub account' },
+            { status: 500 }
+        )
+    }
+}
+
 // DELETE /api/tenant/sub-accounts - Delete a sub account
 export async function DELETE(request: NextRequest) {
     try {

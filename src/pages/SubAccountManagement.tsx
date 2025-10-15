@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
-import { Users, Plus, Trash2, ArrowLeft, Building } from 'lucide-react';
+import { Users, Plus, Trash2, ArrowLeft, Building, Edit, Key } from 'lucide-react';
 
 interface SubAccount {
   id: string;
@@ -30,12 +30,21 @@ export const SubAccountManagement: React.FC = () => {
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<SubAccount | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
   });
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Check if current user is main account (userType = 1)
   const isMainAccount = Number(session?.user?.userType) === 1;
@@ -107,6 +116,66 @@ export const SubAccountManagement: React.FC = () => {
       alert(t('subAccount.createFailed'));
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleEditSubAccount = (account: SubAccount) => {
+    setEditingAccount(account);
+    setEditFormData({
+      name: account.name,
+      email: account.email,
+      password: '',
+      confirmPassword: '',
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateSubAccount = async () => {
+    if (!editingAccount) return;
+
+    if (!editFormData.name || !editFormData.email) {
+      alert(t('subAccount.fillAllFields'));
+      return;
+    }
+
+    // If password is provided, check if passwords match
+    if (editFormData.password && editFormData.password !== editFormData.confirmPassword) {
+      alert(t('subAccount.passwordMismatch'));
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const response = await fetch('/api/tenant/sub-accounts', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: editingAccount.id,
+          name: editFormData.name,
+          email: editFormData.email,
+          password: editFormData.password || undefined, // Only send password if provided
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh sub account list
+        await fetchSubAccounts();
+        // Reset form and close dialog
+        setEditFormData({ name: '', email: '', password: '', confirmPassword: '' });
+        setEditingAccount(null);
+        setIsEditDialogOpen(false);
+        alert(t('subAccount.updateSuccess'));
+      } else {
+        const error = await response.json();
+        alert(error.error || t('subAccount.updateFailed'));
+      }
+    } catch (error) {
+      console.error('Error updating sub account:', error);
+      alert(t('subAccount.updateFailed'));
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -227,19 +296,16 @@ export const SubAccountManagement: React.FC = () => {
                         {account.userType === 2 && (
                           <>
                             <button
-                              disabled
-                              className={`px-3 py-1 text-xs rounded-lg border ${
-                                isDark 
-                                  ? 'bg-gray-600 text-gray-400 border-gray-500' 
-                                  : 'bg-gray-100 text-gray-500 border-gray-300'
-                              }`}
-                              title={t('subAccount.editPermissionComingSoon')}
+                              onClick={() => handleEditSubAccount(account)}
+                              className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                              title={t('subAccount.edit')}
                             >
-                              {t('subAccount.editPermission')}
+                              <Edit className="h-4 w-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteSubAccount(account.id)}
-                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              title={t('common.delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -399,6 +465,119 @@ export const SubAccountManagement: React.FC = () => {
                   className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
                 >
                   {isCreating ? t('subAccount.creating') : t('subAccount.create')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Sub Account Dialog */}
+      {isEditDialogOpen && editingAccount && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`w-full max-w-md mx-4 rounded-2xl shadow-2xl ${
+            isDark ? 'bg-gray-800' : 'bg-white'
+          }`}>
+            <div className="p-6">
+              <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                {t('subAccount.editSubAccount')}
+              </h3>
+              <p className={`text-sm mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                {t('subAccount.updateSubAccount')}
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t('subAccount.name')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    placeholder={t('subAccount.enterName')}
+                    className={`w-full px-3 py-2 rounded-lg border ${
+                      isDark 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t('subAccount.email')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                    placeholder={t('subAccount.enterEmail')}
+                    className={`w-full px-3 py-2 rounded-lg border ${
+                      isDark 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {t('subAccount.newPassword')} <span className="text-gray-500">({t('common.optional')})</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={editFormData.password}
+                    onChange={(e) => setEditFormData({ ...editFormData, password: e.target.value })}
+                    placeholder={t('subAccount.enterNewPassword')}
+                    className={`w-full px-3 py-2 rounded-lg border ${
+                      isDark 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                    } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                  />
+                </div>
+                {editFormData.password && (
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {t('subAccount.confirmPassword')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={editFormData.confirmPassword}
+                      onChange={(e) => setEditFormData({ ...editFormData, confirmPassword: e.target.value })}
+                      placeholder={t('subAccount.enterConfirmPassword')}
+                      className={`w-full px-3 py-2 rounded-lg border ${
+                        isDark 
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                      } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setEditingAccount(null);
+                    setEditFormData({ name: '', email: '', password: '', confirmPassword: '' });
+                  }}
+                  className={`flex-1 px-4 py-2 rounded-lg border ${
+                    isDark 
+                      ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600' 
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  } transition-colors`}
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={handleUpdateSubAccount}
+                  disabled={isUpdating}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
+                >
+                  {isUpdating ? t('subAccount.updating') : t('subAccount.updateSubAccount')}
                 </button>
               </div>
             </div>

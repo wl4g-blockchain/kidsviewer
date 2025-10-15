@@ -30,7 +30,8 @@
         "attempts": "已尝试 {count} 次",
         "option": "选项",
         "confirmDelete": "您确定要删除这个项目吗？",
-        "understood": "我知道了"
+        "understood": "我知道了",
+        "optional": "可选"
     },
     "subAccount": {
         "title": "子账号",
@@ -53,7 +54,19 @@
         "fillAllFields": "请填写所有字段",
         "confirmDelete": "确定要删除这个子账号吗？",
         "editPermission": "编辑权限",
-        "editPermissionComingSoon": "编辑功能即将推出"
+        "editPermissionComingSoon": "编辑功能即将推出",
+        "edit": "编辑",
+        "editSubAccount": "编辑子账号",
+        "updateSubAccount": "更新子账号",
+        "updating": "更新中...",
+        "updateSuccess": "子账号更新成功",
+        "updateFailed": "子账号更新失败",
+        "newPassword": "新密码",
+        "enterNewPassword": "请输入新密码",
+        "confirmPassword": "确认密码",
+        "enterConfirmPassword": "请再次输入密码",
+        "passwordMismatch": "密码不匹配",
+        "resetPassword": "重置密码"
     },
     "auth": {
         "login": "登录",

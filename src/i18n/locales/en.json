@@ -30,7 +30,8 @@
         "attempts": "Attempted {count} times",
         "option": "Option",
         "confirmDelete": "Are you sure you want to delete this item?",
-        "understood": "I understand"
+        "understood": "I understand",
+        "optional": "Optional"
     },
     "subAccount": {
         "title": "Sub Accounts",
@@ -53,7 +54,19 @@
         "fillAllFields": "Please fill all fields",
         "confirmDelete": "Are you sure you want to delete this sub account?",
         "editPermission": "Edit Permission",
-        "editPermissionComingSoon": "Edit feature coming soon"
+        "editPermissionComingSoon": "Edit feature coming soon",
+        "edit": "Edit",
+        "editSubAccount": "Edit Sub Account",
+        "updateSubAccount": "Update Sub Account",
+        "updating": "Updating...",
+        "updateSuccess": "Sub account updated successfully",
+        "updateFailed": "Failed to update sub account",
+        "newPassword": "New Password",
+        "enterNewPassword": "Enter new password",
+        "confirmPassword": "Confirm Password",
+        "enterConfirmPassword": "Enter password again",
+        "passwordMismatch": "Passwords do not match",
+        "resetPassword": "Reset Password"
     },
     "auth": {
         "login": "Login",
