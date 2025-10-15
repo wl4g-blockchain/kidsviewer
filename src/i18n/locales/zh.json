@@ -287,6 +287,15 @@
         "unlinking": "解绑中...",
         "unlinkFailed": "解绑钱包失败",
         "unlinkError": "解绑钱包时出错",
+        "linkNewWallet": "连接新钱包",
+        "linkCurrentWallet": "连接当前钱包",
+        "connectedWallet": "已连接钱包",
+        "connecting": "连接中...",
+        "linking": "连接中...",
+        "walletLinkedSuccess": "钱包连接成功！",
+        "walletLinkFailed": "连接钱包失败",
+        "walletLinkError": "连接钱包时出错",
+        "walletConnectionFailed": "打开钱包连接失败",
         "timestamps": "时间信息",
         "createTime": "创建时间",
         "updateTime": "更新时间"
@@ -701,6 +710,14 @@
             "learningRewards": "学习奖励",
             "myPiggyBank": "我的存钱罐",
             "keepLearning": "继续学习以获得更多奖励！"
+        },
+        "alert": {
+            "confirm": "确定",
+            "cancel": "取消",
+            "success": "成功",
+            "error": "错误",
+            "warning": "警告",
+            "info": "提示"
         }
     }
 }

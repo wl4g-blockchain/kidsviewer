@@ -287,6 +287,15 @@
         "unlinking": "Unlinking...",
         "unlinkFailed": "Failed to unlink wallet",
         "unlinkError": "Error unlinking wallet",
+        "linkNewWallet": "Link New Wallet",
+        "linkCurrentWallet": "Link Current Wallet",
+        "connectedWallet": "Connected Wallet",
+        "connecting": "Connecting...",
+        "linking": "Linking...",
+        "walletLinkedSuccess": "Wallet linked successfully!",
+        "walletLinkFailed": "Failed to link wallet",
+        "walletLinkError": "Error linking wallet",
+        "walletConnectionFailed": "Failed to open wallet connection",
         "timestamps": "Timestamps",
         "createTime": "Created",
         "updateTime": "Updated"
@@ -701,6 +710,14 @@
             "learningRewards": "Learning Rewards",
             "myPiggyBank": "My Piggy Bank",
             "keepLearning": "Keep learning to earn more rewards!"
+        },
+        "alert": {
+            "confirm": "Confirm",
+            "cancel": "Cancel",
+            "success": "Success",
+            "error": "Error",
+            "warning": "Warning",
+            "info": "Info"
         }
     }
 }

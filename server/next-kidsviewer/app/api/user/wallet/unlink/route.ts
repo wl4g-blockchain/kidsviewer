@@ -47,7 +47,7 @@ export async function DELETE(request: NextRequest) {
                 if (typeof user.wallets === 'string') {
                     wallets = JSON.parse(user.wallets)
                 } else {
-                    wallets = user.wallets as any[]
+                    wallets = user.wallets as unknown as any[]
                 }
             } catch (e) {
                 console.warn('Failed to parse wallets JSON:', e)
@@ -62,7 +62,7 @@ export async function DELETE(request: NextRequest) {
             chainId: parseInt(chainId)
         }
 
-        const updatedWallets = wallets.filter(wallet => 
+        const updatedWallets = wallets.filter((wallet: any) => 
             !(wallet.chain === walletToRemove.chain && 
               wallet.address === walletToRemove.address && 
               wallet.chainId === walletToRemove.chainId)
