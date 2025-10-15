@@ -173,3 +173,24 @@ model TPerson {
   @@index([isActive])
   @@map("t_person")
 }
+
+// System configuration table
+model SysConfig {
+  id         BigInt    @id @default(autoincrement())
+  type       String    @db.VarChar(50)
+  key        String    @db.VarChar(100)
+  value      Json
+  version    Int       @default(1)
+  remark     String?   @db.VarChar(255)
+  createDate DateTime  @map("create_date") @db.Timestamptz(3)
+  createBy   BigInt    @default(1) @map("create_by")
+  updateDate DateTime  @map("update_date") @db.Timestamptz(3)
+  updateBy   BigInt    @default(1) @map("update_by")
+  delFlag    Int       @default(0) @map("del_flag")
+
+  @@index([type])
+  @@index([key])
+  @@index([type, key])
+  @@index([version])
+  @@map("sys_config")
+}

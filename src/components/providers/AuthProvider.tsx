@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { nextAuthAPI } from '../../lib/nextauth-api';
 import { updateAuthStatus } from '../../utils/apiInterceptor';
+import { configService } from '../../services/configService';
 
 interface Session {
   user: {
@@ -49,12 +50,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setSession(sessionData);
           setStatus('authenticated');
           updateAuthStatus(true);
+
+          // After successful login, get system configuration
+          configService
+            .fetchConfig()
+            .then(result => {
+              if (result.errcode === '200') {
+                console.log('System configuration loaded successfully:', result.data);
+              } else {
+                console.error('System configuration loaded failed:', result.errmsg);
+              }
+            })
+            .catch(error => {
+              console.error('System configuration loaded exception:', error);
+            });
         } else {
           console.log('No valid session found, setting unauthenticated');
           setSession(null);
           setStatus('unauthenticated');
           updateAuthStatus(false);
-          
+
           // Only redirect if we're not on the auth page and not on the root page
           if (!window.location.pathname.includes('/auth') && window.location.pathname !== '/') {
             console.log('No valid session, redirecting to login page');
@@ -66,10 +81,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setSession(null);
         setStatus('unauthenticated');
         updateAuthStatus(false);
-        
+
         // Only redirect if we're not on the auth page and not on the root page
         if (!window.location.pathname.includes('/auth') && window.location.pathname !== '/') {
-          console.log('Session check failed, redirecting to login page');
+          console.debug('Session check failed, redirecting to login page');
           window.location.href = '/auth';
         }
       }
@@ -88,15 +103,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Listen for authentication error events
     const handleAuthError = (event: CustomEvent) => {
-      console.log('Received auth error event:', event.detail);
+      console.debug('Received auth error event:', event.detail);
       // Clear session and set status to unauthenticated
       setSession(null);
       setStatus('unauthenticated');
       updateAuthStatus(false);
-      
+
       // Dispatch session update event to notify other components
       const sessionUpdateEvent = new CustomEvent('auth-session-update', {
-        detail: { session: null, status: 'unauthenticated' }
+        detail: { session: null, status: 'unauthenticated' },
       });
       window.dispatchEvent(sessionUpdateEvent);
     };
@@ -120,6 +135,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setSession(sessionData);
           setStatus('authenticated');
           updateAuthStatus(true);
+
+          // After successful login, get system configuration
+          configService
+            .fetchConfig()
+            .then(result => {
+              if (result.errcode === '200') {
+                console.debug('System configuration loaded successfully:', result.data);
+              } else {
+                console.error('System configuration loaded failed:', result.errmsg);
+              }
+            })
+            .catch(error => {
+              console.error('System configuration loaded exception:', error);
+            });
         }
       }
       return result;
@@ -132,14 +161,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = async () => {
     try {
       await nextAuthAPI.signOut();
-      
+
       setSession(null);
       setStatus('unauthenticated');
       updateAuthStatus(false);
-      
+
       // Dispatch session update event to notify other components
       const sessionUpdateEvent = new CustomEvent('auth-session-update', {
-        detail: { session: null, status: 'unauthenticated' }
+        detail: { session: null, status: 'unauthenticated' },
       });
       window.dispatchEvent(sessionUpdateEvent);
     } catch (error) {
