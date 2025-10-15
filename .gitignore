@@ -9,6 +9,7 @@ dist/
 dist-electron/
 build/
 release/
+tsconfig.src.tsbuildinfo
 tsconfig.tsbuildinfo
 
 # Environment variables

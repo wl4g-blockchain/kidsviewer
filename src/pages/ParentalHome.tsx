@@ -2,15 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useSessionData } from '../components/providers/AuthProvider';
 import { useTranslation } from '../i18n/I18nProvider';
 import { useThemeStore } from '../stores/themeStore';
-import { useAppContext } from '../App';
-import { Plus, Settings, BarChart3, Users, Clock, BookOpen, Shield, X, Calendar, TrendingUp, Trophy, Trash2 } from 'lucide-react';
+import { Plus, Settings, BarChart3, Users, Clock, BookOpen, X, Calendar, TrendingUp, Trophy, Trash2 } from 'lucide-react';
 import { Person } from '../types';
 import { AddPersonModal } from '../components/AddPersonModal';
 
 export const ParentalHome: React.FC = () => {
   const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
-  const { switchToPersonView } = useAppContext();
   const [persons, setPersons] = useState<Person[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddPersonModal, setShowAddPersonModal] = useState(false);
@@ -83,11 +81,6 @@ export const ParentalHome: React.FC = () => {
     loadPersons();
   };
 
-  // Switch to person protection view handler
-  const handleSwitchToPersonView = (person: Person) => {
-    console.log('Switch to person view:', person);
-    switchToPersonView(person);
-  };
 
   // Handle Progress button click
   const handleShowProgress = async (person: Person) => {
@@ -283,13 +276,6 @@ export const ParentalHome: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleSwitchToPersonView(person)}
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
-                    >
-                      <Shield className="w-4 h-4 mr-2" />
-                      {t('parental.enterMinorProtectionView')}
-                    </button>
                     <button
                       onClick={() => handleShowProgress(person)}
                       className={`inline-flex items-center px-3 py-2 border ${isDark ? 'border-gray-600 text-gray-300 bg-gray-700 hover:bg-gray-600' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'} text-sm leading-4 font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200`}

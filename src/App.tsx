@@ -9,7 +9,7 @@ import { SubAccountManagement } from './pages/SubAccountManagement';
 import { UserProfilePage } from './pages/UserProfilePage';
 import { NextAuthLoginPage } from './pages/NextAuthLoginPage';
 import { useSessionData } from './components/providers/AuthProvider';
-import { useState, createContext, useContext } from 'react';
+import { useState, createContext, useContext, useEffect } from 'react';
 import { Person } from './types';
 
 // Context for managing view mode and active person
@@ -34,7 +34,7 @@ export const useAppContext = () => {
 
 // App content component that uses session
 function AppContent() {
-  const { status } = useSessionData();
+  const { data: session, status } = useSessionData();
   const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
   const [activePerson, setActivePerson] = useState<Person | null>(null);
 
@@ -47,6 +47,56 @@ function AppContent() {
     setActivePerson(null);
     setViewMode('parent');
   };
+
+  // Set initial view mode based on user type when session is loaded
+  useEffect(() => {
+    if (session?.user?.userType) {
+      const userType = parseInt(session.user.userType.toString());
+      if (userType === 2) {
+        // Sub account (child) - redirect to child view
+        setViewMode('child');
+        // Create a default Person object for child accounts
+        const defaultPerson: Person = {
+          id: parseInt(session.user.id),
+          userId: parseInt(session.user.id),
+          parentalId: 0, // Will be set by the backend
+          alias: session.user.name || 'Child',
+          name: session.user.name || 'Child',
+          ageGroup: 'older', // Default age group
+          settings: {
+            perTimeLimitMinutes: 30,
+            dailyTimeLimitMinutes: 120,
+            questionCount: 5,
+            questionsPerDay: 20,
+            platformIds: [],
+            subjects: []
+          },
+          statistics: {
+            dailyUsage: [],
+            questionStats: {
+              totalAnswered: 0,
+              totalCorrect: 0,
+              accuracyRate: 0,
+              subjectPreference: {},
+              repeatedQuestions: []
+            },
+            learningProgress: {
+              subjects: {},
+              overallScore: 0,
+              level: 'beginner'
+            }
+          },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        setActivePerson(defaultPerson);
+      } else {
+        // Parent account - use parent view
+        setViewMode('parent');
+        setActivePerson(null);
+      }
+    }
+  }, [session]);
 
   const contextValue: AppContextType = {
     viewMode,
@@ -142,7 +192,7 @@ function AppContent() {
                   )}
 
                   {/* Child-only routes */}
-                  {viewMode === 'child' && activePerson && (
+                  {viewMode === 'child' && (
                     <>
                       <Route path="/person-page" element={<PersonHome />} />
                     </>
