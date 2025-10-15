@@ -133,13 +133,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<WalletVer
         }
 
         // Find user by wallet address
+        console.log('>>> Finding user by wallet address:', {
+            chainName: chainName.toLowerCase(),
+            address: address.toLowerCase(),
+            chainId: chainId
+        })
         const user = await prisma.sysUser.findFirst({
             where: {
                 delFlag: 0,
                 wallets: {
-                    path: ['$'],
                     array_contains: [{
-                        chain: chainName,
+                        chain: chainName.toLowerCase(),
                         address: address.toLowerCase(),
                         chainId: chainId
                     }]
@@ -283,7 +287,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
         // Check if wallet already exists
         const walletExists = existingWallets.some(wallet =>
-            wallet.chain === chainName &&
+            wallet.chain === chainName.toLowerCase() &&
             wallet.address.toLowerCase() === address.toLowerCase() &&
             wallet.chainId === chainId
         )
@@ -297,7 +301,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
         // Add new wallet address
         const newWallet: WalletAddress = {
-            chain: chainName,
+            chain: chainName.toLowerCase(),
             address: address.toLowerCase(),
             chainId: chainId
         }
