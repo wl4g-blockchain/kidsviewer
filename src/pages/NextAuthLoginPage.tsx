@@ -47,6 +47,9 @@ export const NextAuthLoginPage: React.FC = () => {
   const [invitationCode, setInvitationCode] = useState('');
   const [publicKey, setPublicKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGitHubLoading, setIsGitHubLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isWalletLoading, setIsWalletLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showRegister, setShowRegister] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -103,7 +106,7 @@ export const NextAuthLoginPage: React.FC = () => {
     if (wagmiIsConnected && wagmiAddress && isWalletConnecting) {
       console.log('✅ Wallet connected successfully via wagmi');
       setSuccessMessage(`Wallet connected successfully! Address: ${wagmiAddress.slice(0, 6)}...${wagmiAddress.slice(-4)}`);
-      setIsLoading(false);
+      setIsWalletLoading(false);
       setIsWalletConnecting(false);
 
       // Clear timeout since connection was successful
@@ -191,7 +194,7 @@ export const NextAuthLoginPage: React.FC = () => {
   };
 
   const handleGitHubLogin = async () => {
-    setIsLoading(true);
+    setIsGitHubLoading(true);
     setError(null);
 
     try {
@@ -202,12 +205,12 @@ export const NextAuthLoginPage: React.FC = () => {
     } catch (error: any) {
       setError(error.message || 'GitHub login failed');
     } finally {
-      setIsLoading(false);
+      setIsGitHubLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true);
+    setIsGoogleLoading(true);
     setError(null);
 
     try {
@@ -218,7 +221,7 @@ export const NextAuthLoginPage: React.FC = () => {
     } catch (error: any) {
       setError(error.message || 'Google login failed');
     } finally {
-      setIsLoading(false);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -229,7 +232,7 @@ export const NextAuthLoginPage: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    setIsWalletLoading(true);
     setError(null);
 
     try {
@@ -287,7 +290,7 @@ export const NextAuthLoginPage: React.FC = () => {
         setError(error.message || 'Wallet login failed');
       }
     } finally {
-      setIsLoading(false);
+      setIsWalletLoading(false);
     }
   };
 
@@ -297,7 +300,7 @@ export const NextAuthLoginPage: React.FC = () => {
       clearTimeout(timeoutRef.current);
     }
 
-    setIsLoading(true);
+    setIsWalletLoading(true);
     setIsWalletConnecting(true);
     setError(null);
     setSuccessMessage(null);
@@ -309,7 +312,7 @@ export const NextAuthLoginPage: React.FC = () => {
       // Set a timeout to reset state if no connection happens
       timeoutRef.current = setTimeout(() => {
         console.log('Wallet connection timeout, resetting state');
-        setIsLoading(false);
+        setIsWalletLoading(false);
         setIsWalletConnecting(false);
         timeoutRef.current = null;
       }, 10000); // 10 second timeout
@@ -318,7 +321,7 @@ export const NextAuthLoginPage: React.FC = () => {
       // which listens to wagmi state changes
     } catch (error: any) {
       console.error('Wallet connection error:', error);
-      setIsLoading(false);
+      setIsWalletLoading(false);
       setIsWalletConnecting(false);
 
       // Clear timeout on error
@@ -534,21 +537,29 @@ export const NextAuthLoginPage: React.FC = () => {
                     <span>{t('auth.continueWith')}</span>
                   </div>
                   <div className="social-login-buttons">
-                    <button onClick={handleGoogleLogin} disabled={isLoading} className="social-login-compact">
-                      <GoogleIcon className="w-5 h-5" />
+                    <button onClick={handleGoogleLogin} disabled={isGoogleLoading || isGitHubLoading || isWalletLoading} className="social-login-compact">
+                      {isGoogleLoading ? (
+                        <div className="loading-spinner-small"></div>
+                      ) : (
+                        <GoogleIcon className="w-5 h-5" />
+                      )}
                     </button>
 
-                    <button onClick={handleGitHubLogin} disabled={isLoading} className="social-login-compact">
-                      <Github className="w-5 h-5" />
+                    <button onClick={handleGitHubLogin} disabled={isGoogleLoading || isGitHubLoading || isWalletLoading} className="social-login-compact">
+                      {isGitHubLoading ? (
+                        <div className="loading-spinner-small"></div>
+                      ) : (
+                        <Github className="w-5 h-5" />
+                      )}
                     </button>
 
                     <button
                       type="button"
                       onClick={handleWalletConnect}
-                      disabled={isLoading}
-                      className={`wallet-login-button ${isLoading ? 'loading' : ''}`}
+                      disabled={isGoogleLoading || isGitHubLoading || isWalletLoading}
+                      className={`wallet-login-button ${isWalletLoading ? 'loading' : ''}`}
                     >
-                      {isLoading ? (
+                      {isWalletLoading ? (
                         <>
                           <div className="loading-spinner-small"></div>
                           <span>Connecting...</span>

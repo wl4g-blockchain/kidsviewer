@@ -93,7 +93,7 @@ kidsviewer/
 ## 🌐 Access Points
 
 - **Frontend**: http://localhost:5173
-- **Backend**: http://localhost:3001/api
+- **Backend**: http://localhost:3000/api
 
 ## 🔧 Development Workflow
 
@@ -187,7 +187,7 @@ npx prisma studio
 # Backend configuration (server/next-kidsviewer/.env.local)
 DATABASE_URL="postgresql://..."
 NEXTAUTH_SECRET="..."
-NEXTAUTH_URL="http://localhost:3001"
+NEXTAUTH_URL="http://localhost:3000"
 ```
 
 ### Application Configuration
@@ -244,7 +244,7 @@ npm run test:e2e
 ```bash
 # Check port usage
 lsof -i :5173
-lsof -i :3001
+lsof -i :3000
 
 # Kill processes
 kill -9 <PID>

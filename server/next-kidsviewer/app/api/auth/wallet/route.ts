@@ -46,7 +46,18 @@ const STARKNET_CHAINS = ['starknet']
  */
 export async function POST(request: NextRequest): Promise<NextResponse<WalletVerificationResponse>> {
     try {
-        const body: WalletLoginRequest = await request.json()
+        // Add error handling for JSON parsing
+        let body: WalletLoginRequest;
+        try {
+            body = await request.json()
+        } catch (jsonError) {
+            console.error('JSON parsing error:', jsonError)
+            return NextResponse.json({
+                success: false,
+                error: 'Invalid JSON in request body'
+            }, { status: 400 })
+        }
+        
         const { address, signature, message, chainName, chainId } = body
 
         // Validate required fields
@@ -211,7 +222,18 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
             }, { status: 401 })
         }
 
-        const body: WalletLoginRequest = await request.json()
+        // Add error handling for JSON parsing
+        let body: WalletLoginRequest;
+        try {
+            body = await request.json()
+        } catch (jsonError) {
+            console.error('JSON parsing error:', jsonError)
+            return NextResponse.json({
+                success: false,
+                error: 'Invalid JSON in request body'
+            }, { status: 400 })
+        }
+        
         const { address, signature, message, chainName, chainId } = body
 
         // Validate required fields

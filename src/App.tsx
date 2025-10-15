@@ -6,15 +6,56 @@ import { ParentalHome } from './pages/ParentalHome';
 import { PersonHome } from './pages/PersonHome';
 import { SettingsPage } from './pages/SettingsPage';
 import { SubAccountManagement } from './pages/SubAccountManagement';
+import { UserProfilePage } from './pages/UserProfilePage';
 import { NextAuthLoginPage } from './pages/NextAuthLoginPage';
 import { useSessionData } from './components/providers/AuthProvider';
-import { useState } from 'react';
+import { useState, createContext, useContext } from 'react';
+import { Person } from './types';
+
+// Context for managing view mode and active person
+interface AppContextType {
+  viewMode: 'parent' | 'child';
+  setViewMode: (mode: 'parent' | 'child') => void;
+  activePerson: Person | null;
+  setActivePerson: (person: Person | null) => void;
+  switchToPersonView: (person: Person) => void;
+  switchToParentView: () => void;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const useAppContext = () => {
+  const context = useContext(AppContext);
+  if (context === undefined) {
+    throw new Error('useAppContext must be used within an AppProvider');
+  }
+  return context;
+};
 
 // App content component that uses session
 function AppContent() {
   const { status } = useSessionData();
-  const [viewMode] = useState<'parent' | 'child'>('parent');
-  const [activePerson] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'parent' | 'child'>('parent');
+  const [activePerson, setActivePerson] = useState<Person | null>(null);
+
+  const switchToPersonView = (person: Person) => {
+    setActivePerson(person);
+    setViewMode('child');
+  };
+
+  const switchToParentView = () => {
+    setActivePerson(null);
+    setViewMode('parent');
+  };
+
+  const contextValue: AppContextType = {
+    viewMode,
+    setViewMode,
+    activePerson,
+    setActivePerson,
+    switchToPersonView,
+    switchToParentView,
+  };
 
   // Show loading screen while checking authentication
   if (status === 'loading') {
@@ -75,44 +116,47 @@ function AppContent() {
   }
 
   return (
-    <Routes>
-      {/* Auth page - no protection needed */}
-      <Route path="/auth" element={<NextAuthLoginPage />} />
+    <AppContext.Provider value={contextValue}>
+      <Routes>
+        {/* Auth page - no protection needed */}
+        <Route path="/auth" element={<NextAuthLoginPage />} />
 
-      {/* Protected routes */}
-      <Route
-        path="/*"
-        element={
-          <AuthGuard>
-            <Layout>
-              <Routes>
-                {/* Auto redirect to corresponding home page based on view mode */}
-                <Route path="/" element={<Navigate to={viewMode === 'parent' ? '/parental-page' : '/person-page'} replace />} />
+        {/* Protected routes */}
+        <Route
+          path="/*"
+          element={
+            <AuthGuard>
+              <Layout>
+                <Routes>
+                  {/* Auto redirect to corresponding home page based on view mode */}
+                  <Route path="/" element={<Navigate to={viewMode === 'parent' ? '/parental-page' : '/person-page'} replace />} />
 
-                {/* Parent-only routes */}
-                {viewMode === 'parent' && (
-                  <>
-                    <Route path="/parental-page" element={<ParentalHome />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/sub-accounts" element={<SubAccountManagement />} />
-                  </>
-                )}
+                  {/* Parent-only routes */}
+                  {viewMode === 'parent' && (
+                    <>
+                      <Route path="/parental-page" element={<ParentalHome />} />
+                      <Route path="/settings" element={<SettingsPage />} />
+                      <Route path="/sub-accounts" element={<SubAccountManagement />} />
+                      <Route path="/profile" element={<UserProfilePage />} />
+                    </>
+                  )}
 
-                {/* Child-only routes */}
-                {viewMode === 'child' && activePerson && (
-                  <>
-                    <Route path="/person-page" element={<PersonHome />} />
-                  </>
-                )}
+                  {/* Child-only routes */}
+                  {viewMode === 'child' && activePerson && (
+                    <>
+                      <Route path="/person-page" element={<PersonHome />} />
+                    </>
+                  )}
 
-                {/* Redirect invalid routes based on current mode */}
-                <Route path="*" element={<Navigate to={viewMode === 'parent' ? '/parental-page' : '/person-page'} replace />} />
-              </Routes>
-            </Layout>
-          </AuthGuard>
-        }
-      />
-    </Routes>
+                  {/* Redirect invalid routes based on current mode */}
+                  <Route path="*" element={<Navigate to={viewMode === 'parent' ? '/parental-page' : '/person-page'} replace />} />
+                </Routes>
+              </Layout>
+            </AuthGuard>
+          }
+        />
+      </Routes>
+    </AppContext.Provider>
   );
 }
 

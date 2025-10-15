@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSessionData } from './providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
-import { Users, ChevronDown, LogOut, Crown, Sun, Moon, Monitor, Globe, Settings } from 'lucide-react';
+import { Users, ChevronDown, LogOut, Crown, Sun, Moon, Monitor, Globe, Settings, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const UserSwitcher: React.FC = () => {
@@ -11,11 +11,47 @@ export const UserSwitcher: React.FC = () => {
   const { currentLanguage, changeLanguage, isAutoLanguage } = useLanguage();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [hasWallets, setHasWallets] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const t = useTranslation();
 
   // Get current user from session
   const currentUser = session?.user;
+
+  // Debug logging
+  console.log('UserSwitcher render:', { 
+    currentUser: !!currentUser, 
+    hasWallets
+  });
+
+  // Check if user has wallets
+  useEffect(() => {
+    const checkUserWallets = async () => {
+      if (!currentUser) return;
+      
+      try {
+        // Use Vite proxy path instead of direct Next.js URL
+        const response = await fetch('/api/user/profile', {
+          credentials: 'include', // Include cookies for authentication
+        });
+        if (response.ok) {
+          const profile = await response.json();
+          setHasWallets(profile.hasWallets || false);
+          console.log('User profile loaded:', profile);
+        } else {
+          console.error('Failed to fetch user profile:', response.status, response.statusText);
+          // For testing purposes, show the menu even if API fails
+          setHasWallets(true);
+        }
+      } catch (error) {
+        console.error('Failed to check user wallets:', error);
+        // For testing purposes, show the menu even if API fails
+        setHasWallets(true);
+      }
+    };
+
+    checkUserWallets();
+  }, [currentUser]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -182,6 +218,17 @@ export const UserSwitcher: React.FC = () => {
             </div>
 
             {/* Actions */}
+            {/* Account Info - always show for authenticated users */}
+            <Link to="/profile" className="block">
+              <button
+                className="w-full justify-start px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center text-gray-700 dark:text-gray-300"
+                onClick={() => setIsOpen(false)}
+              >
+                <User className="w-4 h-4 mr-2" />
+                {t('userSwitcher.accountInfo')}
+              </button>
+            </Link>
+
             {/* Sub Account Management - only show for main accounts (userType = 1) */}
             {String(currentUser.userType) === '1' && (
               <Link to="/sub-accounts" className="block">
@@ -220,6 +267,7 @@ export const UserSwitcher: React.FC = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

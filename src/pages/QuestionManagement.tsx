@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-// import { useSessionData } from '../components/providers/AuthProvider';
+import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Plus, Edit, Trash2, BookOpen, Filter, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { QuestionTemplate } from '../types';
 
 export const QuestionManagement: React.FC = () => {
-  // const { .* } = useAuthStore();
+  const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
   const t = useTranslation();
   const [questions, setQuestions] = useState<QuestionTemplate[]>([]);
@@ -24,33 +24,41 @@ export const QuestionManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   
   // Pagination calculations
-  const totalItems = filteredQuestions.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const paginatedQuestions = filteredQuestions.slice(startIndex, endIndex);
 
   useEffect(() => {
     loadQuestions();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [questions, filters, searchTerm]);
-
-  // Reset to first page when filters or search change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters, searchTerm]);
+  }, [currentPage, filters, searchTerm]);
 
   const loadQuestions = async () => {
     try {
       setIsLoading(true);
-      // const response = await apiHandler.getQuestionTemplates();
-      if (response.errcode === '200' && response.data) {
-        setQuestions(response.data);
+      
+      // 构建查询参数
+      const params = new URLSearchParams();
+      if (filters.subject) params.append('subject', filters.subject);
+      if (filters.difficulty) params.append('difficulty', filters.difficulty);
+      if (filters.ageGroup) params.append('ageGroup', filters.ageGroup);
+      if (searchTerm) params.append('search', searchTerm);
+      params.append('page', currentPage.toString());
+      params.append('limit', pageSize.toString());
+
+      const response = await fetch(`/api/questions?${params.toString()}`);
+      const result = await response.json();
+      
+      if (result.errcode === '200' && result.data) {
+        setQuestions(result.data);
+        setFilteredQuestions(result.data);
+        setTotalItems(result.pagination?.total || result.data.length);
+        setTotalPages(result.pagination?.totalPages || Math.ceil(result.data.length / pageSize));
+      } else {
+        console.error('Failed to load questions:', result.errmsg);
       }
     } catch (error) {
       console.error('Failed to load questions:', error);
@@ -59,73 +67,85 @@ export const QuestionManagement: React.FC = () => {
     }
   };
 
-  const applyFilters = () => {
-    let filtered = [...questions];
-
-    // Apply search filter - search in question content
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(q => 
-        q.content.toLowerCase().includes(searchLower) ||
-        q.subject.toLowerCase().includes(searchLower) ||
-        q.tags.some(tag => tag.toLowerCase().includes(searchLower))
-      );
-    }
-
-    // Apply category filters
-    if (filters.subject) {
-      filtered = filtered.filter(q => q.subject === filters.subject);
-    }
-    if (filters.difficulty) {
-      filtered = filtered.filter(q => q.difficulty === filters.difficulty);
-    }
-    if (filters.ageGroup) {
-      filtered = filtered.filter(q => q.ageGroups.includes(filters.ageGroup as any));
-    }
-
-    setFilteredQuestions(filtered);
-  };
-
   const handleCreateQuestion = async (questionData: Partial<QuestionTemplate>) => {
     try {
-      // const response = await apiHandler.createQuestionTemplate(questionData);
-      if (response.errcode === '200' && response.data) {
-        setQuestions(prev => [...prev, response.data!]);
+      const response = await fetch('/api/questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(questionData),
+      });
+      const result = await response.json();
+      
+      if (result.errcode === '200' && result.data) {
+        setQuestions(prev => [...prev, result.data]);
         setShowCreateModal(false);
+        // 重新加载数据以获取最新状态
+        loadQuestions();
+      } else {
+        console.error('Failed to create question:', result.errmsg);
+        alert('创建问题失败: ' + result.errmsg);
       }
     } catch (error) {
       console.error('Failed to create question:', error);
+      alert('创建问题失败');
     }
   };
 
   const handleUpdateQuestion = async (questionId: string, questionData: Partial<QuestionTemplate>) => {
     try {
-      // const response = await apiHandler.updateQuestionTemplate(questionId, questionData);
-      if (response.errcode === '200' && response.data) {
-        setQuestions(prev => prev.map(q => (q.id === parseInt(questionId) ? response.data! : q)));
+      const response = await fetch(`/api/questions/${questionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(questionData),
+      });
+      const result = await response.json();
+      
+      if (result.errcode === '200' && result.data) {
+        setQuestions(prev => prev.map(q => (q.id === parseInt(questionId) ? result.data : q)));
         setEditingQuestion(null);
+        // 重新加载数据以获取最新状态
+        loadQuestions();
+      } else {
+        console.error('Failed to update question:', result.errmsg);
+        alert('更新问题失败: ' + result.errmsg);
       }
     } catch (error) {
       console.error('Failed to update question:', error);
+      alert('更新问题失败');
     }
   };
 
   const handleDeleteQuestion = async (questionId: string) => {
-    if (!confirm(t('common.confirmDelete') || 'Are you sure you want to delete this question?')) return;
+    if (!confirm(t('common.confirmDelete') || '确定要删除这个问题吗？')) return;
 
     try {
-      // const response = await apiHandler.deleteQuestionTemplate(questionId);
-      if (response.errcode === '200') {
+      const response = await fetch(`/api/questions/${questionId}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      
+      if (result.errcode === '200') {
         setQuestions(prev => prev.filter(q => q.id !== parseInt(questionId)));
+        // 重新加载数据以获取最新状态
+        loadQuestions();
+      } else {
+        console.error('Failed to delete question:', result.errmsg);
+        alert('删除问题失败: ' + result.errmsg);
       }
     } catch (error) {
       console.error('Failed to delete question:', error);
+      alert('删除问题失败');
     }
   };
 
   const clearFilters = () => {
     setFilters({ subject: '', difficulty: '', ageGroup: '' });
     setSearchTerm('');
+    setCurrentPage(1);
   };
 
   // Pagination handlers

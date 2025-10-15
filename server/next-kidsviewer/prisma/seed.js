@@ -82,20 +82,35 @@ async function main() {
         printInfo('Start database seed data initialization...');
         printWarning('Warning: This operation will delete all existing data!');
 
-        // Define SQL file paths
+        // Define Init SQL file paths
         const ddlFile = path.join(__dirname, '..', 'prisma/migrations/init-ddl', 'migration.sql');
         const dmlFile = path.join(__dirname, '..', 'prisma/migrations/init-dml', 'migration.sql');
-
-        // Execute DDL file
+        // Execute Init DDL file
         const ddlSuccess = await executeSqlFile(prisma, ddlFile, 'DDL file');
         if (!ddlSuccess) {
             process.exit(1);
         }
-
-        // Execute DML file
+        // Execute Init DML file
         const dmlSuccess = await executeSqlFile(prisma, dmlFile, 'DML file');
         if (!dmlSuccess) {
             process.exit(1);
+        }
+
+        // Scan migration folders and execute them in order
+        const migrationsDir = path.join(__dirname, '..', 'prisma/migrations');
+        const migrationFolders = fs.readdirSync(migrationsDir)
+            .filter(item => {
+                const itemPath = path.join(migrationsDir, item);
+                return fs.statSync(itemPath).isDirectory() && item !== 'init-ddl' && item !== 'init-dml';
+            })
+            .sort();
+
+        for (const migrationFolder of migrationFolders) {
+            const migrationFilePath = path.join(migrationsDir, migrationFolder, 'migration.sql');
+            const migrationSuccess = await executeSqlFile(prisma, migrationFilePath, 'Migration file');
+            if (!migrationSuccess) {
+                process.exit(1);
+            }
         }
 
         printSuccess('Database seed data initialization completed!');

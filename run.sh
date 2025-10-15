@@ -949,7 +949,7 @@ next_backend_dev() {
     fi
 
     print_info "Starting Next.js backend service in development mode..."
-    print_info "Server will be available at: http://localhost:3001"
+    print_info "Server will be available at: http://localhost:3000"
     print_warning "Press Ctrl+C to stop the server"
     echo ""
 
@@ -1322,7 +1322,7 @@ dev_start() {
     fi
 
     print_info "Starting Next.js development server..."
-    print_info "Backend will be available at: http://localhost:3001"
+    print_info "Backend will be available at: http://localhost:3000"
 
     npm run dev &
     BACKEND_PID=$!
@@ -1348,8 +1348,8 @@ dev_start() {
 
     # Checking the backend server.
     print_info "Checking the backend..."
-    if curl -s -o /dev/null -w "%{http_code}" http://localhost:3001 | grep -q "200"; then
-        print_success "Backend accessible at http://localhost:3001"
+    if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -q "200"; then
+        print_success "Backend accessible at http://localhost:3000"
     else
         print_warning "Backend not yet ready, may need more time..."
     fi
@@ -1369,8 +1369,8 @@ dev_start() {
     echo ""
     print_info "Access URLs:"
     print_info "Frontend: http://localhost:5173 (or 5174/5175)"
-    print_info "Backend API: http://localhost:3001/api"
-    print_info "Backend Login: http://localhost:3001/login"
+    print_info "Backend API: http://localhost:3000/api"
+    print_info "Backend Login: http://localhost:3000/login"
 
     echo ""
     print_warning "Press Ctrl+C to stop all services"

@@ -93,7 +93,7 @@ kidsviewer/
 ## 🌐 访问地址
 
 - **前端**: http://localhost:5173
-- **后端**: http://localhost:3001/api
+- **后端**: http://localhost:3000/api
 
 ## 🔧 开发流程
 
@@ -187,7 +187,7 @@ npx prisma studio
 # 后端配置 (server/next-kidsviewer/.env.local)
 DATABASE_URL="postgresql://..."
 NEXTAUTH_SECRET="..."
-NEXTAUTH_URL="http://localhost:3001"
+NEXTAUTH_URL="http://localhost:3000"
 ```
 
 ### 应用配置
@@ -244,7 +244,7 @@ npm run test:e2e
 ```bash
 # 查看端口占用
 lsof -i :5173
-lsof -i :3001
+lsof -i :3000
 
 # 杀死进程
 kill -9 <PID>

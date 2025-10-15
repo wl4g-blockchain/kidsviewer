@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-// import { useSessionData } from '../components/providers/AuthProvider';
+import { useSessionData } from '../components/providers/AuthProvider';
 import { useTranslation } from '../i18n/I18nProvider';
 import { useThemeStore } from '../stores/themeStore';
+import { useAppContext } from '../App';
 import { Plus, Settings, BarChart3, Users, Clock, BookOpen, Shield, X, Calendar, TrendingUp, Trophy, Trash2 } from 'lucide-react';
 import { Person } from '../types';
 import { AddPersonModal } from '../components/AddPersonModal';
 
 export const ParentalHome: React.FC = () => {
-  // const { data: session } = useSessionData();
+  const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
+  const { switchToPersonView } = useAppContext();
   const [persons, setPersons] = useState<Person[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddPersonModal, setShowAddPersonModal] = useState(false);
@@ -27,17 +29,25 @@ export const ParentalHome: React.FC = () => {
   >([]);
   const t = useTranslation();
 
+  // Get current user from session
+  const currentUser = session?.user;
+
   useEffect(() => {
-    // Mock load persons
-    console.log('Mock loading persons');
-    setIsLoading(false);
-  }, []); // Mock dependency array
+    if (currentUser) {
+      loadPersons();
+    }
+  }, [currentUser]);
 
   const loadPersons = async () => {
     try {
-      // const response = await apiHandler.getPersons(currentUser!.id.toString());
-      if (response.errcode === '200' && response.data) {
-        setPersons(response.data);
+      setIsLoading(true);
+      const response = await fetch(`/api/persons?parentalId=${currentUser?.id}`);
+      const result = await response.json();
+      
+      if (result.errcode === '200' && result.data) {
+        setPersons(result.data);
+      } else {
+        console.error('Failed to load persons:', result.errmsg);
       }
     } catch (error) {
       console.error('Failed to load persons:', error);
@@ -69,12 +79,14 @@ export const ParentalHome: React.FC = () => {
 
   const handleAddPersonSuccess = (newPerson: Person) => {
     setPersons(prev => [...prev, newPerson]);
+    // 重新加载数据以获取最新状态
+    loadPersons();
   };
 
   // Switch to person protection view handler
   const handleSwitchToPersonView = (person: Person) => {
-    switchToPerson(person);
-    // Page will automatically navigate to /person-page via routing
+    console.log('Switch to person view:', person);
+    switchToPersonView(person);
   };
 
   // Handle Progress button click
@@ -83,12 +95,17 @@ export const ParentalHome: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // const response = await apiHandler.getWatchingHistory(person.id.toString(), 7);
-      if (response.errcode === '200' && response.data) {
-        setWatchingHistory(response.data);
-      } else {
-        setWatchingHistory([]);
-      }
+      // TODO: 实现获取观看历史的 API 调用
+      // const response = await fetch(`/api/persons/${person.id}/watching-history`);
+      // const result = await response.json();
+      // if (result.errcode === '200' && result.data) {
+      //   setWatchingHistory(result.data);
+      // } else {
+      //   setWatchingHistory([]);
+      // }
+      
+      // 暂时使用空数据
+      setWatchingHistory([]);
     } catch (error) {
       console.error('Failed to load watching history:', error);
       setWatchingHistory([]);
@@ -109,18 +126,27 @@ export const ParentalHome: React.FC = () => {
     if (!selectedPerson) return;
 
     try {
-      // const response = await apiHandler.updatePersonSettings(selectedPerson.id.toString(), settings);
-      if (response.errcode === '200' && response.data) {
+      const response = await fetch(`/api/persons/${selectedPerson.id}/settings`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ settings }),
+      });
+      const result = await response.json();
+      
+      if (result.errcode === '200' && result.data) {
         // Update local state
-        setPersons(prev => prev.map(p => (p.id === selectedPerson.id ? response.data! : p)));
+        setPersons(prev => prev.map(p => (p.id === selectedPerson.id ? result.data : p)));
         setShowSettingsModal(false);
         setSelectedPerson(null);
+        alert('设置更新成功');
       } else {
-        throw new Error(response.errmsg || t('parental.updateSettingsFailed'));
+        throw new Error(result.errmsg || '更新设置失败');
       }
     } catch (error) {
       console.error('Failed to update settings:', error);
-      //alert(t('parental.updateSettingsFailed'));
+      alert('更新设置失败');
     }
   };
 
@@ -134,18 +160,23 @@ export const ParentalHome: React.FC = () => {
     if (!selectedPerson) return;
 
     try {
-      // const response = await apiHandler.deletePerson(selectedPerson.id.toString());
-      if (response.errcode === '200') {
+      const response = await fetch(`/api/persons/${selectedPerson.id}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      
+      if (result.errcode === '200') {
         // Update local state by removing the deleted person
         setPersons(prev => prev.filter(p => p.id !== selectedPerson.id));
         setShowDeleteModal(false);
         setSelectedPerson(null);
+        alert('删除成功');
       } else {
-        throw new Error(response.errmsg || t('parental.deletePersonFailed'));
+        throw new Error(result.errmsg || '删除失败');
       }
     } catch (error) {
       console.error('Failed to delete person:', error);
-      //alert(t('parental.deletePersonFailed'));
+      alert('删除失败');
     }
   };
 

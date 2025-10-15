@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-// import { useSessionData } from '../components/providers/AuthProvider';
+import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { Plus, Edit, Trash2, Globe } from 'lucide-react';
 import { Platform } from '../types';
 
 export const PlatformManagement: React.FC = () => {
-  // const { .* } = useAuthStore();
+  const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,9 +19,13 @@ export const PlatformManagement: React.FC = () => {
   const loadPlatforms = async () => {
     try {
       setIsLoading(true);
-      // const response = await apiHandler.getPlatforms();
-      if (response.errcode === '200' && response.data) {
-        setPlatforms(response.data);
+      const response = await fetch('/api/platforms');
+      const result = await response.json();
+      
+      if (result.errcode === '200' && result.data) {
+        setPlatforms(result.data);
+      } else {
+        console.error('Failed to load platforms:', result.errmsg);
       }
     } catch (error) {
       console.error('Failed to load platforms:', error);
@@ -32,38 +36,70 @@ export const PlatformManagement: React.FC = () => {
 
   const handleCreatePlatform = async (platformData: Partial<Platform>) => {
     try {
-      // const response = await apiHandler.createPlatform(platformData);
-      if (response.errcode === '200' && response.data) {
-        setPlatforms(prev => [...prev, response.data!]);
+      const response = await fetch('/api/platforms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(platformData),
+      });
+      const result = await response.json();
+      
+      if (result.errcode === '200' && result.data) {
+        setPlatforms(prev => [...prev, result.data]);
         setShowCreateModal(false);
+      } else {
+        console.error('Failed to create platform:', result.errmsg);
+        alert('创建平台失败: ' + result.errmsg);
       }
     } catch (error) {
       console.error('Failed to create platform:', error);
+      alert('创建平台失败');
     }
   };
 
   const handleUpdatePlatform = async (platformId: string, platformData: Partial<Platform>) => {
     try {
-      // const response = await apiHandler.updatePlatform(platformId, platformData);
-      if (response.errcode === '200' && response.data) {
-        setPlatforms(prev => prev.map(p => (p.id === parseInt(platformId) ? response.data! : p)));
+      const response = await fetch(`/api/platforms/${platformId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(platformData),
+      });
+      const result = await response.json();
+      
+      if (result.errcode === '200' && result.data) {
+        setPlatforms(prev => prev.map(p => (p.id === parseInt(platformId) ? result.data : p)));
         setEditingPlatform(null);
+      } else {
+        console.error('Failed to update platform:', result.errmsg);
+        alert('更新平台失败: ' + result.errmsg);
       }
     } catch (error) {
       console.error('Failed to update platform:', error);
+      alert('更新平台失败');
     }
   };
 
   const handleDeletePlatform = async (platformId: string) => {
-    if (!confirm('Are you sure you want to delete this platform?')) return;
+    if (!confirm('确定要删除这个平台吗？')) return;
 
     try {
-      // const response = await apiHandler.deletePlatform(platformId);
-      if (response.errcode === '200') {
+      const response = await fetch(`/api/platforms/${platformId}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      
+      if (result.errcode === '200') {
         setPlatforms(prev => prev.filter(p => p.id !== parseInt(platformId)));
+      } else {
+        console.error('Failed to delete platform:', result.errmsg);
+        alert('删除平台失败: ' + result.errmsg);
       }
     } catch (error) {
       console.error('Failed to delete platform:', error);
+      alert('删除平台失败');
     }
   };
 

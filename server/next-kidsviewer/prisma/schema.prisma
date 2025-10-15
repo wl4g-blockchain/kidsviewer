@@ -100,3 +100,76 @@ model Family {
   @@index([tenantId])
   @@map("t_family")
 }
+
+// Platform management table
+model TPlatform {
+  id          BigInt    @id @default(autoincrement())
+  nameEN      String    @map("name_en") @db.VarChar(255)
+  nameCN      String    @map("name_cn") @db.VarChar(255)
+  url         String    @db.VarChar(500)
+  description String?   @db.VarChar(1000)
+  ageGroups   String[]  @map("age_groups") // Array of age group strings
+  isActive    Boolean   @default(true) @map("is_active")
+  createDate  DateTime  @map("create_date") @db.Timestamptz(3)
+  updateDate  DateTime  @map("update_date") @db.Timestamptz(3)
+  createBy    BigInt    @default(1) @map("create_by")
+  updateBy    BigInt    @default(1) @map("update_by")
+  delFlag     Int       @default(0) @map("del_flag")
+
+  @@map("t_platform")
+}
+
+// Question template management table
+model TQuestion {
+  id             BigInt    @id @default(autoincrement())
+  type           String    @db.VarChar(50) // multiple-choice, true-false, fill-blank, calculation
+  subject        String    @db.VarChar(50) // math, chinese, english
+  difficulty     String    @db.VarChar(20) // beginner, easy, medium, hard, expert
+  content        String    @db.Text
+  options        String[]  // Array of option strings for multiple choice
+  correctAnswer  String    @map("correct_answer") @db.VarChar(500)
+  explanationEN  String?   @map("explanation_en") @db.Text
+  explanationCN  String?   @map("explanation_cn") @db.Text
+  language       String    @default("en") @db.VarChar(10)
+  ageGroups      String[]  @map("age_groups") // Array of age group strings
+  tags           String[]  // Array of tag strings
+  isActive       Boolean   @default(true) @map("is_active")
+  createDate     DateTime  @map("create_date") @db.Timestamptz(3)
+  updateDate     DateTime  @map("update_date") @db.Timestamptz(3)
+  createBy       BigInt    @default(1) @map("create_by")
+  updateBy       BigInt    @default(1) @map("update_by")
+  delFlag        Int       @default(0) @map("del_flag")
+
+  @@index([subject])
+  @@index([difficulty])
+  @@index([ageGroups])
+  @@index([isActive])
+  @@map("t_question")
+}
+
+// Person management table (for parental control)
+model TPerson {
+  id                    BigInt    @id @default(autoincrement())
+  userId                BigInt    @map("user_id")
+  parentalId            BigInt    @map("parental_id")
+  name                  String    @db.VarChar(100)
+  alias                 String    @db.VarChar(100)
+  ageGroup              String    @map("age_group") @db.VarChar(20) // preschool, young, older, teen
+  avatar                String?   @db.VarChar(500)
+  difficulty            String?   @db.VarChar(20)
+  maxDailyTime          Int?      @map("max_daily_time") // in minutes
+  parentalPassword      String?   @map("parental_password") @db.VarChar(255)
+  settings              Json?     // PersonSettings as JSON
+  statistics            Json?     // PersonStatistics as JSON
+  isActive              Boolean   @default(true) @map("is_active")
+  createDate            DateTime  @map("create_date") @db.Timestamptz(3)
+  updateDate            DateTime  @map("update_date") @db.Timestamptz(3)
+  createBy              BigInt    @default(1) @map("create_by")
+  updateBy              BigInt    @default(1) @map("update_by")
+  delFlag               Int       @default(0) @map("del_flag")
+
+  @@index([userId])
+  @@index([parentalId])
+  @@index([isActive])
+  @@map("t_person")
+}
