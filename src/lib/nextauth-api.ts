@@ -5,18 +5,13 @@
 export class NextAuthAPI {
     private baseUrl: string
 
-    constructor(baseUrl: string = '') {
-        // In development, use relative path to leverage Vite proxy
-        // In production, use the full URL
-        if (import.meta.env.DEV) {
-            this.baseUrl = baseUrl || ''
-        } else {
-            this.baseUrl = baseUrl || (import.meta.env.VITE_NEXTAUTH_URL || 'http://localhost:3000')
-        }
+    constructor() {
+        // Always use relative path - Vite proxy handles routing to backend
+        this.baseUrl = ''
     }
 
     async signIn(provider: string, credentials?: any) {
-        // For credentials provider, call our custom login API
+        // For credentials provider, use custom login API
         if (provider === 'credentials' && credentials) {
             try {
                 console.log('SignIn called with credentials:', {
@@ -25,7 +20,7 @@ export class NextAuthAPI {
                     hasEncryptedPassword: !!credentials.encryptedPassword
                 });
 
-                // Call our custom login API directly
+                // Use custom login API directly
                 const response = await fetch(`${this.baseUrl}/api/auth/login`, {
                     method: 'POST',
                     headers: {
@@ -33,8 +28,7 @@ export class NextAuthAPI {
                     },
                     body: JSON.stringify({
                         email: credentials.email,
-                        password: credentials.password,
-                        encryptedPassword: credentials.encryptedPassword,
+                        encryptedPassword: credentials.encryptedPassword || '',
                     }),
                 })
 
@@ -44,8 +38,15 @@ export class NextAuthAPI {
                 }
 
                 const data = await response.json()
-                return { ok: true, data }
+                
+                if (data.success) {
+                    console.log('Login successful, user:', data.user)
+                    return { ok: true, data: data.user }
+                } else {
+                    return { ok: false, error: data.error || 'Login failed' }
+                }
             } catch (error: any) {
+                console.error('Login error:', error)
                 return { ok: false, error: error.message || 'Sign in failed' }
             }
         }
@@ -88,9 +89,25 @@ export class NextAuthAPI {
 
     async signOut() {
         try {
+            // First, get CSRF token for NextAuth signout
+            const csrfToken = await this.getCsrfToken()
+            
             const response = await fetch(`${this.baseUrl}/api/auth/signout`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: csrfToken ? `csrfToken=${encodeURIComponent(csrfToken)}` : '',
+                redirect: 'manual' // Prevent automatic redirect
             })
+            
+            // Handle redirect manually
+            if (response.type === 'opaqueredirect' || response.status === 302) {
+                // NextAuth tried to redirect, but we'll handle it manually
+                console.log('NextAuth signout completed, handling redirect manually')
+                return { ok: true }
+            }
+            
             return { ok: response.ok }
         } catch (error) {
             return { ok: false, error: 'Sign out failed' }
@@ -99,11 +116,18 @@ export class NextAuthAPI {
 
     async getSession() {
         try {
+            // First try to get NextAuth session
             const response = await fetch(`${this.baseUrl}/api/auth/session`)
-            if (!response.ok) {
-                return null
+            if (response.ok) {
+                const sessionData = await response.json()
+                // Check if session has user data (not just empty object)
+                if (sessionData && sessionData.user && sessionData.user.id) {
+                    return sessionData
+                }
             }
-            return await response.json()
+
+
+            return null
         } catch (error) {
             console.error('Error fetching session:', error)
             return null
@@ -171,6 +195,7 @@ export class NextAuthAPI {
         try {
             console.log('Wallet login called with:', walletData)
             
+            // First, verify wallet signature and get user data
             const response = await fetch(`${this.baseUrl}/api/auth/wallet`, {
                 method: 'POST',
                 headers: {
@@ -184,8 +209,15 @@ export class NextAuthAPI {
                 return { ok: false, error: error.error || 'Wallet login failed' }
             }
 
-            const data = await response.json()
-            return { ok: true, data }
+            const walletResult = await response.json()
+            
+            if (!walletResult.success || !walletResult.user) {
+                return { ok: false, error: 'Wallet verification failed' }
+            }
+
+            // Wallet verification successful, return user data
+            // Session will be created by the wallet API itself
+            return { ok: true, data: walletResult.user }
         } catch (error: any) {
             console.error('Wallet login error:', error)
             return { ok: false, error: error.message || 'Wallet login failed' }

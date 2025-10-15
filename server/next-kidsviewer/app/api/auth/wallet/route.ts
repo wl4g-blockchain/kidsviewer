@@ -4,6 +4,8 @@ import { ethers } from 'ethers'
 import { ec, hash } from 'starknet'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { getToken } from 'next-auth/jwt'
+import { createNextAuthSession } from '@/lib/session-utils'
 
 // Interface for wallet address structure
 interface WalletAddress {
@@ -161,8 +163,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<WalletVer
             }, { status: 404 })
         }
 
-        // Return user information
-        return NextResponse.json({
+        // Create response with user data
+        const response = NextResponse.json({
             success: true,
             user: {
                 id: user.id.toString(),
@@ -173,6 +175,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<WalletVer
                 wallets: (user.wallets as unknown as WalletAddress[]) || []
             }
         })
+
+        // Create NextAuth session using utility function
+        const sessionResponse = await createNextAuthSession({
+            id: user.id.toString(),
+            email: user.email || '',
+            name: user.name || '',
+            tenantId: user.tenantId.toString(),
+            userType: user.userType
+        }, response)
+
+        return sessionResponse as NextResponse<WalletVerificationResponse>
 
     } catch (error) {
         console.error('Wallet login error:', error)

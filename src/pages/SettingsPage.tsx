@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// import { useSessionData } from '../components/providers/AuthProvider';
+import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Settings, Save, RefreshCw, Trash2, Shield, Globe, BookOpen, ArrowRight, Coins, PiggyBank } from 'lucide-react';
@@ -10,7 +10,7 @@ import { RewardVaultManager } from '../components/web3/RewardVaultManager';
 import { PiggyBankManager } from '../components/web3/PiggyBankManager';
 
 export const SettingsPage: React.FC = () => {
-  // const { .* } = useAuthStore();
+  const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
   const [isLoading, setIsLoading] = useState(false);
   const [currentView, setCurrentView] = useState<'settings' | 'platforms' | 'questions' | 'rewards' | 'piggybank'>('settings');
@@ -24,6 +24,9 @@ export const SettingsPage: React.FC = () => {
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const t = useTranslation();
 
+  // Get current user from session
+  const currentUser = session?.user;
+
   useEffect(() => {
     loadSettings();
     loadAppInfo();
@@ -31,10 +34,12 @@ export const SettingsPage: React.FC = () => {
 
   const loadSettings = async () => {
     try {
+      // TODO: Implement actual API call when backend is ready
       // const response = await apiHandler.getAppSettings();
-      if (response.errcode === '200' && response.data) {
-        setSettings(prev => ({ ...prev, ...response.data }));
-      }
+      // if (response.errcode === '200' && response.data) {
+      //   setSettings(prev => ({ ...prev, ...response.data }));
+      // }
+      console.log('Settings loading - API not implemented yet');
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -42,10 +47,18 @@ export const SettingsPage: React.FC = () => {
 
   const loadAppInfo = async () => {
     try {
+      // TODO: Implement actual API call when backend is ready
       // const response = await apiHandler.getAppInfo();
-      if (response.errcode === '200' && response.data) {
-        setAppInfo(response.data);
-      }
+      // if (response.errcode === '200' && response.data) {
+      //   setAppInfo(response.data);
+      // }
+      
+      // Mock app info for now
+      setAppInfo({
+        version: '1.0.0',
+        buildType: 'development',
+        platform: 'Web'
+      });
     } catch (error) {
       console.error('Failed to load app info:', error);
     }
@@ -58,11 +71,12 @@ export const SettingsPage: React.FC = () => {
   const saveSettings = async () => {
     setIsLoading(true);
     try {
+      // TODO: Implement actual API call when backend is ready
       // const response = await apiHandler.updateAppSettings(settings);
-      if (response.errcode === '200') {
-        // Show success message
-        console.log('Settings saved successfully');
-      }
+      // if (response.errcode === '200') {
+      //   console.log('Settings saved successfully');
+      // }
+      console.log('Settings saved successfully (mock)');
     } catch (error) {
       console.error('Failed to save settings:', error);
     } finally {

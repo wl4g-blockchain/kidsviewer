@@ -255,7 +255,7 @@ export const NextAuthLoginPage: React.FC = () => {
         chainId,
       });
 
-      // Call wallet login API directly
+      // Call wallet login API which will create NextAuth session
       const result = await nextAuthAPI.walletLogin({
         address: wagmiAddress,
         signature: signature,
@@ -266,8 +266,14 @@ export const NextAuthLoginPage: React.FC = () => {
 
       if (result.ok) {
         setSuccessMessage('Wallet login successful!');
-        // Refresh the page to update session state
-        window.location.reload();
+        // Refresh session state instead of reloading page
+        const sessionData = await nextAuthAPI.getSession();
+        if (sessionData && sessionData.user && sessionData.user.id) {
+          // Update AuthProvider state
+          window.dispatchEvent(new CustomEvent('auth-session-update', { 
+            detail: { session: sessionData, status: 'authenticated' } 
+          }));
+        }
       } else {
         setError(result.error || 'Wallet login failed');
       }

@@ -106,27 +106,43 @@ const authOptions = {
                 encryptedPassword: { label: "Encrypted Password", type: "text" },
             },
             async authorize(credentials) {
+                console.log('=== NextAuth credentials provider called ===')
+                console.log('NextAuth credentials received:', {
+                    email: credentials?.email,
+                    hasPassword: !!credentials?.password,
+                    hasEncryptedPassword: !!credentials?.encryptedPassword,
+                    encryptedPasswordLength: credentials?.encryptedPassword?.length
+                })
+                
                 if (!credentials?.email) {
+                    console.log('No email provided, returning null')
                     return null
                 }
 
                 // If encrypted password is provided, decrypt it first
                 let password = credentials.password
                 if (credentials.encryptedPassword) {
+                    console.log('Attempting to decrypt password...')
                     try {
                         const privateKeyBase64 = process.env.NEXTAUTH_RSA_PRIVATE_KEY
                         if (!privateKeyBase64) {
                             console.error('RSA private key not configured')
                             return null
                         }
+                        console.log('RSA private key found, length:', privateKeyBase64.length)
                         // Decode base64 to get the actual PEM format
                         const privateKeyPem = Buffer.from(privateKeyBase64, 'base64').toString('utf8')
+                        console.log('Private key PEM decoded, length:', privateKeyPem.length)
                         const key = new NodeRSA(privateKeyPem)
                         password = key.decrypt(credentials.encryptedPassword as string, 'utf8')
+                        console.log('Password decrypted successfully, length:', password.length)
+                        console.log('Decrypted password preview:', password.substring(0, 10) + '...')
                     } catch (error) {
                         console.error('Password decryption failed:', error)
                         return null
                     }
+                } else {
+                    console.log('No encrypted password provided, using plain password')
                 }
 
                 if (!password) {
@@ -134,6 +150,7 @@ const authOptions = {
                 }
 
                 // Find user by email
+                console.log('Looking for user with email:', credentials.email)
                 const user = await prisma.sysUser.findFirst({
                     where: {
                         email: credentials.email,
@@ -141,18 +158,36 @@ const authOptions = {
                     },
                 })
 
-                if (!user || !user.password) {
+                if (!user) {
+                    console.log('User not found for email:', credentials.email)
                     return null
                 }
+                
+                if (!user.password) {
+                    console.log('User found but no password set for email:', credentials.email)
+                    return null
+                }
+                
+                console.log('User found:', { id: user.id, email: user.email, name: user.name })
 
                 // Verify password using double SHA512 hash comparison
                 // Database stores: sha512(sha512(password))
                 // We need to compare: sha512(sha512(inputPassword))
+                console.log('Verifying password...')
                 const firstHash = crypto.createHash('sha512').update(password as string).digest('hex')
                 const hashedPassword = crypto.createHash('sha512').update(firstHash).digest('hex')
+                console.log('Password hash comparison:', {
+                    inputHash: hashedPassword.substring(0, 20) + '...',
+                    storedHash: user.password.substring(0, 20) + '...',
+                    match: hashedPassword === user.password
+                })
+                
                 if (hashedPassword !== user.password) {
+                    console.log('Password verification failed')
                     return null
                 }
+                
+                console.log('Password verification successful!')
 
                 return {
                     id: user.id.toString(),
@@ -329,8 +364,9 @@ const authOptions = {
         },
     },
     pages: {
-        signIn: "/login",
-        error: "/login",
+        signIn: "/auth",
+        error: "/auth",
+        signOut: "/auth",
     },
 }
 

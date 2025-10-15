@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { nextAuthAPI } from '../../lib/nextauth-api';
+import { updateAuthStatus } from '../../utils/apiInterceptor';
 
 interface Session {
   user: {
@@ -47,19 +48,66 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (sessionData && sessionData.user && sessionData.user.id) {
           setSession(sessionData);
           setStatus('authenticated');
+          updateAuthStatus(true);
         } else {
           console.log('No valid session found, setting unauthenticated');
           setSession(null);
           setStatus('unauthenticated');
+          updateAuthStatus(false);
+          
+          // Only redirect if we're not on the auth page and not on the root page
+          if (!window.location.pathname.includes('/auth') && window.location.pathname !== '/') {
+            console.log('No valid session, redirecting to login page');
+            window.location.href = '/auth';
+          }
         }
       } catch (error) {
         console.error('Error checking session:', error);
         setSession(null);
         setStatus('unauthenticated');
+        updateAuthStatus(false);
+        
+        // Only redirect if we're not on the auth page and not on the root page
+        if (!window.location.pathname.includes('/auth') && window.location.pathname !== '/') {
+          console.log('Session check failed, redirecting to login page');
+          window.location.href = '/auth';
+        }
       }
     };
 
     checkSession();
+
+    // Listen for custom auth session update events
+    const handleAuthSessionUpdate = (event: CustomEvent) => {
+      const { session, status } = event.detail;
+      console.log('Received auth session update:', { session, status });
+      setSession(session);
+      setStatus(status);
+      updateAuthStatus(status === 'authenticated');
+    };
+
+    // Listen for authentication error events
+    const handleAuthError = (event: CustomEvent) => {
+      console.log('Received auth error event:', event.detail);
+      // Clear session and set status to unauthenticated
+      setSession(null);
+      setStatus('unauthenticated');
+      updateAuthStatus(false);
+      
+      // Dispatch session update event to notify other components
+      const sessionUpdateEvent = new CustomEvent('auth-session-update', {
+        detail: { session: null, status: 'unauthenticated' }
+      });
+      window.dispatchEvent(sessionUpdateEvent);
+    };
+
+    window.addEventListener('auth-session-update', handleAuthSessionUpdate as EventListener);
+    window.addEventListener('auth-error', handleAuthError as EventListener);
+
+    return () => {
+      window.removeEventListener('auth-session-update', handleAuthSessionUpdate as EventListener);
+      window.removeEventListener('auth-error', handleAuthError as EventListener);
+    };
   }, []);
 
   const signIn = async (provider: string, credentials?: any) => {
@@ -71,6 +119,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (sessionData) {
           setSession(sessionData);
           setStatus('authenticated');
+          updateAuthStatus(true);
         }
       }
       return result;
@@ -83,8 +132,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = async () => {
     try {
       await nextAuthAPI.signOut();
+      
       setSession(null);
       setStatus('unauthenticated');
+      updateAuthStatus(false);
+      
+      // Dispatch session update event to notify other components
+      const sessionUpdateEvent = new CustomEvent('auth-session-update', {
+        detail: { session: null, status: 'unauthenticated' }
+      });
+      window.dispatchEvent(sessionUpdateEvent);
     } catch (error) {
       console.error('Sign out error:', error);
     }

@@ -7,6 +7,10 @@ import App from './App.tsx'
 import './index.css'
 import { I18nProvider } from './i18n/I18nProvider'
 import { wagmiConfig } from './config/appkit'
+import { setupAPIInterceptor } from './utils/apiInterceptor'
+
+// Setup global API interceptor for handling 401 errors
+setupAPIInterceptor()
 
 // Create a client
 const queryClient = new QueryClient()

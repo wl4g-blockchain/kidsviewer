@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
 import NodeRSA from 'node-rsa'
+import { createNextAuthSession } from '@/lib/session-utils'
 
 export async function POST(request: NextRequest) {
     try {
@@ -73,10 +74,13 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // Use double SHA512 hash to match database storage
+        // First hash: sha512(decryptedPassword)
         const hashedPassword = crypto.createHash('sha512').update(decryptedPassword).digest('hex')
         console.debug('Decrypted password:', decryptedPassword,
-            "and hashed password:", hashedPassword,
-            "and user password:", user.password)
+            "and first hash:", hashedPassword.substring(0, 20) + '...',
+            "and final hash:", hashedPassword.substring(0, 20) + '...',
+            "and user password:", user.password.substring(0, 20) + '...')
 
         if (hashedPassword !== user.password) { // DB password is double sha512 hash
             return NextResponse.json(
@@ -85,8 +89,8 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Return user data (without password)
-        return NextResponse.json({
+        // Create response with user data
+        const response = NextResponse.json({
             success: true,
             user: {
                 id: user.id.toString(),
@@ -101,6 +105,15 @@ export async function POST(request: NextRequest) {
                 } : null
             }
         })
+
+        // Create NextAuth session using utility function
+        return await createNextAuthSession({
+            id: user.id.toString(),
+            email: user.email || '',
+            name: user.name || '',
+            tenantId: user.tenantId.toString(),
+            userType: user.userType
+        }, response)
 
     } catch (error) {
         console.error('Login error:', error)
