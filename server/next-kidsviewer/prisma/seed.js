@@ -83,8 +83,8 @@ async function main() {
         printWarning('Warning: This operation will delete all existing data!');
 
         // Define Init SQL file paths
-        const ddlFile = path.join(__dirname, '..', 'prisma/migrations/init-ddl', 'migration.sql');
-        const dmlFile = path.join(__dirname, '..', 'prisma/migrations/init-dml', 'migration.sql');
+        const ddlFile = path.join(__dirname, '..', 'prisma/migrations/19710101000000_init-ddl', 'migration.sql');
+        const dmlFile = path.join(__dirname, '..', 'prisma/migrations/19710101000000_init-dml', 'migration.sql');
         // Execute Init DDL file
         const ddlSuccess = await executeSqlFile(prisma, ddlFile, 'DDL file');
         if (!ddlSuccess) {

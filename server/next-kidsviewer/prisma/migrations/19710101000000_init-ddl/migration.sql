@@ -1,4 +1,19 @@
 -- CreateTable
+CREATE TABLE "sys_config" (
+    "id" BIGSERIAL NOT NULL,
+    "type" VARCHAR(50) NOT NULL,
+    "key" VARCHAR(100) NOT NULL,
+    "value" JSONB NOT NULL,
+    "version" INTEGER NOT NULL DEFAULT 1,
+    "remark" VARCHAR(255),
+    "create_date" TIMESTAMPTZ(3) NOT NULL,
+    "create_by" BIGINT NOT NULL DEFAULT 1,
+    "update_date" TIMESTAMPTZ(3) NOT NULL,
+    "update_by" BIGINT NOT NULL DEFAULT 1,
+    "del_flag" INTEGER NOT NULL DEFAULT 0,
+    CONSTRAINT "sys_config_pkey" PRIMARY KEY ("id")
+);
+-- CreateTable
 CREATE TABLE "sys_tenant" (
     "id" BIGSERIAL NOT NULL,
     "name" VARCHAR(255) NOT NULL,
@@ -71,6 +86,14 @@ CREATE TABLE "t_family" (
     "del_flag" INTEGER NOT NULL DEFAULT 0,
     CONSTRAINT "t_family_pkey" PRIMARY KEY ("id")
 );
+-- CreateIndex
+CREATE INDEX "sys_config_type_idx" ON "sys_config"("type");
+-- CreateIndex
+CREATE INDEX "sys_config_key_idx" ON "sys_config"("key");
+-- CreateIndex
+CREATE INDEX "sys_config_type_key_idx" ON "sys_config"("type", "key");
+-- CreateIndex
+CREATE INDEX "sys_config_version_idx" ON "sys_config"("version");
 -- CreateIndex
 CREATE INDEX "sys_user_tenant_id_idx" ON "sys_user"("tenant_id");
 -- CreateIndex
