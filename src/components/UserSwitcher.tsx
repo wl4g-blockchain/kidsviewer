@@ -63,7 +63,49 @@ export const UserSwitcher: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        if (data.success && data.data) {
+        console.log('API response:', data);
+        
+        // API returns array directly, not wrapped in success/data object
+        if (Array.isArray(data)) {
+          // Transform API data to match Person interface
+          const transformedPersons = data.map((subAccount: any) => ({
+            id: parseInt(subAccount.id),
+            userId: parseInt(subAccount.id),
+            parentalId: currentUser.id,
+            alias: subAccount.name, // Use name as alias
+            name: subAccount.name,
+            ageGroup: 'young' as const, // Default age group, should be provided by API
+            email: subAccount.email,
+            userType: subAccount.userType,
+            createDate: subAccount.createDate,
+            settings: {
+              perTimeLimitMinutes: 30, // Default values, should be provided by API
+              dailyTimeLimitMinutes: 120,
+              questionCount: 5,
+              questionsPerDay: 10,
+              platformIds: [],
+              subjects: []
+            },
+            statistics: {
+              dailyUsage: [],
+              questionStats: {
+                totalAnswered: 0,
+                totalCorrect: 0,
+                accuracyRate: 0,
+                subjectPreference: {},
+                repeatedQuestions: []
+              },
+              learningProgress: {
+                subjects: {},
+                overallScore: 0,
+                level: 'beginner' as const
+              }
+            },
+            createdAt: new Date(subAccount.createDate),
+            updatedAt: new Date(subAccount.createDate)
+          }));
+          setPersons(transformedPersons);
+        } else if (data.success && data.data) {
           setPersons(data.data);
         }
       } else {
