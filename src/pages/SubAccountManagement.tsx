@@ -206,13 +206,13 @@ export const SubAccountManagement: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">访问受限</h1>
-          <p className="text-gray-600">只有主账号才能管理子账号</p>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">{t('common.accessDenied')}</h1>
+          <p className="text-gray-600">{t('subAccount.onlyMainAccountCanManage')}</p>
           <button
             onClick={() => navigate('/')}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
-            返回首页
+            {t('navigation.home')}
           </button>
         </div>
       </div>
@@ -334,18 +334,18 @@ export const SubAccountManagement: React.FC = () => {
               <div className="flex items-center space-x-2 mb-4">
                 <Building className="h-6 w-6 text-green-500" />
                 <h2 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                  租户信息
+                  {t('subAccount.tenantInfo.title')}
                 </h2>
               </div>
               <p className={`text-sm mb-6 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                您的账户信息
+                {t('subAccount.tenantInfo.description')}
               </p>
 
               {tenantInfo ? (
                 <div className="space-y-4">
                   <div>
                     <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                      租户名称
+                      {t('subAccount.tenantInfo.tenantName')}
                     </label>
                     <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                       {tenantInfo.name}
@@ -354,7 +354,7 @@ export const SubAccountManagement: React.FC = () => {
                   {tenantInfo.familyName && (
                     <div>
                       <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                        家庭名称
+                        {t('subAccount.tenantInfo.familyName')}
                       </label>
                       <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                         {tenantInfo.familyName}
@@ -363,7 +363,7 @@ export const SubAccountManagement: React.FC = () => {
                   )}
                   <div>
                     <label className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                      创建日期
+                      {t('subAccount.tenantInfo.createDate')}
                     </label>
                     <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                       {new Date(tenantInfo.createDate).toLocaleDateString()}

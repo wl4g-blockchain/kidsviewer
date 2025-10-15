@@ -19,6 +19,7 @@ export class APIFactory {
         const apiBaseURL = '/api/v1';
         const apiKey = undefined;
 
+        // Use caching to avoid creating multiple instances
         if (APIFactory._apiHandler) {
             console.debug('🔧 Returning existing API Handler instance.');
             return APIFactory._apiHandler;
@@ -26,7 +27,7 @@ export class APIFactory {
 
         // Use mock handler in development or when explicitly configured
         if (isDevelopment || useMockAPI) {
-            console.debug('🔧 Using Mock API Handler for development/demo');
+            console.debug('🔧 Creating Mock API Handler instance for development/demo');
             APIFactory._apiHandler = new MockAPIHandler();
             return APIFactory._apiHandler;
         }

@@ -58,8 +58,8 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO "t_person" ( "user_id", "parental_id", "name", "alias", "age_group", "avatar", "difficulty", "max_daily_time", "parental_password", "settings", "statistics", "is_active", "create_date", "update_date" )
 VALUES (
-    1, -- user_id (assuming parental user has id=1)
-    1, -- parental_id (same as user_id for parental user)
+    2, -- user_id (child user has id=2)
+    1, -- parental_id (parental user has id=1)
     'Barry', 
     'Barry', 
     'young', 
@@ -77,7 +77,7 @@ VALUES (
             {"id": 2, "name": "Chinese", "enabled": true, "difficulty": "easy"},
             {"id": 3, "name": "English", "enabled": true, "difficulty": "easy"}
         ],
-        "platformIds": [1, 2, 3]
+        "platformIds": [1, 2, 3, 4, 5, 6, 7, 8]
     }'::jsonb,
     '{
         "dailyUsage": [],

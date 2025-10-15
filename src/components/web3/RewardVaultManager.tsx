@@ -1,7 +1,6 @@
 // Reward Vault Management Component for Web3 integration
 
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
 import { Coins, Wallet, AlertCircle, CheckCircle, Loader2, ExternalLink, Link, Unlink, Globe } from 'lucide-react';
 import { useThemeStore } from '../../stores/themeStore';
 import { EthereumUtils, StarknetUtils, Web3Utils } from '../../utils/web3/web3Utils';
@@ -14,10 +13,7 @@ import {
   TransactionResult,
   WithdrawalRequest,
   InvestmentConfig,
-  KRCHoldings,
-  TOKEN_ADDRESSES,
-  CONTRACT_ADDRESSES,
-  SUPPORTED_NETWORKS,
+  KRCHoldings
 } from '../../types/web3';
 import { web3Service } from '../../services/web3Service';
 // import { useSessionData } from '../../components/providers/AuthProvider';
@@ -116,15 +112,10 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     setError(null);
 
     try {
-      const tokenAddress = getTokenAddress();
-      const balance = await getTokenBalance(tokenAddress, walletConnection.address);
-      const tokenInfo = await getTokenInfo(tokenAddress);
+      const tokenAddress = await getTokenAddress();
+      const vaultBalance = await web3Service.getVaultBalance(tokenAddress, walletConnection.address);
 
-      setVaultBalance({
-        token: tokenInfo,
-        balance: balance,
-        formattedBalance: Web3Utils.formatAmount(balance, tokenInfo.decimals),
-      });
+      setVaultBalance(vaultBalance);
     } catch (error: any) {
       setError(`Failed to load vault balance: ${error.message}`);
     } finally {
@@ -132,9 +123,10 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     }
   };
 
-  const getTokenAddress = (): string => {
-    const network = walletConnection?.chainId === 1 ? 'ethereum' : 'starknet';
-    return TOKEN_ADDRESSES[network][rewardConfig.tokenType];
+  const getTokenAddress = async (): Promise<string> => {
+    if (!walletConnection) return '';
+    const network = walletConnection.chainId === 1 ? 'ethereum' : 'starknet';
+    return await web3Service.getTokenAddress(rewardConfig.tokenType);
   };
 
   const getTokenInfo = async (tokenAddress: string): Promise<TokenInfo> => {
@@ -147,7 +139,7 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
         name: rewardConfig.tokenType,
         decimals: 6,
         address: tokenAddress,
-        chainId: Number(SUPPORTED_NETWORKS.starknet.chainId),
+        chainId: walletConnection?.chainId || 0,
       };
     }
   };
@@ -189,21 +181,18 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     setError(null);
 
     try {
-      const tokenAddress = getTokenAddress();
-      const vaultAddress = getVaultAddress();
-      const amount = ethers.parseUnits(depositAmount, 6); // Assuming 6 decimals for USDC/USDT
-
-      // First approve the token transfer
-      const approveResult = await approveToken(tokenAddress, vaultAddress, amount.toString());
-      if (!approveResult.success) {
-        throw new Error(approveResult.error);
+      const tokenAddress = await getTokenAddress();
+      
+      // Use Web3Service for deposit
+      const result = await web3Service.depositToVault(tokenAddress, depositAmount);
+      
+      if (result.success) {
+        setSuccess(`Successfully deposited ${depositAmount} ${rewardConfig.tokenType} to vault!`);
+        setDepositAmount('');
+        await loadVaultBalance();
+      } else {
+        throw new Error(result.error);
       }
-
-      // Then deposit to vault (this would be a custom contract call)
-      // For now, we'll simulate success
-      setSuccess(`Successfully deposited ${depositAmount} ${rewardConfig.tokenType} to vault!`);
-      setDepositAmount('');
-      await loadVaultBalance();
     } catch (error: any) {
       setError(`Deposit failed: ${error.message}`);
     } finally {
@@ -219,9 +208,12 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     }
   };
 
-  const getVaultAddress = (): string => {
-    const network = walletConnection?.chainId === 1 ? 'ethereum' : 'starknet';
-    return CONTRACT_ADDRESSES[network].KidsViewerVault;
+  const getVaultAddress = async (): Promise<string> => {
+    if (!walletConnection) return '';
+    const network = walletConnection.chainId === 1 ? 'ethereum' : 'starknet';
+    // TODO: Implement contract address retrieval
+    // return await web3Service.getContractAddress(network, 'KidsViewerVault');
+    return '0x0000000000000000000000000000000000000000'; // Mock address
   };
 
   const formatAddress = (address: string) => {
@@ -233,24 +225,32 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     if (!walletConnection?.isConnected) return;
 
     try {
-      const holdings = await web3Service.getKRCHoldings(walletConnection.address);
-      setKrcHoldings(holdings);
+      // TODO: Implement KRC holdings loading
+      // const holdings = await web3Service.getKRCHoldings(walletConnection.address);
+      // setKrcHoldings(holdings);
+      console.log('KRC holdings loading not implemented yet');
     } catch (error: any) {
       console.error('Failed to load KRC holdings:', error);
     }
   };
 
-  const loadAvailableAaveProducts = () => {
-    const products = web3Service.getAvailableAaveProducts();
-    setAvailableAaveProducts(products);
+  const loadAvailableAaveProducts = async () => {
+    try {
+      const products = await web3Service.getAvailableAaveProducts();
+      setAvailableAaveProducts(products);
+    } catch (error: any) {
+      console.error('Failed to load AAVE products:', error);
+    }
   };
 
   const loadWithdrawalRequests = async () => {
     if (!selectedChild || !walletConnection?.isConnected) return;
 
     try {
-      const requests = await web3Service.getWithdrawalRequests(selectedChild);
-      setWithdrawalRequests(requests);
+      // TODO: Implement withdrawal requests loading
+      // const requests = await web3Service.getWithdrawalRequests(selectedChild);
+      // setWithdrawalRequests(requests);
+      console.log('Withdrawal requests loading not implemented yet');
     } catch (error: any) {
       console.error('Failed to load withdrawal requests:', error);
     }
@@ -260,8 +260,10 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     if (!selectedChild || !walletConnection?.isConnected) return;
 
     try {
-      const config = await web3Service.getInvestmentConfig(selectedChild);
-      setInvestmentConfigs(prev => new Map(prev.set(selectedChild, config)));
+      // TODO: Implement investment config loading
+      // const config = await web3Service.getInvestmentConfig(selectedChild);
+      // setInvestmentConfigs(prev => new Map(prev.set(selectedChild, config)));
+      console.log('Investment config loading not implemented yet');
     } catch (error: any) {
       console.error('Failed to load investment config:', error);
     }
@@ -269,13 +271,15 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
   const handleApproveWithdrawal = async (requestId: number) => {
     try {
-      const result = await web3Service.approveWithdrawal(requestId);
-      if (result.success) {
-        setSuccess('Withdrawal approved successfully!');
-        await loadWithdrawalRequests();
-      } else {
-        setError(result.error || 'Failed to approve withdrawal');
-      }
+      // TODO: Implement withdrawal approval
+      // const result = await web3Service.approveWithdrawal(requestId);
+      // if (result.success) {
+      //   setSuccess('Withdrawal approved successfully!');
+      //   await loadWithdrawalRequests();
+      // } else {
+      //   setError(result.error || 'Failed to approve withdrawal');
+      // }
+      console.log('Withdrawal approval not implemented yet');
     } catch (error: any) {
       setError(`Failed to approve withdrawal: ${error.message}`);
     }
@@ -283,13 +287,15 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
   const handleSetInvestmentConfig = async (childAddress: string, enabled: boolean, maxAmount: string) => {
     try {
-      const result = await web3Service.setInvestmentConfig(childAddress, enabled, maxAmount);
-      if (result.success) {
-        setSuccess('Investment configuration updated successfully!');
-        await loadInvestmentConfig();
-      } else {
-        setError(result.error || 'Failed to update investment config');
-      }
+      // TODO: Implement investment config setting
+      // const result = await web3Service.setInvestmentConfig(childAddress, enabled, maxAmount);
+      // if (result.success) {
+      //   setSuccess('Investment configuration updated successfully!');
+      //   await loadInvestmentConfig();
+      // } else {
+      //   setError(result.error || 'Failed to update investment config');
+      // }
+      console.log('Investment config setting not implemented yet');
     } catch (error: any) {
       setError(`Failed to update investment config: ${error.message}`);
     }
@@ -297,13 +303,15 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
   const handleApproveAaveProduct = async (childAddress: string, aaveProductAddress: string, approved: boolean) => {
     try {
-      const result = await web3Service.approveAaveProduct(childAddress, aaveProductAddress, approved);
-      if (result.success) {
-        setSuccess(`AAVE product ${approved ? 'approved' : 'disapproved'} successfully!`);
-        await loadInvestmentConfig();
-      } else {
-        setError(result.error || 'Failed to update AAVE product approval');
-      }
+      // TODO: Implement AAVE product approval
+      // const result = await web3Service.approveAaveProduct(childAddress, aaveProductAddress, approved);
+      // if (result.success) {
+      //   setSuccess(`AAVE product ${approved ? 'approved' : 'disapproved'} successfully!`);
+      //   await loadInvestmentConfig();
+      // } else {
+      //   setError(result.error || 'Failed to update AAVE product approval');
+      // }
+      console.log('AAVE product approval not implemented yet');
     } catch (error: any) {
       setError(`Failed to update AAVE product approval: ${error.message}`);
     }
@@ -409,7 +417,7 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
                       <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
                       <div>
                         <p className={`font-medium ${isDark ? 'text-green-300' : 'text-green-800'}`}>Wallet Bound</p>
-                        <p className={`text-sm ${isDark ? 'text-green-400' : 'text-green-600'}`}>{formatAddress(walletConnection.address)}</p>
+                        <p className={`text-sm ${isDark ? 'text-green-400' : 'text-green-600'}`}>{formatAddress(walletConnection?.address || '')}</p>
                       </div>
                     </div>
                     <button

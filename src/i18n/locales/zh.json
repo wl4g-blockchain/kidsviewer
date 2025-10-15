@@ -31,7 +31,8 @@
         "option": "选项",
         "confirmDelete": "您确定要删除这个项目吗？",
         "understood": "我知道了",
-        "optional": "可选"
+        "optional": "可选",
+        "accessDenied": "访问受限"
     },
     "subAccount": {
         "title": "子账号",
@@ -66,7 +67,23 @@
         "confirmPassword": "确认密码",
         "enterConfirmPassword": "请再次输入密码",
         "passwordMismatch": "密码不匹配",
-        "resetPassword": "重置密码"
+        "resetPassword": "重置密码",
+        "tenantInfo": {
+            "title": "租户信息",
+            "description": "您的账户信息",
+            "tenantName": "租户名称",
+            "familyName": "家庭名称",
+            "createDate": "创建日期",
+            "loading": "加载中...",
+            "loadError": "加载租户信息失败"
+        },
+        "subAccountsList": {
+            "title": "子账号列表",
+            "noSubAccounts": "暂无子账号",
+            "noSubAccountsDesc": "您还没有创建任何子账号",
+            "createFirst": "创建第一个子账号"
+        },
+        "onlyMainAccountCanManage": "只有主账号才能管理子账号"
     },
     "auth": {
         "login": "登录",

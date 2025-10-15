@@ -210,8 +210,8 @@ export class MockAPIHandler implements IAPIHandler {
         };
 
         const person_01: Person = {
-            id: 1,
-            userId: 1,
+            id: 2,
+            userId: 2,
             parentalId: 1,
             name: 'Barry',
             alias: 'Barry',
@@ -221,7 +221,7 @@ export class MockAPIHandler implements IAPIHandler {
                 dailyTimeLimitMinutes: 120,
                 questionCount: 5,
                 questionsPerDay: 15,
-                platformIds: [1, 2, 3, 4],
+                platformIds: [1, 2, 3, 4, 5, 6, 7, 8],
                 subjects: [
                     { id: Math.floor(Math.random() * 1000000), name: 'Math', enabled: true, difficulty: 'easy' },
                     { id: Math.floor(Math.random() * 1000000), name: 'Chinese', enabled: true, difficulty: 'easy' },
@@ -294,7 +294,7 @@ export class MockAPIHandler implements IAPIHandler {
                 updatedAt: new Date(),
             },
             {
-                id: Math.floor(Math.random() * 1000000),
+                id: 5,
                 nameEN: 'Xiaohongshu',
                 nameCN: '小红书',
                 url: 'https://www.xiaohongshu.com/',
@@ -304,7 +304,7 @@ export class MockAPIHandler implements IAPIHandler {
                 updatedAt: new Date(),
             },
             {
-                id: Math.floor(Math.random() * 1000000),
+                id: 6,
                 nameEN: 'Kuaishou',
                 nameCN: '快手',
                 url: 'https://www.kuaishou.com/',
@@ -314,7 +314,7 @@ export class MockAPIHandler implements IAPIHandler {
                 updatedAt: new Date(),
             },
             {
-                id: Math.floor(Math.random() * 1000000),
+                id: 7,
                 nameEN: 'Bilibili',
                 nameCN: '哔哩哔哩',
                 url: 'https://www.bilibili.com/',
@@ -324,7 +324,7 @@ export class MockAPIHandler implements IAPIHandler {
                 updatedAt: new Date(),
             },
             {
-                id: Math.floor(Math.random() * 1000000),
+                id: 8,
                 nameEN: 'Qiyiguo',
                 nameCN: '奇异果',
                 url: 'https://www.qiyiguo.com/',
@@ -936,14 +936,26 @@ export class MockAPIHandler implements IAPIHandler {
     async getPerson(personId: string): Promise<ApiResponse<Person>> {
         try {
             const personIdNum = parseInt(personId);
-            const person = mockDataDB.users.find((u: any) => 'id' in u && u.id === personIdNum && 'parentalId' in u) as Person;
+            console.log(`🔍 Looking for person with ID: ${personIdNum}`);
+            console.log('Available users in mockDataDB:', mockDataDB.users.map((u: any) => ({ id: u.id, userId: u.userId, name: u.name, alias: u.alias, hasParentalId: 'parentalId' in u })));
+            
+            // Try to find by userId first (which matches the session user ID)
+            let person = mockDataDB.users.find((u: any) => 'userId' in u && u.userId === personIdNum && 'parentalId' in u) as Person;
+            
+            // If not found by userId, try by id
+            if (!person) {
+                person = mockDataDB.users.find((u: any) => 'id' in u && u.id === personIdNum && 'parentalId' in u) as Person;
+            }
 
             if (!person) {
+                console.log(`❌ Person with ID ${personIdNum} not found`);
                 return createApiResponse('4001', 'Person not found');
             }
 
+            console.log(`✅ Found person:`, person);
             return createApiResponse('200', 'ok', person);
         } catch (error) {
+            console.error('Error in getPerson:', error);
             return createApiResponse('5000', error instanceof Error ? error.message : String(error));
         }
     }

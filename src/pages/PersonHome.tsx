@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
 import { useAppContext } from '../App';
+import { APIFactory } from '../services/APIFactory';
 import {
   Video,
   Trophy,
@@ -46,6 +47,9 @@ export const PersonHome: React.FC = () => {
   const t = useTranslation();
   const { currentLanguage } = useLanguage();
 
+  // Get API handler instance - memoized to avoid recreating on every render
+  const apiHandler = useMemo(() => APIFactory.createAPIHandler(), []);
+
   // Platform list states
   const [personPlatforms, setPersonPlatforms] = useState<Platform[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -88,24 +92,24 @@ export const PersonHome: React.FC = () => {
   };
 
   // Adapter function to convert API response to Platform interface
-  // const adaptApiPlatformToPlatform = (apiPlatform: {
-  //   platformId: string;
-  //   platformNameEN: string;
-  //   platformNameCN: string;
-  //   url: string;
-  //   description?: string;
-  // }): Platform => {
-  //   return {
-  //     id: parseInt(apiPlatform.platformId),
-  //     nameEN: apiPlatform.platformNameEN,
-  //     nameCN: apiPlatform.platformNameCN,
-  //     url: apiPlatform.url,
-  //     description: apiPlatform.description,
-  //     ageGroups: ['preschool', 'young', 'older'], // Default age groups
-  //     createdAt: new Date(), // Default to current date
-  //     updatedAt: new Date(), // Default to current date
-  //   };
-  // };
+  const adaptApiPlatformToPlatform = (apiPlatform: {
+    platformId: string;
+    platformNameEN: string;
+    platformNameCN: string;
+    url: string;
+    description?: string;
+  }): Platform => {
+    return {
+      id: parseInt(apiPlatform.platformId),
+      nameEN: apiPlatform.platformNameEN,
+      nameCN: apiPlatform.platformNameCN,
+      url: apiPlatform.url,
+      description: apiPlatform.description,
+      ageGroups: ['preschool', 'young', 'older'] as ('preschool' | 'young' | 'older' | 'teen')[], // Default age groups
+      createdAt: new Date(), // Default to current date
+      updatedAt: new Date(), // Default to current date
+    };
+  };
 
   // Load child accessible URLs
   useEffect(() => {
@@ -128,34 +132,20 @@ export const PersonHome: React.FC = () => {
 
     try {
       console.log(`Loading person platforms for person ${activePerson.alias} (ID: ${activePerson.id})...`);
+      console.log('ActivePerson details:', activePerson);
 
-      // const response = await apiHandler.getPersonPlatforms(activePerson.id.toString());
-      // console.info('Loaded the person person platforms response:', response);
+      const response = await apiHandler.getPersonPlatforms(activePerson.id.toString());
+      console.info('Loaded the person platforms response:', response);
 
-      // if (response.errcode === '200' && response.data) {
-      //   console.log(`Successfully loaded ${response.data.length} person platforms:`, response.data);
-      //   // Convert API response to Platform interface
-      //   const adaptedPlatforms = response.data.map(adaptApiPlatformToPlatform);
-      //   setPersonPlatforms(adaptedPlatforms);
-      // } else {
-      //   console.error('Failed to load person Platforms:', response.errmsg);
-      //   setError(response.errmsg || t('person.loadAccessibleUrlsFailed'));
-      // }
-
-      // Mock data for now
-      const mockPlatforms: Platform[] = [
-        {
-          id: 1,
-          nameEN: 'Educational Videos',
-          nameCN: '教育视频',
-          url: 'https://example.com/educational',
-          description: 'Fun learning videos for kids',
-          ageGroups: ['preschool', 'young'] as ('preschool' | 'young' | 'older' | 'teen')[],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ];
-      setPersonPlatforms(mockPlatforms);
+      if (response.errcode === '200' && response.data) {
+        console.log(`Successfully loaded ${response.data.length} person platforms:`, response.data);
+        // Convert API response to Platform interface
+        const adaptedPlatforms = response.data.map(adaptApiPlatformToPlatform);
+        setPersonPlatforms(adaptedPlatforms);
+      } else {
+        console.error('Failed to load person platforms:', response.errmsg);
+        setError(response.errmsg || t('person.loadAccessibleUrlsFailed'));
+      }
     } catch (error) {
       console.error('Error occurred while loading person platforms:', error);
       setError(error instanceof Error ? error.message : t('person.loadContentError'));
@@ -181,7 +171,7 @@ export const PersonHome: React.FC = () => {
       }
 
       // Load available AAVE products
-      const products = web3Service.getAvailableAaveProducts();
+      const products = await web3Service.getAvailableAaveProducts();
       setAvailableAaveProducts(products);
 
       // Load investment configuration (mock for now)
@@ -189,7 +179,7 @@ export const PersonHome: React.FC = () => {
         isEnabled: true,
         maxInvestmentAmount: '100',
         totalInvested: '25',
-        approvedAaveProducts: products.map(p => p.address),
+        approvedAaveProducts: products.map((p: AaveProduct) => p.address),
       };
       setInvestmentConfig(mockInvestmentConfig);
 
@@ -207,6 +197,7 @@ export const PersonHome: React.FC = () => {
           formattedBalance: '15.75',
           dailyEarnings: '0.05',
           totalEarnings: '1.25',
+          investmentConfig: mockInvestmentConfig,
         };
         setPiggyBankBalance(mockBalance);
       }

@@ -2,7 +2,8 @@
 
 import { ethers } from 'ethers';
 import { Account, RpcProvider } from 'starknet';
-import { WalletConnection, TokenInfo, TransactionResult, SUPPORTED_NETWORKS } from '../../types/web3';
+import { WalletConnection, TokenInfo, TransactionResult } from '../../types/web3';
+import { Web3ConfigService } from '../../services/web3ConfigService';
 
 // Ethereum utilities
 export class EthereumUtils {
@@ -63,8 +64,8 @@ export class EthereumUtils {
                     params: [{
                         chainId: '0x1',
                         chainName: 'Ethereum Mainnet',
-                        rpcUrls: [SUPPORTED_NETWORKS.ethereum.rpcUrl],
-                        blockExplorerUrls: [SUPPORTED_NETWORKS.ethereum.blockExplorer],
+                        rpcUrls: ['https://eth-mainnet.g.alchemy.com/v2/demo'],
+                        blockExplorerUrls: ['https://etherscan.io'],
                         nativeCurrency: {
                             name: 'Ether',
                             symbol: 'ETH',
@@ -156,6 +157,7 @@ export class EthereumUtils {
 export class StarknetUtils {
     private static provider: RpcProvider | null = null;
     private static account: Account | null = null;
+    private static web3ConfigService = Web3ConfigService.getInstance();
 
     static async connectWallet(): Promise<WalletConnection> {
         try {
@@ -172,8 +174,9 @@ export class StarknetUtils {
             }
 
             // Create provider
+            const networks = await this.web3ConfigService.getSupportedNetworks();
             this.provider = new RpcProvider({
-                nodeUrl: SUPPORTED_NETWORKS.starknet.rpcUrl
+                nodeUrl: networks.starknet.rpcUrl
             });
 
             // Create account
@@ -185,7 +188,7 @@ export class StarknetUtils {
 
             return {
                 address: window.starknet.account.address,
-                chainId: Number(SUPPORTED_NETWORKS.starknet.chainId),
+                chainId: Number(networks.starknet.chainId),
                 isConnected: true,
                 provider: this.provider
             };

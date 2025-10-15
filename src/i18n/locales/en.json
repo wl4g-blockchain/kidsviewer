@@ -31,7 +31,8 @@
         "option": "Option",
         "confirmDelete": "Are you sure you want to delete this item?",
         "understood": "I understand",
-        "optional": "Optional"
+        "optional": "Optional",
+        "accessDenied": "Access Denied"
     },
     "subAccount": {
         "title": "Sub Accounts",
@@ -66,7 +67,23 @@
         "confirmPassword": "Confirm Password",
         "enterConfirmPassword": "Enter password again",
         "passwordMismatch": "Passwords do not match",
-        "resetPassword": "Reset Password"
+        "resetPassword": "Reset Password",
+        "tenantInfo": {
+            "title": "Tenant Information",
+            "description": "Your account information",
+            "tenantName": "Tenant Name",
+            "familyName": "Family Name",
+            "createDate": "Created Date",
+            "loading": "Loading...",
+            "loadError": "Failed to load tenant information"
+        },
+        "subAccountsList": {
+            "title": "Sub Accounts List",
+            "noSubAccounts": "No sub accounts yet",
+            "noSubAccountsDesc": "You haven't created any sub accounts yet",
+            "createFirst": "Create first sub account"
+        },
+        "onlyMainAccountCanManage": "Only main accounts can manage sub accounts"
     },
     "auth": {
         "login": "Login",

@@ -6,9 +6,9 @@
     "androidScheme": "https",
     "iosScheme": "http",
     "allowNavigation": ["*"],
-    "hostname": "192.168.2.13",
+    "hostname": "10.0.0.101",
     "cleartext": true,
-    "url": "http://192.168.2.13:5173"
+    "url": "http://10.0.0.101:5173"
   },
   "plugins": {
     "SplashScreen": {

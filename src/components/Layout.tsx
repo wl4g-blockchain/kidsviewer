@@ -4,6 +4,7 @@ import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Navigation } from './Navigation';
 import { UserSwitcher } from './UserSwitcher';
+import { useAppContext } from '../App';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,8 +14,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   // const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
   const t = useTranslation();
+  const { viewMode, activePerson } = useAppContext();
   const [isIOS, setIsIOS] = useState(false);
-  const [viewMode] = useState<'parent' | 'child'>('parent');
 
   // Detect if running in iOS environment
   useEffect(() => {
