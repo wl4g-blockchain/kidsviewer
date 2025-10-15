@@ -3,5 +3,8 @@
     "outputDirectory": "server/next-kidsviewer/.next",
     "installCommand": "cd server/next-kidsviewer && npm install",
     "framework": "nextjs",
-    "rootDirectory": "server/next-kidsviewer"
+    "devCommand": "cd server/next-kidsviewer && npm run dev",
+    "env": {
+        "NODE_ENV": "production"
+    }
 }

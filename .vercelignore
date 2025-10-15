@@ -1,0 +1,30 @@
+# Exclude everything except server/next-kidsviewer
+*
+!server/
+server/*
+!server/next-kidsviewer/
+
+# Exclude common unnecessary files
+**/node_modules/
+**/.git/
+**/.DS_Store
+**/dist/
+**/build/
+**/.next/
+**/coverage/
+**/tmp/
+**/temp/
+**/.cache/
+**/logs/
+**/*.log
+**/.env*
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/Thumbs.db
+**/ehthumbs.db
+**/.Spotlight-V100
+**/.Trashes
+**/._*
+**/.DS_Store?
