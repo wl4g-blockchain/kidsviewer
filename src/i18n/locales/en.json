@@ -32,6 +32,29 @@
         "confirmDelete": "Are you sure you want to delete this item?",
         "understood": "I understand"
     },
+    "subAccount": {
+        "title": "Sub Accounts",
+        "description": "Manage your sub accounts",
+        "addSubAccount": "Add Sub Account",
+        "createNewSubAccount": "Create new sub account",
+        "name": "Name",
+        "email": "Email",
+        "password": "Password",
+        "enterName": "Enter name",
+        "enterEmail": "Enter email",
+        "enterPassword": "Enter password",
+        "create": "Create",
+        "creating": "Creating...",
+        "noSubAccounts": "No sub accounts yet",
+        "subAccountDeleted": "Sub account deleted",
+        "createSuccess": "Sub account created successfully",
+        "createFailed": "Failed to create sub account",
+        "deleteFailed": "Delete failed",
+        "fillAllFields": "Please fill all fields",
+        "confirmDelete": "Are you sure you want to delete this sub account?",
+        "editPermission": "Edit Permission",
+        "editPermissionComingSoon": "Edit feature coming soon"
+    },
     "auth": {
         "login": "Login",
         "register": "Register",
@@ -225,7 +248,8 @@
         "switchToParent": "Switch to Parental Mode",
         "switchToChild": "Switch to Child Mode",
         "addChild": "Add Child",
-        "manageChildren": "Manage Child Accounts"
+        "manageChildren": "Manage Child Accounts",
+        "subAccountManagement": "Sub Accounts"
     },
     "viewMode": {
         "parent": "Parent Control Mode",

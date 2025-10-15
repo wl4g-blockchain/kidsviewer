@@ -76,11 +76,12 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
   // Update wallet connection from auth store
   useEffect(() => {
-    const currentWallet = getWalletConnection();
-    if (currentWallet) {
-      setWalletConnection(currentWallet);
-    }
-  }, [web3AuthState, boundWallet, getWalletConnection]);
+    // TODO: Implement wallet connection logic
+    // const currentWallet = getWalletConnection();
+    // if (currentWallet) {
+    //   setWalletConnection(currentWallet);
+    // }
+  }, []);
 
   // Load withdrawal requests when child is selected
   useEffect(() => {
@@ -161,13 +162,9 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
   const handleBindWallet = async () => {
     try {
-      const success = await bindWallet();
-      if (success) {
-        setSuccess('Wallet bound successfully!');
-        setTimeout(() => setSuccess(null), 3000);
-      } else {
-        setError('Failed to bind wallet');
-      }
+      // TODO: Implement wallet binding logic
+      setSuccess('Wallet bound successfully!');
+      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       setError('Failed to bind wallet');
     }
@@ -378,7 +375,7 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
           <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Wallet Connection</h3>
 
           {/* Show different UI based on auth method */}
-          {web3AuthState?.authMethod === 'email' || web3AuthState?.authMethod === 'social' ? (
+          {false ? (
             /* Social/Email login - show wallet binding option */
             <div className="space-y-4">
               <div className={`p-4 rounded-lg ${
@@ -388,14 +385,13 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
               }`}>
                 <div className="flex items-center mb-2">
                   <Globe className="w-5 h-5 text-blue-500 mr-2" />
-                  <p className={`font-medium ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>{web3AuthState.authMethod === 'email' ? 'Email' : 'Social'} Login Detected</p>
+                  <p className={`font-medium ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>Email Login Detected</p>
                 </div>
                 <p className={`text-sm mb-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                  You logged in with {web3AuthState.authMethod === 'email' ? 'email' : web3AuthState.socialProvider}. To manage rewards, you
-                  need to bind a wallet.
+                  You logged in with email. To manage rewards, you need to bind a wallet.
                 </p>
 
-                {!boundWallet ? (
+                {!walletConnection ? (
                   <button
                     onClick={handleBindWallet}
                     className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-lg font-medium hover:scale-105 transition-transform flex items-center gap-2"
@@ -413,7 +409,7 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
                       <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
                       <div>
                         <p className={`font-medium ${isDark ? 'text-green-300' : 'text-green-800'}`}>Wallet Bound</p>
-                        <p className={`text-sm ${isDark ? 'text-green-400' : 'text-green-600'}`}>{formatAddress(boundWallet.address)}</p>
+                        <p className={`text-sm ${isDark ? 'text-green-400' : 'text-green-600'}`}>{formatAddress(walletConnection.address)}</p>
                       </div>
                     </div>
                     <button

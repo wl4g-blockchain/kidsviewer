@@ -32,6 +32,29 @@
         "confirmDelete": "您确定要删除这个项目吗？",
         "understood": "我知道了"
     },
+    "subAccount": {
+        "title": "子账号",
+        "description": "管理您的子账号",
+        "addSubAccount": "添加子账号",
+        "createNewSubAccount": "创建新的子账号",
+        "name": "姓名",
+        "email": "邮箱",
+        "password": "密码",
+        "enterName": "请输入姓名",
+        "enterEmail": "请输入邮箱",
+        "enterPassword": "请输入密码",
+        "create": "创建",
+        "creating": "创建中...",
+        "noSubAccounts": "暂无子账号",
+        "subAccountDeleted": "子账号已删除",
+        "createSuccess": "子账号创建成功",
+        "createFailed": "子账号创建失败",
+        "deleteFailed": "删除失败",
+        "fillAllFields": "请填写所有字段",
+        "confirmDelete": "确定要删除这个子账号吗？",
+        "editPermission": "编辑权限",
+        "editPermissionComingSoon": "编辑功能即将推出"
+    },
     "auth": {
         "login": "登录",
         "register": "注册",
@@ -225,7 +248,8 @@
         "switchToParent": "切换到家长模式",
         "switchToChild": "切换到儿童模式",
         "addChild": "添加孩子",
-        "manageChildren": "管理孩子账户"
+        "manageChildren": "管理孩子账户",
+        "subAccountManagement": "子账号管理"
     },
     "viewMode": {
         "parent": "家长控制模式",

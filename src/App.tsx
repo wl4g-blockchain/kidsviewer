@@ -5,6 +5,7 @@ import { AuthProvider } from './components/providers/AuthProvider';
 import { ParentalHome } from './pages/ParentalHome';
 import { PersonHome } from './pages/PersonHome';
 import { SettingsPage } from './pages/SettingsPage';
+import { SubAccountManagement } from './pages/SubAccountManagement';
 import { NextAuthLoginPage } from './pages/NextAuthLoginPage';
 import { useSessionData } from './components/providers/AuthProvider';
 import { useState } from 'react';
@@ -93,6 +94,7 @@ function AppContent() {
                   <>
                     <Route path="/parental-page" element={<ParentalHome />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/sub-accounts" element={<SubAccountManagement />} />
                   </>
                 )}
 

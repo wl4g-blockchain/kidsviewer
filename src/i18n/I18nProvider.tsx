@@ -36,6 +36,7 @@ interface LanguageContextType {
   currentLanguage: string;
   changeLanguage: (lng: string) => void;
   t: (key: string, options?: any) => any;
+  isAutoLanguage: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -43,10 +44,26 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 // Language provider component
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
+  const [isAutoLanguage, setIsAutoLanguage] = useState(() => {
+    const savedLanguage = localStorage.getItem('kidsviewer-language');
+    return savedLanguage === 'auto' || savedLanguage === null;
+  });
 
   const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-    setCurrentLanguage(lng);
+    if (lng === 'auto') {
+      // Detect browser language automatically
+      const browserLang = navigator.language.split('-')[0];
+      const detectedLang = ['zh', 'en'].includes(browserLang) ? browserLang : 'en';
+      i18n.changeLanguage(detectedLang);
+      setCurrentLanguage(detectedLang);
+      setIsAutoLanguage(true);
+      localStorage.setItem('kidsviewer-language', 'auto');
+    } else {
+      i18n.changeLanguage(lng);
+      setCurrentLanguage(lng);
+      setIsAutoLanguage(false);
+      localStorage.setItem('kidsviewer-language', lng);
+    }
   };
 
   const t = (key: string, options?: any) => {
@@ -65,7 +82,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  return <LanguageContext.Provider value={{ currentLanguage, changeLanguage, t }}>{children}</LanguageContext.Provider>;
+  return <LanguageContext.Provider value={{ currentLanguage, changeLanguage, t, isAutoLanguage }}>{children}</LanguageContext.Provider>;
 };
 
 // Hook to use language context
