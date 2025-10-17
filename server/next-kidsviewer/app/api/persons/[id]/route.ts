@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // GET /api/persons/[id] - 获取单个人员
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const personId = BigInt(params.id);
+    const personId = BigInt((await params).id);
     
     const person = await prisma.tPerson.findFirst({
       where: {
@@ -66,10 +66,10 @@ export async function GET(
 // PUT /api/persons/[id] - 更新人员
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const personId = BigInt(params.id);
+    const personId = BigInt((await params).id);
     const body = await request.json();
     const {
       name,
@@ -155,10 +155,10 @@ export async function PUT(
 // DELETE /api/persons/[id] - 删除人员（软删除）
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const personId = BigInt(params.id);
+    const personId = BigInt((await params).id);
 
     // 检查人员是否存在
     const existingPerson = await prisma.tPerson.findFirst({

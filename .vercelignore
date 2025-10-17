@@ -1,23 +1,17 @@
-# Exclude everything except server/next-kidsviewer
-*
-!server/
-server/*
-!server/next-kidsviewer/
-
-# Exclude common unnecessary files
+# Exclude node_modules
 **/node_modules/
-**/.git/
-**/.DS_Store
+node_modules/
+
+# Exclude build outputs
 **/dist/
 **/build/
 **/.next/
 **/coverage/
-**/tmp/
-**/temp/
-**/.cache/
-**/logs/
-**/*.log
-**/.env*
+**/release/
+
+# Exclude development files
+**/.git/
+**/.DS_Store
 **/.vscode/
 **/.idea/
 **/*.swp
@@ -28,3 +22,31 @@ server/*
 **/.Trashes
 **/._*
 **/.DS_Store?
+
+# Exclude logs and cache
+**/logs/
+**/*.log
+**/.cache/
+**/tmp/
+**/temp/
+
+# Exclude environment files
+**/.env*
+
+# Exclude iOS build files
+ios/DerivedData/
+ios/Pods/
+
+# Exclude contracts build files
+contracts/ethereum/cache/
+contracts/ethereum/out/
+contracts/starknet/target/
+
+# Exclude other unnecessary directories
+android/
+docs/
+e2e/
+electron/
+ios/
+release/
+tmp/

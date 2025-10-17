@@ -6,10 +6,11 @@ const prisma = new PrismaClient();
 // GET /api/persons/[id]/accessible-urls - 获取指定人员可访问的平台
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const personId = BigInt(params.id);
+    const resolvedParams = await params;
+    const personId = BigInt(resolvedParams.id);
     
     // 首先获取人员信息
     const person = await prisma.tPerson.findFirst({

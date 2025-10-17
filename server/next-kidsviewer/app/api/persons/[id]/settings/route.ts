@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // PUT /api/persons/[id]/settings - 更新人员设置
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const personId = BigInt(params.id);
+    const personId = BigInt((await params).id);
     const body = await request.json();
     const { settings } = body;
 

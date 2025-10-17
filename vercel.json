@@ -1,9 +1,9 @@
 {
-    "buildCommand": "cd server/next-kidsviewer && npm run build",
-    "outputDirectory": "server/next-kidsviewer/.next",
-    "installCommand": "cd server/next-kidsviewer && npm install",
-    "framework": "nextjs",
-    "devCommand": "cd server/next-kidsviewer && npm run dev",
+    "buildCommand": "cd ./server/next-kidsviewer && npm install && npm run build",
+    "outputDirectory": "./server/next-kidsviewer/.next",
+    "installCommand": "cd ./server/next-kidsviewer && npm install",
+    "framework": null,
+    "devCommand": "cd ./server/next-kidsviewer && npm run dev",
     "env": {
         "NODE_ENV": "production"
     }

@@ -7,7 +7,7 @@ import { serializeObj } from '@/lib/utils'
 // get specific invitation code's detailed information
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions)
@@ -15,7 +15,8 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const invitationId = parseInt(params.id)
+        const resolvedParams = await params
+        const invitationId = parseInt(resolvedParams.id)
         const userId = parseInt(session.user.id)
 
         const invitationCode = await prisma.sysInvitationCode.findFirst({
@@ -62,7 +63,7 @@ export async function GET(
 // update invitation code status
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions)
@@ -70,7 +71,8 @@ export async function PUT(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const invitationId = parseInt(params.id)
+        const resolvedParams = await params
+        const invitationId = parseInt(resolvedParams.id)
         const userId = parseInt(session.user.id)
         const { isActive } = await request.json()
 
@@ -114,7 +116,7 @@ export async function PUT(
 // Delete invitation code (soft delete)
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions)
@@ -122,7 +124,8 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const invitationId = parseInt(params.id)
+        const resolvedParams = await params
+        const invitationId = parseInt(resolvedParams.id)
         const userId = parseInt(session.user.id)
 
         // Check if the invitation code belongs to the current user

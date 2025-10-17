@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // GET /api/questions/[id] - 获取单个问题模板
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const questionId = BigInt(params.id);
+    const questionId = BigInt((await params).id);
     
     const question = await prisma.tQuestion.findFirst({
       where: {
@@ -66,10 +66,10 @@ export async function GET(
 // PUT /api/questions/[id] - 更新问题模板
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const questionId = BigInt(params.id);
+    const questionId = BigInt((await params).id);
     const body = await request.json();
     const {
       type,
@@ -159,10 +159,10 @@ export async function PUT(
 // DELETE /api/questions/[id] - 删除问题模板（软删除）
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const questionId = BigInt(params.id);
+    const questionId = BigInt((await params).id);
 
     // 检查问题是否存在
     const existingQuestion = await prisma.tQuestion.findFirst({

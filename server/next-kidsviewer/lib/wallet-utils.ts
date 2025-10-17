@@ -138,7 +138,7 @@ async function verifyStarknetSignature(address: string, signature: string | stri
 
         // Verify signature using starkCurve
         const isValid = ec.starkCurve.verify(
-            signatureArray,
+            signatureArray as any,
             messageHash,
             address
         )

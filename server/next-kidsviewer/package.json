@@ -4,7 +4,8 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "build": "prisma generate && next build",
+        "build": "prisma generate --no-engine && next build",
+        "build:local": "prisma generate && next build",
         "start": "next start",
         "lint": "next lint",
         "generate:rsa-keys": "./scripts/generate-rsa-keys.sh",
@@ -26,16 +27,20 @@
         "@prisma/client": "^5.22.0",
         "@types/bcryptjs": "^2.4.6",
         "bcryptjs": "^3.0.2",
+        "clsx": "^2.0.0",
         "ethers": "^6.15.0",
         "jose": "^6.1.0",
         "next": "^15.5.5",
         "next-auth": "^4.24.11",
         "node-rsa": "^1.1.1",
-        "starknet": "^7.6.4"
+        "starknet": "^7.6.4",
+        "tailwind-merge": "^2.2.0"
     },
     "devDependencies": {
         "@types/node": "^20",
         "@types/node-rsa": "^1.1.4",
+        "@types/react": "^18.2.0",
+        "@types/react-dom": "^18.2.0",
         "eslint": "^8",
         "eslint-config-next": "14.0.4",
         "prisma": "^5.22.0",

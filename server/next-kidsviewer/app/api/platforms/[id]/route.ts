@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // GET /api/platforms/[id] - 获取单个平台
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const platformId = BigInt(params.id);
+    const platformId = BigInt((await params).id);
     
     const platform = await prisma.tPlatform.findFirst({
       where: {
@@ -60,10 +60,10 @@ export async function GET(
 // PUT /api/platforms/[id] - 更新平台
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const platformId = BigInt(params.id);
+    const platformId = BigInt((await params).id);
     const body = await request.json();
     const { nameEN, nameCN, url, description, ageGroups } = body;
 
@@ -129,10 +129,10 @@ export async function PUT(
 // DELETE /api/platforms/[id] - 删除平台（软删除）
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const platformId = BigInt(params.id);
+    const platformId = BigInt((await params).id);
 
     // 检查平台是否存在
     const existingPlatform = await prisma.tPlatform.findFirst({

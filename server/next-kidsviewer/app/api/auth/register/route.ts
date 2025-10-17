@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
                 body: new URLSearchParams({
                     secret: process.env.TURNSTILE_SECRET_KEY || '',
                     response: turnstileToken,
-                    remoteip: request.ip || request.headers.get('x-forwarded-for') || '',
+                    remoteip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '',
                 }),
             })
 
