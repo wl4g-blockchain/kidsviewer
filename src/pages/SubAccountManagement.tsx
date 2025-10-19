@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
-import { Users, Plus, Trash2, ArrowLeft, Building, Edit, Key } from 'lucide-react';
+import { Users, Plus, Trash2, ArrowLeft, Building, Edit } from 'lucide-react';
 
 interface SubAccount {
   id: string;

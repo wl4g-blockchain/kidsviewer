@@ -3,14 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { Coins, Wallet, AlertCircle, CheckCircle, Loader2, ExternalLink, Link, Unlink, Globe } from 'lucide-react';
 import { useThemeStore } from '../../stores/themeStore';
-import { EthereumUtils, StarknetUtils, Web3Utils } from '../../utils/web3/web3Utils';
+import { Web3Utils } from '../../utils/web3/web3Utils';
 import { getAppKit } from '../../config/appkit';
 import {
   WalletConnection,
   RewardConfig,
-  TokenInfo,
   VaultBalance,
-  TransactionResult,
   WithdrawalRequest,
   InvestmentConfig,
   KRCHoldings
@@ -50,9 +48,9 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
   const [isDepositing, setIsDepositing] = useState(false);
 
   // New state for enhanced functionality
-  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
-  const [investmentConfigs, setInvestmentConfigs] = useState<Map<string, InvestmentConfig>>(new Map());
-  const [krcHoldings, setKrcHoldings] = useState<KRCHoldings | null>(null);
+  const [withdrawalRequests, _setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
+  const [investmentConfigs, _setInvestmentConfigs] = useState<Map<string, InvestmentConfig>>(new Map());
+  const [krcHoldings, _setKrcHoldings] = useState<KRCHoldings | null>(null);
   const [selectedChild, setSelectedChild] = useState<string>('');
   const [availableAaveProducts, setAvailableAaveProducts] = useState<any[]>([]);
 
@@ -125,32 +123,10 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
 
   const getTokenAddress = async (): Promise<string> => {
     if (!walletConnection) return '';
-    const network = walletConnection.chainId === 1 ? 'ethereum' : 'starknet';
     return await web3Service.getTokenAddress(rewardConfig.tokenType);
   };
 
-  const getTokenInfo = async (tokenAddress: string): Promise<TokenInfo> => {
-    if (walletConnection?.chainId === 1) {
-      return await EthereumUtils.getTokenInfo(tokenAddress);
-    } else {
-      // For Starknet, return basic info
-      return {
-        symbol: rewardConfig.tokenType,
-        name: rewardConfig.tokenType,
-        decimals: 6,
-        address: tokenAddress,
-        chainId: walletConnection?.chainId || 0,
-      };
-    }
-  };
 
-  const getTokenBalance = async (tokenAddress: string, walletAddress: string): Promise<string> => {
-    if (walletConnection?.chainId === 1) {
-      return await EthereumUtils.getTokenBalance(tokenAddress, walletAddress);
-    } else {
-      return await StarknetUtils.getTokenBalance(tokenAddress, walletAddress);
-    }
-  };
 
   const handleBindWallet = async () => {
     try {
@@ -200,21 +176,7 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     }
   };
 
-  const approveToken = async (tokenAddress: string, spenderAddress: string, amount: string): Promise<TransactionResult> => {
-    if (walletConnection?.chainId === 1) {
-      return await EthereumUtils.approveToken(tokenAddress, spenderAddress, amount);
-    } else {
-      return await StarknetUtils.approveToken(tokenAddress, spenderAddress, amount);
-    }
-  };
 
-  const getVaultAddress = async (): Promise<string> => {
-    if (!walletConnection) return '';
-    const network = walletConnection.chainId === 1 ? 'ethereum' : 'starknet';
-    // TODO: Implement contract address retrieval
-    // return await web3Service.getContractAddress(network, 'KidsViewerVault');
-    return '0x0000000000000000000000000000000000000000'; // Mock address
-  };
 
   const formatAddress = (address: string) => {
     return Web3Utils.formatAddress(address);
@@ -227,7 +189,7 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     try {
       // TODO: Implement KRC holdings loading
       // const holdings = await web3Service.getKRCHoldings(walletConnection.address);
-      // setKrcHoldings(holdings);
+      // _setKrcHoldings(holdings);
       console.log('KRC holdings loading not implemented yet');
     } catch (error: any) {
       console.error('Failed to load KRC holdings:', error);
@@ -249,7 +211,7 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     try {
       // TODO: Implement withdrawal requests loading
       // const requests = await web3Service.getWithdrawalRequests(selectedChild);
-      // setWithdrawalRequests(requests);
+      // _setWithdrawalRequests(requests);
       console.log('Withdrawal requests loading not implemented yet');
     } catch (error: any) {
       console.error('Failed to load withdrawal requests:', error);
@@ -262,19 +224,19 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     try {
       // TODO: Implement investment config loading
       // const config = await web3Service.getInvestmentConfig(selectedChild);
-      // setInvestmentConfigs(prev => new Map(prev.set(selectedChild, config)));
+      // _setInvestmentConfigs(prev => new Map(prev.set(selectedChild, config)));
       console.log('Investment config loading not implemented yet');
     } catch (error: any) {
       console.error('Failed to load investment config:', error);
     }
   };
 
-  const handleApproveWithdrawal = async (requestId: number) => {
+  const handleApproveWithdrawal = async (_requestId: number) => {
     try {
       // TODO: Implement withdrawal approval
-      // const result = await web3Service.approveWithdrawal(requestId);
+      // const result = await web3Service.approveWithdrawal(_requestId);
       // if (result.success) {
-      //   setSuccess('Withdrawal approved successfully!');
+      //   setSuccess('Withdrawal _approved successfully!');
       //   await loadWithdrawalRequests();
       // } else {
       //   setError(result.error || 'Failed to approve withdrawal');
@@ -285,10 +247,10 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     }
   };
 
-  const handleSetInvestmentConfig = async (childAddress: string, enabled: boolean, maxAmount: string) => {
+  const handleSetInvestmentConfig = async (_childAddress: string, _enabled: boolean, _maxAmount: string) => {
     try {
       // TODO: Implement investment config setting
-      // const result = await web3Service.setInvestmentConfig(childAddress, enabled, maxAmount);
+      // const result = await web3Service.setInvestmentConfig(_childAddress, _enabled, _maxAmount);
       // if (result.success) {
       //   setSuccess('Investment configuration updated successfully!');
       //   await loadInvestmentConfig();
@@ -301,12 +263,12 @@ export const RewardVaultManager: React.FC<RewardVaultManagerProps> = ({ onConfig
     }
   };
 
-  const handleApproveAaveProduct = async (childAddress: string, aaveProductAddress: string, approved: boolean) => {
+  const handleApproveAaveProduct = async (_childAddress: string, _aaveProductAddress: string, _approved: boolean) => {
     try {
       // TODO: Implement AAVE product approval
-      // const result = await web3Service.approveAaveProduct(childAddress, aaveProductAddress, approved);
+      // const result = await web3Service.approveAaveProduct(_childAddress, _aaveProductAddress, _approved);
       // if (result.success) {
-      //   setSuccess(`AAVE product ${approved ? 'approved' : 'disapproved'} successfully!`);
+      //   setSuccess(`AAVE product ${_approved ? '_approved' : 'dis_approved'} successfully!`);
       //   await loadInvestmentConfig();
       // } else {
       //   setError(result.error || 'Failed to update AAVE product approval');

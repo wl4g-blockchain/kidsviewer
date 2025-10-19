@@ -41,13 +41,17 @@
         "@types/node-rsa": "^1.1.4",
         "@types/react": "^18.2.0",
         "@types/react-dom": "^18.2.0",
+        "esbuild": "0.25.10",
         "eslint": "^8",
-        "eslint-config-next": "14.0.4",
+        "eslint-config-next": "^15.5.5",
         "prisma": "^5.22.0",
         "tsx": "^4.6.2",
         "typescript": "^5"
     },
     "prisma": {
         "seed": "node prisma/seed.js"
+    },
+    "resolutions": {
+        "esbuild": "0.25.10"
     }
 }

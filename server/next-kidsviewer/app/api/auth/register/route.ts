@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify Turnstile token (according to environment variables and development environment to decide whether to skip)
-        const shouldSkipTurnstile = process.env.NEXT_PUBLIC_SKIP_TURNSTILE === 'true'
-        const shouldForceEnable = process.env.NEXT_PUBLIC_SKIP_TURNSTILE === 'false'
+        const shouldSkipTurnstile = process.env.AUTH_TURNSTILE_SKIP === 'true'
+        const shouldForceEnable = process.env.AUTH_TURNSTILE_SKIP === 'false'
         const isDevelopment = process.env.NODE_ENV === 'development'
         const isLocalhost = request.headers.get('host')?.includes('localhost')
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: new URLSearchParams({
-                    secret: process.env.TURNSTILE_SECRET_KEY || '',
+                    secret: process.env.AUTH_TURNSTILE_SECRET || '',
                     response: turnstileToken,
                     remoteip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '',
                 }),

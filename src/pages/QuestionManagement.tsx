@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useSessionData } from '../components/providers/AuthProvider';
+// import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Plus, Edit, Trash2, BookOpen, Filter, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { QuestionTemplate } from '../types';
 
 export const QuestionManagement: React.FC = () => {
-  const { data: session } = useSessionData();
+  // const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
   const t = useTranslation();
   const [questions, setQuestions] = useState<QuestionTemplate[]>([]);

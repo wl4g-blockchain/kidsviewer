@@ -61,8 +61,8 @@ const authOptions = {
     },
     providers: [
         GitHubProvider({
-            clientId: process.env.GITHUB_CLIENT_ID || '',
-            clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+            clientId: process.env.VITE_GITHUB_CLIENT_ID || '',
+            clientSecret: process.env.VITE_GITHUB_CLIENT_SECRET || '',
             authorization: {
                 params: {
                     scope: 'read:user user:email',

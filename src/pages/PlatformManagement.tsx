@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSessionData } from '../components/providers/AuthProvider';
+// import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { Plus, Edit, Trash2, Globe } from 'lucide-react';
 import { Platform } from '../types';
 
 export const PlatformManagement: React.FC = () => {
-  const { data: session } = useSessionData();
+  // const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [isLoading, setIsLoading] = useState(true);

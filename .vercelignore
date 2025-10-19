@@ -2,8 +2,7 @@
 **/node_modules/
 node_modules/
 
-# Exclude build outputs
-**/dist/
+# Exclude build outputs (but keep dist for frontend)
 **/build/
 **/.next/
 **/coverage/

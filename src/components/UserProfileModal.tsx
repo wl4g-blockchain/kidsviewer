@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from '../i18n/I18nProvider';
+// import { useTranslation } from '../i18n/I18nProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { X, User, Mail, Github, Wallet, Calendar, Crown, Building, Hash } from 'lucide-react';
 
@@ -31,7 +31,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { isDark } = useThemeStore();
-  const t = useTranslation();
 
   useEffect(() => {
     if (isOpen) {

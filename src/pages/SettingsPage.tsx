@@ -57,7 +57,8 @@ export const SettingsPage: React.FC = () => {
       setAppInfo({
         version: '1.0.0',
         buildType: 'development',
-        platform: 'Web'
+        platform: 'Web',
+        buildDate: new Date().toISOString(),
       });
     } catch (error) {
       console.error('Failed to load app info:', error);

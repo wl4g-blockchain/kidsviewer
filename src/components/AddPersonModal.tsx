@@ -61,7 +61,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!currentUser || currentUser.userType !== 1) {
+    if (!currentUser || currentUser.userType !== '1') {
       setError('只有家长可以添加人员');
       return;
     }

@@ -1287,96 +1287,37 @@ dev_start() {
 
     check_dependencies
 
-    # --- Start frontend ---
-    print_header "Starting Frontend (React + Vite)..."
+    # Check if dev-unified.js script exists
+    if [ ! -f "scripts/dev-unified.js" ]; then
+        print_error "dev-unified.js script not found. Please ensure the script exists in scripts/ directory."
+        exit 1
+    fi
+
+    # Check if backend directory exists
+    if [ ! -d "server/next-kidsviewer" ]; then
+        print_error "Next.js backend directory not found"
+        exit 1
+    fi
 
     print_info "Installing frontend dependencies..."
     if [ ! -d "node_modules" ]; then
         npm install
     fi
 
-    print_info "Starting Vite development server..."
-    print_info "Frontend will be available at: http://localhost:5173"
-
-    npm run dev &
-    FRONTEND_PID=$!
-    PIDS+=($FRONTEND_PID)
-
-    # Wait for frontend to start.
-    sleep 3
-    print_success "Frontend started (PID: $FRONTEND_PID)"
-
-    # --- Start backend ---
-    print_header "Starting Backend (Next.js Backend)..."
-
-    if [ ! -d "server/next-kidsviewer" ]; then
-        print_error "Next.js backend directory not found"
-        exit 1
-    fi
-
-    cd server/next-kidsviewer
-
     print_info "Installing backend dependencies..."
+    cd server/next-kidsviewer
     if [ ! -d "node_modules" ]; then
         npm install
     fi
-
-    print_info "Starting Next.js development server..."
-    print_info "Backend will be available at: http://localhost:3000"
-
-    npm run dev &
-    BACKEND_PID=$!
-    PIDS+=($BACKEND_PID)
-
     cd ../..
 
-    # Wait for backend to start.
-    sleep 5
-    print_success "Backend started (PID: $BACKEND_PID)"
-
-    # --- Check the services---
-    sleep 2
-
-    # Checking the frontend server
-    print_info "Checking the frontend..."
-    for port in 5173 5174 5175; do
-        if curl -s -o /dev/null -w "%{http_code}" http://localhost:$port | grep -q "200"; then
-            print_success "Frontend accessible at http://localhost:$port"
-            break
-        fi
-    done
-
-    # Checking the backend server.
-    print_info "Checking the backend..."
-    if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -q "200"; then
-        print_success "Backend accessible at http://localhost:3000"
-    else
-        print_warning "Backend not yet ready, may need more time..."
-    fi
-
-    # --- Show status ---
-    print_header "Development Environment Status"
+    print_info "Starting unified development servers..."
+    print_info "Frontend will be available at: http://localhost:5173"
+    print_info "Backend API will be available at: http://localhost:3000"
     echo ""
-    print_info "Services running:"
-    for pid in "${PIDS[@]}"; do
-        if ps -p $pid >/dev/null 2>&1; then
-            print_success "Process $pid is running"
-        else
-            print_error "Process $pid has stopped"
-        fi
-    done
 
-    echo ""
-    print_info "Access URLs:"
-    print_info "Frontend: http://localhost:5173 (or 5174/5175)"
-    print_info "Backend API: http://localhost:3000/api"
-    print_info "Backend Login: http://localhost:3000/login"
-
-    echo ""
-    print_warning "Press Ctrl+C to stop all services"
-
-    # Wait for all background processes
-    wait
+    # Start the unified development script
+    npm run dev:unified
 }
 
 # Show help

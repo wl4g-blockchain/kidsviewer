@@ -310,7 +310,7 @@ export const QuestionsContainer: React.FC<{
         const apiHandler = APIFactory.createAPIHandler();
         
         // Use the API to verify parental password and skip questions
-        // const response = await apiHandler.skipQuestions(watchingToken, password);
+        const response = await apiHandler.skipQuestions(watchingToken, password);
         
         if (response.errcode === '200' && response.data?.success) {
           setShowPasswordModal(false);

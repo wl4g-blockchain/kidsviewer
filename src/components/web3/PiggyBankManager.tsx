@@ -125,6 +125,12 @@ export const PiggyBankManager: React.FC<PiggyBankManagerProps> = ({ onConfigUpda
         formattedBalance: '25.50',
         dailyEarnings: '0.08',
         totalEarnings: '2.45',
+        investmentConfig: {
+          isEnabled: true,
+          maxInvestmentAmount: '1000.00',
+          totalInvested: '0.00',
+          approvedAaveProducts: ['USDC', 'USDT'],
+        },
       };
 
       setPiggyBankBalance(mockBalance);

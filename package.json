@@ -7,6 +7,7 @@
     "homepage": "./",
     "scripts": {
         "dev": "vite",
+        "dev:unified": "node scripts/dev-unified.js",
         "dev:env": "cross-env VITE_GITHUB_CLIENT_ID=$VITE_GITHUB_CLIENT_ID VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID VITE_WALLETCONNECT_APP_ID=$VITE_WALLETCONNECT_APP_ID vite",
         "build": "tsc && vite build",
         "build-debug": "tsc && vite build --debug",
@@ -118,6 +119,11 @@
         "npmRebuild": false
     },
     "overrides": {
-        "@reown/appkit": "^1.8.9"
+        "@reown/appkit": "^1.8.9",
+        "esbuild": "0.25.10",
+        "rollup": "^4.0.0"
+    },
+    "optionalDependencies": {
+        "@rollup/rollup-linux-x64-gnu": "^4.0.0"
     }
 }

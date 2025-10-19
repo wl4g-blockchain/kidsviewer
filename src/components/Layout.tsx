@@ -14,7 +14,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   // const { data: session } = useSessionData();
   const { isDark } = useThemeStore();
   const t = useTranslation();
-  const { viewMode, activePerson } = useAppContext();
+  const { viewMode } = useAppContext();
   const [isIOS, setIsIOS] = useState(false);
 
   // Detect if running in iOS environment

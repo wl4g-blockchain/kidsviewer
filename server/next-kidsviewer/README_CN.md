@@ -69,10 +69,9 @@ NEXTAUTH_RSA_PRIVATE_KEY="your-base64-encoded-private-key"
 RSA_PUBLIC_KEY="your-base64-encoded-public-key"
 
 # Cloudflare Turnstile（验证码）
-TURNSTILE_SITE_KEY="your-turnstile-site-key"
-TURNSTILE_SECRET_KEY="your-turnstile-secret-key"
-NEXT_PUBLIC_TURNSTILE_SITE_KEY="your-turnstile-site-key"
-NEXT_PUBLIC_SKIP_TURNSTILE="false"
+AUTH_TURNSTILE_ID="your-turnstile-site-key"
+AUTH_TURNSTILE_SECRET="your-turnstile-secret-key"
+AUTH_TURNSTILE_SKIP="false"
 
 # 邀请码配置
 INVITATION_MAX_USES="100"
