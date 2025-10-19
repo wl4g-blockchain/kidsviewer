@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
   // Check if the request is for an API route
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  if (request.nextUrl.pathname.startsWith('/api/v1/')) {
     // For API routes, we'll let them handle authentication internally
     // The API routes will return 401 if not authenticated
     return NextResponse.next()

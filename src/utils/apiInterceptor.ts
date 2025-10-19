@@ -23,14 +23,14 @@ export function setupAPIInterceptor() {
             const url = typeof input === 'string' ? input : input.toString()
 
       // Skip authentication check for auth-related endpoints
-      const isAuthEndpoint = url.includes('/api/auth/signout') || 
-                            url.includes('/api/auth/session') || 
-                            url.includes('/api/auth/csrf') ||
-                            url.includes('/api/auth/public-key') ||
-                            url.includes('/api/auth/login') ||
-                            url.includes('/api/auth/register') ||
-                            url.includes('/api/auth/signin') ||
-                            url.includes('/api/auth/wallet')
+      const isAuthEndpoint = url.includes('/api/v1/auth/signout') || 
+                            url.includes('/api/v1/auth/session') || 
+                            url.includes('/api/v1/auth/csrf') ||
+                            url.includes('/api/v1/auth/public-key') ||
+                            url.includes('/api/v1/auth/login') ||
+                            url.includes('/api/v1/auth/register') ||
+                            url.includes('/api/v1/auth/signin') ||
+                            url.includes('/api/v1/auth/wallet')
 
             // If user is not authenticated and trying to access protected endpoints, block the request
             if (!isAuthenticated && !isAuthEndpoint && url.includes('/api/')) {
@@ -83,9 +83,9 @@ export function setupAPIInterceptor() {
                 }
 
                 // Redirect to login page if not already there
-                if (!window.location.pathname.includes('/auth')) {
+                if (!window.location.pathname.includes('/login')) {
                     console.log('Redirecting to login page due to 401 error')
-                    window.location.href = '/auth'
+                    window.location.href = '/login'
                 }
 
                 // Reset flag after a short delay

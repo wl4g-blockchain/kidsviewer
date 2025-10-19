@@ -1,9 +1,32 @@
 {
-    "buildCommand": "npm install --legacy-peer-deps && npm run build",
-    "outputDirectory": ".next",
-    "installCommand": "npm install --legacy-peer-deps",
-    "framework": "nextjs",
-    "devCommand": "npm run dev",
+    "version": 2,
+    "builds": [
+        {
+            "src": "server/next-kidsviewer/package.json",
+            "use": "@vercel/next"
+        },
+        {
+            "src": "package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "dist"
+            }
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/v1/(.*)",
+            "dest": "/server/next-kidsviewer/api/v1/$1"
+        },
+        {
+            "src": "/login",
+            "dest": "/$1"
+        },
+        {
+            "src": "/((?!api).*)",
+            "dest": "/$1"
+        }
+    ],
     "env": {
         "NODE_ENV": "production",
         "SKIP_ENV_VALIDATION": "true"

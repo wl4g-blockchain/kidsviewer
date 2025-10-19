@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import Link from 'next/link'
 
 export default function AppPage() {
   useEffect(() => {
@@ -17,28 +18,28 @@ export default function AppPage() {
           KidsViewer
         </h1>
         <p className="text-gray-600 mb-8">
-          A parental control app that limits children's screen time and promotes learning through educational challenges
+          A parental control app that limits children&apos;s screen time and promotes learning through educational challenges
         </p>
         <div className="space-y-4">
-          <a
+          <Link
             href="/api/auth/login"
             className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
           >
             Login
-          </a>
-          <a
+          </Link>
+          <Link
             href="/api/auth/register"
             className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors ml-4"
           >
             Register
-          </a>
+          </Link>
         </div>
         <div className="mt-8 text-sm text-gray-500">
           <p>API Endpoints:</p>
           <ul className="mt-2 space-y-1">
-            <li><a href="/api/auth/session" className="text-blue-600 hover:underline">Session</a></li>
-            <li><a href="/api/auth/public-key" className="text-blue-600 hover:underline">Public Key</a></li>
-            <li><a href="/api/sys/config" className="text-blue-600 hover:underline">System Config</a></li>
+            <li><Link href="/api/auth/session" className="text-blue-600 hover:underline">Session</Link></li>
+            <li><Link href="/api/auth/public-key" className="text-blue-600 hover:underline">Public Key</Link></li>
+            <li><Link href="/api/sys/config" className="text-blue-600 hover:underline">System Config</Link></li>
           </ul>
         </div>
       </div>

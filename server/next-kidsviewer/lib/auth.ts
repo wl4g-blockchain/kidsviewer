@@ -15,7 +15,7 @@ const authOptions = {
     trustHost: true,
     useSecureCookies: process.env.NODE_ENV === 'production',
     // Ensure the base URL is correct for OAuth callbacks
-    basePath: '/api/auth',
+    basePath: '/api/v1/auth',
     cookies: {
         sessionToken: {
             name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
@@ -364,9 +364,9 @@ const authOptions = {
         },
     },
     pages: {
-        signIn: "/auth",
-        error: "/auth",
-        signOut: "/auth",
+        signIn: "/login",
+        error: "/login",
+        signOut: "/login",
     },
 }
 

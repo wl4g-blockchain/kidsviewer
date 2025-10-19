@@ -70,10 +70,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setStatus('unauthenticated');
           updateAuthStatus(false);
 
-          // Only redirect if we're not on the auth page and not on the root page
-          if (!window.location.pathname.includes('/auth') && window.location.pathname !== '/') {
+          // Only redirect if we're not on the login page and not on the root page
+          if (!window.location.pathname.includes('/login') && window.location.pathname !== '/') {
             console.log('No valid session, redirecting to login page');
-            window.location.href = '/auth';
+            window.location.href = '/login';
           }
         }
       } catch (error) {
@@ -82,10 +82,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setStatus('unauthenticated');
         updateAuthStatus(false);
 
-        // Only redirect if we're not on the auth page and not on the root page
-        if (!window.location.pathname.includes('/auth') && window.location.pathname !== '/') {
+        // Only redirect if we're not on the login page and not on the root page
+        if (!window.location.pathname.includes('/login') && window.location.pathname !== '/') {
           console.debug('Session check failed, redirecting to login page');
-          window.location.href = '/auth';
+          window.location.href = '/login';
         }
       }
     };

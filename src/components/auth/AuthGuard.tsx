@@ -9,7 +9,7 @@ interface AuthGuardProps {
   redirectTo?: string
 }
 
-export function AuthGuard({ children, redirectTo = '/auth' }: AuthGuardProps) {
+export function AuthGuard({ children, redirectTo = '/login' }: AuthGuardProps) {
   const { status } = useSession()
 
   // Show loading while checking authentication

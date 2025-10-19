@@ -169,7 +169,7 @@ function AppContent() {
     <AppContext.Provider value={contextValue}>
       <Routes>
         {/* Auth page - no protection needed */}
-        <Route path="/auth" element={<NextAuthLoginPage />} />
+        <Route path="/login" element={<NextAuthLoginPage />} />
 
         {/* Protected routes */}
         <Route
