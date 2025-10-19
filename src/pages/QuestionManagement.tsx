@@ -49,7 +49,7 @@ export const QuestionManagement: React.FC = () => {
       params.append('page', currentPage.toString());
       params.append('limit', pageSize.toString());
 
-      const response = await fetch(`/api/questions?${params.toString()}`);
+      const response = await fetch(`/api/v1/questions?${params.toString()}`);
       const result = await response.json();
       
       if (result.errcode === '200' && result.data) {
@@ -69,7 +69,7 @@ export const QuestionManagement: React.FC = () => {
 
   const handleCreateQuestion = async (questionData: Partial<QuestionTemplate>) => {
     try {
-      const response = await fetch('/api/questions', {
+      const response = await fetch('/api/v1/questions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export const QuestionManagement: React.FC = () => {
 
   const handleUpdateQuestion = async (questionId: string, questionData: Partial<QuestionTemplate>) => {
     try {
-      const response = await fetch(`/api/questions/${questionId}`, {
+      const response = await fetch(`/api/v1/questions/${questionId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ export const QuestionManagement: React.FC = () => {
     if (!confirm(t('common.confirmDelete') || '确定要删除这个问题吗？')) return;
 
     try {
-      const response = await fetch(`/api/questions/${questionId}`, {
+      const response = await fetch(`/api/v1/questions/${questionId}`, {
         method: 'DELETE',
       });
       const result = await response.json();

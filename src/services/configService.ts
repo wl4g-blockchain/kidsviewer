@@ -46,7 +46,7 @@ export class ConfigService {
             if (type) params.append('type', type);
             if (key) params.append('key', key);
 
-            const response = await fetch(`/api/sys/config?${params.toString()}`, {
+            const response = await fetch(`/api/v1/sys/config?${params.toString()}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

@@ -31,7 +31,7 @@ export const UserSwitcher: React.FC = () => {
       
       try {
         // Use Vite proxy path instead of direct Next.js URL
-        const response = await fetch('/api/user/profile', {
+        const response = await fetch('/api/v1/user/profile', {
           credentials: 'include', // Include cookies for authentication
         });
         if (response.ok) {

@@ -19,7 +19,7 @@ export const PlatformManagement: React.FC = () => {
   const loadPlatforms = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/platforms');
+      const response = await fetch('/api/v1/platforms');
       const result = await response.json();
       
       if (result.errcode === '200' && result.data) {
@@ -36,7 +36,7 @@ export const PlatformManagement: React.FC = () => {
 
   const handleCreatePlatform = async (platformData: Partial<Platform>) => {
     try {
-      const response = await fetch('/api/platforms', {
+      const response = await fetch('/api/v1/platforms', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export const PlatformManagement: React.FC = () => {
 
   const handleUpdatePlatform = async (platformId: string, platformData: Partial<Platform>) => {
     try {
-      const response = await fetch(`/api/platforms/${platformId}`, {
+      const response = await fetch(`/api/v1/platforms/${platformId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ export const PlatformManagement: React.FC = () => {
     if (!confirm('确定要删除这个平台吗？')) return;
 
     try {
-      const response = await fetch(`/api/platforms/${platformId}`, {
+      const response = await fetch(`/api/v1/platforms/${platformId}`, {
         method: 'DELETE',
       });
       const result = await response.json();

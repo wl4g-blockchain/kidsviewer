@@ -33,7 +33,7 @@ export function setupAPIInterceptor() {
                             url.includes('/api/v1/auth/wallet')
 
             // If user is not authenticated and trying to access protected endpoints, block the request
-            if (!isAuthenticated && !isAuthEndpoint && url.includes('/api/')) {
+            if (!isAuthenticated && !isAuthEndpoint && url.includes('/api/v1/')) {
                 console.log('Blocking API request for unauthenticated user:', url)
 
                 // Return a mock 401 response to trigger auth flow

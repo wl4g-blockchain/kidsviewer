@@ -60,7 +60,7 @@ export const SubAccountManagement: React.FC = () => {
 
   const fetchTenantInfo = async () => {
     try {
-      const response = await fetch('/api/tenant/info');
+      const response = await fetch('/api/v1/tenant/info');
       if (response.ok) {
         const data = await response.json();
         setTenantInfo(data);
@@ -72,7 +72,7 @@ export const SubAccountManagement: React.FC = () => {
 
   const fetchSubAccounts = async () => {
     try {
-      const response = await fetch('/api/tenant/sub-accounts');
+      const response = await fetch('/api/v1/tenant/sub-accounts');
       if (response.ok) {
         const data = await response.json();
         setSubAccounts(data);
@@ -92,7 +92,7 @@ export const SubAccountManagement: React.FC = () => {
 
     setIsCreating(true);
     try {
-      const response = await fetch('/api/tenant/sub-accounts', {
+      const response = await fetch('/api/v1/tenant/sub-accounts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ export const SubAccountManagement: React.FC = () => {
 
     setIsUpdating(true);
     try {
-      const response = await fetch('/api/tenant/sub-accounts', {
+      const response = await fetch('/api/v1/tenant/sub-accounts', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ export const SubAccountManagement: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/tenant/sub-accounts?id=${accountId}`, {
+      const response = await fetch(`/api/v1/tenant/sub-accounts?id=${accountId}`, {
         method: 'DELETE',
       });
 

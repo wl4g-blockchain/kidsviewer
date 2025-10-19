@@ -97,7 +97,7 @@ export const UserProfilePage: React.FC = () => {
 
     try {
       // Use Vite proxy path instead of direct Next.js URL
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch('/api/v1/user/profile', {
         credentials: 'include', // Include cookies for authentication
       });
       if (!response.ok) {
@@ -160,7 +160,7 @@ export const UserProfilePage: React.FC = () => {
 
     setUnlinking(true);
     try {
-      const response = await fetch('/api/user/wallet/unlink', {
+      const response = await fetch('/api/v1/user/wallet/unlink', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -236,7 +236,7 @@ export const UserProfilePage: React.FC = () => {
       const chainName = getChainNameFromId(chainId);
 
       // Call link API
-      const response = await fetch('/api/user/wallet/link', {
+      const response = await fetch('/api/v1/user/wallet/link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

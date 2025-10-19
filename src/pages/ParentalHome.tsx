@@ -39,7 +39,7 @@ export const ParentalHome: React.FC = () => {
   const loadPersons = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/persons?parentalId=${currentUser?.id}`);
+      const response = await fetch(`/api/v1/persons?parentalId=${currentUser?.id}`);
       const result = await response.json();
       
       if (result.errcode === '200' && result.data) {
@@ -119,7 +119,7 @@ export const ParentalHome: React.FC = () => {
     if (!selectedPerson) return;
 
     try {
-      const response = await fetch(`/api/persons/${selectedPerson.id}/settings`, {
+      const response = await fetch(`/api/v1/persons/${selectedPerson.id}/settings`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +153,7 @@ export const ParentalHome: React.FC = () => {
     if (!selectedPerson) return;
 
     try {
-      const response = await fetch(`/api/persons/${selectedPerson.id}`, {
+      const response = await fetch(`/api/v1/persons/${selectedPerson.id}`, {
         method: 'DELETE',
       });
       const result = await response.json();

@@ -41,7 +41,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
 
   const loadPlatforms = async () => {
     try {
-      const response = await fetch('/api/platforms');
+      const response = await fetch('/api/v1/platforms');
       const result = await response.json();
       
       if (result.errcode === '200' && result.data) {
@@ -99,7 +99,7 @@ export const AddPersonModal: React.FC<AddPersonModalProps> = ({ isOpen, onClose,
         },
       };
 
-      const response = await fetch('/api/persons', {
+      const response = await fetch('/api/v1/persons', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
