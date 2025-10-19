@@ -4,6 +4,26 @@ import { useThemeStore } from '../stores/themeStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
 import { Users, ChevronDown, LogOut, Crown, Sun, Moon, Monitor, Globe, Settings, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import LinkNext from 'next/link';
+
+// Compatible Link component
+const CompatibleLink: React.FC<{ to: string; className?: string; children: React.ReactNode }> = ({ to, className, children }) => {
+  const isNextJS = typeof window !== 'undefined' && window.location.pathname.startsWith('/app')
+  
+  // Convert Vite paths to Next.js paths
+  const getNextJSPath = (path: string) => {
+    if (path === '/profile') return '/app/profile'
+    if (path === '/sub-accounts') return '/app/sub-accounts'
+    if (path === '/settings') return '/app/settings'
+    return path
+  }
+  
+  if (isNextJS) {
+    return <LinkNext href={getNextJSPath(to)} className={className}>{children}</LinkNext>
+  } else {
+    return <Link to={to} className={className}>{children}</Link>
+  }
+}
 
 export const UserSwitcher: React.FC = () => {
   const { data: session, signOut } = useSessionData();
@@ -219,7 +239,7 @@ export const UserSwitcher: React.FC = () => {
 
             {/* Actions */}
             {/* Account Info - always show for authenticated users */}
-            <Link to="/profile" className="block">
+            <CompatibleLink to="/profile" className="block">
               <button
                 className="w-full justify-start px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center text-gray-700 dark:text-gray-300"
                 onClick={() => setIsOpen(false)}
@@ -227,11 +247,11 @@ export const UserSwitcher: React.FC = () => {
                 <User className="w-4 h-4 mr-2" />
                 {t('userSwitcher.accountInfo')}
               </button>
-            </Link>
+            </CompatibleLink>
 
             {/* Sub Account Management - only show for main accounts (userType = 1) */}
             {String(currentUser.userType) === '1' && (
-              <Link to="/sub-accounts" className="block">
+              <CompatibleLink to="/sub-accounts" className="block">
                 <button
                   className="w-full justify-start px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center text-gray-700 dark:text-gray-300"
                   onClick={() => setIsOpen(false)}
@@ -239,11 +259,11 @@ export const UserSwitcher: React.FC = () => {
                   <Users className="w-4 h-4 mr-2" />
                   {t('userSwitcher.subAccountManagement')}
                 </button>
-              </Link>
+              </CompatibleLink>
             )}
 
             {/* Settings button */}
-            <Link to="/settings" className="block">
+            <CompatibleLink to="/settings" className="block">
               <button
                 className="w-full justify-start px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center text-gray-700 dark:text-gray-300"
                 onClick={() => setIsOpen(false)}
@@ -251,7 +271,7 @@ export const UserSwitcher: React.FC = () => {
                 <Settings className="w-4 h-4 mr-2" />
                 {t('settings.title')}
               </button>
-            </Link>
+            </CompatibleLink>
 
             {/* Logout button */}
             <button

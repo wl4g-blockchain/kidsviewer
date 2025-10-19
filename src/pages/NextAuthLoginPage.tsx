@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useSession, useSessionData } from '../components/providers/AuthProvider';
+import { useRouter } from 'next/navigation';
 import { Navigate } from 'react-router-dom';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Github, Mail, Lock, User, Zap, Eye, EyeOff, Wallet, Sparkles, Shield, Star } from 'lucide-react';
@@ -62,6 +63,7 @@ export const NextAuthLoginPage: React.FC = () => {
   const { isDark } = useThemeStore();
   const t = useTranslation();
   const { openAuthModal } = useWeb3Auth();
+  const router = useRouter();
 
   // Get wagmi state for monitoring connection
   const { address: wagmiAddress, isConnected: wagmiIsConnected, chain, chainId: wagmiChainId } = useAccount();
@@ -129,8 +131,22 @@ export const NextAuthLoginPage: React.FC = () => {
     };
   }, []);
 
+  // Check if we're in Next.js environment
+  const isNextJS = typeof window !== 'undefined' && window.location.pathname.startsWith('/app')
+
   // Redirect if already authenticated
-  if (status === 'authenticated' && session) {
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      if (isNextJS) {
+        const redirectPath = '/app'; // Default to app view
+        router.push(redirectPath);
+      }
+      // For Vite mode, the redirect will be handled by React Router
+    }
+  }, [status, session, router, isNextJS]);
+
+  // For Vite mode, use React Router Navigate
+  if (status === 'authenticated' && session && !isNextJS) {
     const redirectPath = '/parental-page'; // Default to parent view
     return <Navigate to={redirectPath} replace />;
   }

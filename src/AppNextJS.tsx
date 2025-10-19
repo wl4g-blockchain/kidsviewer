@@ -1,4 +1,3 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { AuthGuard } from './components/auth/AuthGuard';
 import { AuthProvider } from './components/providers/AuthProvider';
@@ -126,51 +125,19 @@ function AppContent() {
     );
   }
 
+  // For Next.js, we'll render the appropriate component based on view mode
+  // This will be handled by Next.js routing instead of React Router
   return (
-    <Routes>
-      {/* Auth page - no protection needed */}
-      <Route path="/login" element={<NextAuthLoginPage />} />
-
-      {/* Protected routes */}
-      <Route
-        path="/*"
-        element={
-          <AuthGuard>
-            <Layout>
-              <Routes>
-                {/* Auto redirect to corresponding home page based on view mode */}
-                <Route path="/" element={<Navigate to={viewMode === 'parent' ? '/parental-page' : '/person-page'} replace />} />
-
-                {/* Parent-only routes */}
-                {viewMode === 'parent' && (
-                  <>
-                    <Route path="/parental-page" element={<ParentalHome />} />
-                    <Route path="/settings" element={<SettingsPage />} />
-                    <Route path="/sub-accounts" element={<SubAccountManagement />} />
-                    <Route path="/profile" element={<UserProfilePage />} />
-                  </>
-                )}
-
-                {/* Child-only routes */}
-                {viewMode === 'child' && (
-                  <>
-                    <Route path="/person-page" element={<PersonHome />} />
-                  </>
-                )}
-
-                {/* Redirect invalid routes based on current mode */}
-                <Route path="*" element={<Navigate to={viewMode === 'parent' ? '/parental-page' : '/person-page'} replace />} />
-              </Routes>
-            </Layout>
-          </AuthGuard>
-        }
-      />
-    </Routes>
+    <AuthGuard>
+      <Layout>
+        {viewMode === 'parent' ? <ParentalHome /> : <PersonHome />}
+      </Layout>
+    </AuthGuard>
   );
 }
 
-// Main App component with AuthProvider
-function App() {
+// Main App component with AuthProvider for Next.js
+function AppNextJS() {
   return (
     <AuthProvider>
       <AppContent />
@@ -178,4 +145,4 @@ function App() {
   );
 }
 
-export default App;
+export default AppNextJS;

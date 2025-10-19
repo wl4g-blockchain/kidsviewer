@@ -14,8 +14,7 @@ const authOptions = {
     debug: process.env.NODE_ENV === 'development',
     trustHost: true,
     useSecureCookies: process.env.NODE_ENV === 'production',
-    // Ensure the base URL is correct for OAuth callbacks
-    basePath: '/api/v1/auth',
+    // NextAuth will use default /api/auth/* paths
     cookies: {
         sessionToken: {
             name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
@@ -61,8 +60,8 @@ const authOptions = {
     },
     providers: [
         GitHubProvider({
-            clientId: process.env.VITE_GITHUB_CLIENT_ID || '',
-            clientSecret: process.env.VITE_GITHUB_CLIENT_SECRET || '',
+            clientId: process.env.GITHUB_CLIENT_ID || process.env.VITE_GITHUB_CLIENT_ID || '',
+            clientSecret: process.env.GITHUB_CLIENT_SECRET || process.env.VITE_GITHUB_CLIENT_SECRET || '',
             authorization: {
                 params: {
                     scope: 'read:user user:email',
@@ -80,8 +79,8 @@ const authOptions = {
             },
         }),
         GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID || '',
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+            clientId: process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '',
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.VITE_GOOGLE_CLIENT_SECRET || '',
             authorization: {
                 params: {
                     scope: 'openid email profile',

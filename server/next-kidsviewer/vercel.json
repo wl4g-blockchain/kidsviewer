@@ -4,10 +4,15 @@
     "outputDirectory": ".next",
     "installCommand": "npm install",
     "framework": "nextjs",
-    "rewrites": [
-        {
-            "source": "/api/v1/(.*)",
-            "destination": "/api/v1/$1"
+    "functions": {
+        "app/api/v1/auth/[...nextauth]/route.ts": {
+            "maxDuration": 30
+        },
+        "app/api/v1/auth/session/route.ts": {
+            "maxDuration": 30
+        },
+        "app/api/v1/auth/login/route.ts": {
+            "maxDuration": 30
         }
-    ]
+    }
 }

@@ -31,6 +31,11 @@ i18n
     },
   });
 
+// SSR 兼容性：确保在服务器端也能正常工作
+if (typeof window === 'undefined') {
+  i18n.changeLanguage('en');
+}
+
 // Language context
 interface LanguageContextType {
   currentLanguage: string;
@@ -45,11 +50,20 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
   const [isAutoLanguage, setIsAutoLanguage] = useState(() => {
+    // SSR 兼容性检查
+    if (typeof window === 'undefined') {
+      return false;
+    }
     const savedLanguage = localStorage.getItem('kidsviewer-language');
     return savedLanguage === 'auto' || savedLanguage === null;
   });
 
   const changeLanguage = (lng: string) => {
+    // SSR 兼容性检查
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
     if (lng === 'auto') {
       // Detect browser language automatically
       const browserLang = navigator.language.split('-')[0];

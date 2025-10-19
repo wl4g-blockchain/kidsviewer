@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 // import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation, useLanguage } from '../i18n/I18nProvider';
-import { useAppContext } from '../App';
+import { useAppContext } from '../contexts/AppContext';
 import { APIFactory } from '../services/APIFactory';
 import {
   Video,

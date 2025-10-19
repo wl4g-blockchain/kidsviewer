@@ -110,7 +110,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
 
       console.info('Electron environment check:', {
         isElectronEnv,
-        hasElectronAPI: typeof window !== 'undefined' && !!window.electronAPI,
+        hasElectronAPI: typeof window !== 'undefined' && !!(window as any).electronAPI,
         preloadExecuted: isPreloadExecuted,
         userAgent: window.navigator?.userAgent,
         windowKeys: Object.keys(window).filter(k => k.includes('electron') || k.includes('ELECTRON')),
@@ -129,7 +129,7 @@ const ElectronImplementation: React.FC<ElectronWebViewerProps> = ({
       }
 
       // If detected Electron but electronAPI is undefined, log error
-      if (isElectronEnv && !window.electronAPI) {
+      if (isElectronEnv && !(window as any).electronAPI) {
         console.error('Running in Electron environment, but electronAPI is undefined. Please check preload script.');
 
         // Add more detailed error information - these states are managed by useWatchingSession hook

@@ -4,7 +4,7 @@ import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
 import { Navigation } from './Navigation';
 import { UserSwitcher } from './UserSwitcher';
-import { useAppContext } from '../App';
+import { useAppContext } from '../contexts/AppContext';
 
 interface LayoutProps {
   children: React.ReactNode;

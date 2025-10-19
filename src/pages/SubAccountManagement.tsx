@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useSessionData } from '../components/providers/AuthProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { useTranslation } from '../i18n/I18nProvider';
@@ -25,6 +26,19 @@ export const SubAccountManagement: React.FC = () => {
   const { isDark } = useThemeStore();
   const t = useTranslation();
   const navigate = useNavigate();
+  const router = useRouter();
+  
+  // Check if we're in Next.js environment
+  const isNextJS = typeof window !== 'undefined' && window.location.pathname.startsWith('/app')
+  
+  // Unified navigation function
+  const handleNavigation = (path: string) => {
+    if (isNextJS) {
+      router.push(path);
+    } else {
+      navigate(path);
+    }
+  };
 
   const [tenantInfo, setTenantInfo] = useState<TenantInfo | null>(null);
   const [subAccounts, setSubAccounts] = useState<SubAccount[]>([]);
@@ -209,7 +223,7 @@ export const SubAccountManagement: React.FC = () => {
           <h1 className="text-2xl font-bold text-red-600 mb-4">{t('common.accessDenied')}</h1>
           <p className="text-gray-600">{t('subAccount.onlyMainAccountCanManage')}</p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => handleNavigation('/')}
             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
             {t('navigation.home')}
@@ -225,7 +239,7 @@ export const SubAccountManagement: React.FC = () => {
         {/* Header */}
         <div className="flex items-center space-x-4 mb-6">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => handleNavigation('/')}
             className={`p-2 rounded-lg transition-colors ${
               isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-200'
             }`}

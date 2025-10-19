@@ -3,6 +3,7 @@ import { useTranslation } from '../i18n/I18nProvider';
 import { useThemeStore } from '../stores/themeStore';
 import { User, Github, Wallet, Crown, ArrowLeft, Link as LinkIcon, Trash2, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import LinkNext from 'next/link';
 import { useWeb3Auth } from '../services/web3AuthService';
 import { useAccount, useSignMessage } from 'wagmi';
 import { AlertModal, AlertType } from '../components/AlertModal';

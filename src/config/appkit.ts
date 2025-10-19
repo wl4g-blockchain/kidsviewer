@@ -15,9 +15,11 @@ import {
     kakarotStarknetSepolia,
 } from 'viem/chains'
 import { createConfig, http } from 'wagmi'
+import { getEnvVarWithFallback } from '../utils/env'
 
 // Get project ID from environment or use default
-const projectId = import.meta.env.VITE_WALLETCONNECT_APP_ID || 'YOUR-PROJECT-ID'
+// Support both Vite (import.meta.env) and Next.js (process.env) environments
+const projectId = getEnvVarWithFallback('VITE_WALLETCONNECT_APP_ID', 'YOUR-PROJECT-ID')
 
 // Create wagmi config.
 const enableNetworks = [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base, kakarotStarknetSepolia, astar, astarZkEVM, astarZkyoto]
