@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
 // import { useSessionData } from './providers/AuthProvider'
-import { useTranslation } from '../i18n/I18nProvider'
+import { useTranslation } from '@/components/i18n/I18nProvider'
 import { Users, Video, Settings, Crown, Baby } from 'lucide-react'
 
 export const Navigation: React.FC = () => {

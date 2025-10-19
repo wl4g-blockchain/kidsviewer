@@ -9,7 +9,7 @@ async function testAuthEndpoints() {
   const endpoints = [
     '/api/auth/session',
     '/api/auth/csrf',
-    '/api/auth/public-key'
+    '/api/auth/pubkey'
   ];
   
   for (const endpoint of endpoints) {
@@ -19,7 +19,7 @@ async function testAuthEndpoints() {
       
       if (response.ok) {
         console.log(`✅ ${endpoint} - 状态: ${response.status}`);
-        if (endpoint === '/api/auth/public-key') {
+        if (endpoint === '/api/auth/pubkey') {
           const data = await response.json();
           console.log(`📄 公钥长度: ${data.publicKey ? data.publicKey.length : 'N/A'}`);
         }

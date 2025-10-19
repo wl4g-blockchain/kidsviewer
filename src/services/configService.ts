@@ -1,4 +1,4 @@
-import { ApiResponse } from '../types';
+import { ApiResponse } from '@/types';
 
 export interface SysConfig {
     id: string;
@@ -27,7 +27,10 @@ export class ConfigService {
     private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache
 
     private constructor() {
-        this.loadFromCache();
+        // Only load from cache in browser environment
+        if (typeof window !== 'undefined') {
+            this.loadFromCache();
+        }
     }
 
     public static getInstance(): ConfigService {
@@ -150,25 +153,40 @@ export class ConfigService {
      */
     public clearCache(): void {
         this.configCache = {};
-        localStorage.removeItem(this.CACHE_KEY);
-        localStorage.removeItem(this.CACHE_EXPIRY_KEY);
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.removeItem(this.CACHE_KEY);
+                localStorage.removeItem(this.CACHE_EXPIRY_KEY);
+            } catch (error) {
+                console.error('Failed to clear cache from localStorage:', error);
+            }
+        }
     }
 
     /**
      * Check if cache is expired
      */
     private isCacheExpired(): boolean {
-        const expiry = localStorage.getItem(this.CACHE_EXPIRY_KEY);
-        if (!expiry) return true;
+        if (typeof window === 'undefined') return true;
+        
+        try {
+            const expiry = localStorage.getItem(this.CACHE_EXPIRY_KEY);
+            if (!expiry) return true;
 
-        const expiryTime = parseInt(expiry, 10);
-        return Date.now() > expiryTime;
+            const expiryTime = parseInt(expiry, 10);
+            return Date.now() > expiryTime;
+        } catch (error) {
+            console.error('Failed to check cache expiry:', error);
+            return true;
+        }
     }
 
     /**
      * Load configuration from cache
      */
     private loadFromCache(): void {
+        if (typeof window === 'undefined') return;
+        
         try {
             if (this.isCacheExpired()) {
                 this.clearCache();
@@ -181,7 +199,10 @@ export class ConfigService {
             }
         } catch (error) {
             console.error('Failed to load configuration cache:', error);
-            this.clearCache();
+            // Only clear cache if we're in browser environment
+            if (typeof window !== 'undefined') {
+                this.clearCache();
+            }
         }
     }
 
@@ -189,11 +210,14 @@ export class ConfigService {
      * Save configuration to cache
      */
     private saveToCache(): void {
+        if (typeof window === 'undefined') return;
+        
         try {
             localStorage.setItem(this.CACHE_KEY, JSON.stringify(this.configCache));
             localStorage.setItem(this.CACHE_EXPIRY_KEY, (Date.now() + this.CACHE_DURATION).toString());
         } catch (error) {
             console.error('Failed to save configuration cache:', error);
+            // Don't throw error, just log it
         }
     }
 

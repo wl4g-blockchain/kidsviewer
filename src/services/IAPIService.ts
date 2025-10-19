@@ -9,7 +9,7 @@ import {
   AppInfo,
   WatchingSessionResponse,
   WatchingStatusResponse,
-} from '../types';
+} from '@/types';
 
 // Base API handler interface
 export interface IAPIHandler {

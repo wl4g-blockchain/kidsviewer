@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { APIFactory } from '../services/APIFactory';
-import { Question as APIQuestion } from '../types';
+import { APIFactory } from '@/services/APIFactory';
+import { Question as APIQuestion } from '@/types';
 
 // Common interface for watching session questions
 export interface WatchingQuestion {

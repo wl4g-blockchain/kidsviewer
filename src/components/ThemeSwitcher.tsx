@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
-import { useThemeStore } from '../stores/themeStore';
-import { useTranslation } from '../i18n/I18nProvider';
+import { useThemeStore } from '@/stores/themeStore';
+import { useTranslation } from '@/components/i18n/I18nProvider';
 
 export const ThemeSwitcher: React.FC = () => {
   const { mode, setMode, isDark } = useThemeStore();

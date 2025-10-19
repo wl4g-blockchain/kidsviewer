@@ -8,7 +8,7 @@ async function testProxy() {
   
   try {
     // 测试代理到 NextJS API
-    const response = await fetch('http://localhost:5173/api/auth/public-key');
+    const response = await fetch('http://localhost:5173/api/auth/pubkey');
     
     if (response.ok) {
       const data = await response.json();

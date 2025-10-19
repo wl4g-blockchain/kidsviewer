@@ -1,45 +1,70 @@
 // Lazy-loaded Reown AppKit Configuration for KidsViewer
 // Only wallet connection, no social logins - initialized on demand
 
-import { createAppKit } from '@reown/appkit/react'
-import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import {
-    mainnet, sepolia,
-    arbitrum,
-    polygon,
-    optimism,
-    avalanche, avalancheFuji,
-    bsc, bscTestnet,
-    astar, astarZkEVM, astarZkyoto,
-    base,
-    kakarotStarknetSepolia,
-} from 'viem/chains'
-import { createConfig, http } from 'wagmi'
+// Only import Web3 dependencies in browser environment
+let createAppKit: any = null
+let WagmiAdapter: any = null
+let viemChains: any = null
+let createConfig: any = null
+let http: any = null
+
+// Dynamic imports for browser-only code
+if (typeof window !== 'undefined') {
+    import('@reown/appkit/react').then(module => {
+        createAppKit = module.createAppKit
+    })
+    import('@reown/appkit-adapter-wagmi').then(module => {
+        WagmiAdapter = module.WagmiAdapter
+    })
+    import('viem/chains').then(module => {
+        viemChains = module
+    })
+    import('wagmi').then(module => {
+        createConfig = module.createConfig
+        http = module.http
+    })
+}
 
 // Get project ID from environment or use default
-const projectId = import.meta.env.VITE_WALLETCONNECT_APP_ID || 'YOUR-PROJECT-ID'
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_APP_ID || 'YOUR-PROJECT-ID'
 
-// Create wagmi config.
-const enableNetworks = [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base, kakarotStarknetSepolia, astar, astarZkEVM, astarZkyoto]
-export const wagmiConfig = createConfig({
-    chains: enableNetworks as any,
-    transports: {
-        [mainnet.id]: http(),
-        [sepolia.id]: http(),
-        [arbitrum.id]: http(),
-        [polygon.id]: http(),
-        [optimism.id]: http(),
-        [avalanche.id]: http(),
-        [avalancheFuji.id]: http(),
-        [bsc.id]: http(),
-        [bscTestnet.id]: http(),
-        [base.id]: http(),
-        [astar.id]: http(),
-        [astarZkEVM.id]: http(),
-        [astarZkyoto.id]: http(),
-        [kakarotStarknetSepolia.id]: http(),
-    },
-})
+// Create wagmi config - only in browser
+let wagmiConfig: any = null
+
+if (typeof window !== 'undefined') {
+    // Wait for dynamic imports to complete
+    Promise.all([
+        import('viem/chains'),
+        import('wagmi')
+    ]).then(([chainsModule, wagmiModule]) => {
+        const { mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base, kakarotStarknetSepolia, astar, astarZkEVM, astarZkyoto } = chainsModule
+        const { createConfig, http } = wagmiModule
+        
+        const enableNetworks = [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base, kakarotStarknetSepolia, astar, astarZkEVM, astarZkyoto]
+        
+        wagmiConfig = createConfig({
+            chains: enableNetworks as any,
+            transports: {
+                [mainnet.id]: http(),
+                [sepolia.id]: http(),
+                [arbitrum.id]: http(),
+                [polygon.id]: http(),
+                [optimism.id]: http(),
+                [avalanche.id]: http(),
+                [avalancheFuji.id]: http(),
+                [bsc.id]: http(),
+                [bscTestnet.id]: http(),
+                [base.id]: http(),
+                [astar.id]: http(),
+                [astarZkEVM.id]: http(),
+                [astarZkyoto.id]: http(),
+                [kakarotStarknetSepolia.id]: http(),
+            },
+        })
+    })
+}
+
+export { wagmiConfig }
 
 // App metadata
 const metadata = {
@@ -55,6 +80,11 @@ let isInitializing = false
 
 // Function to initialize AppKit on demand
 export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit>> => {
+    // Only initialize in browser environment
+    if (typeof window === 'undefined') {
+        throw new Error('AppKit can only be initialized in browser environment')
+    }
+
     // Force recreation to ensure new settings take effect
     if (appKitInstance) {
         console.log('Recreating AppKit instance with new settings...')
@@ -83,8 +113,21 @@ export const initializeAppKit = async (): Promise<ReturnType<typeof createAppKit
 
         // Validate project ID
         if (!projectId || projectId === 'YOUR-PROJECT-ID') {
-            throw new Error('WalletConnect Project ID is not configured. Please set VITE_WALLETCONNECT_APP_ID in your environment variables.')
+            throw new Error('WalletConnect Project ID is not configured. Please set NEXT_PUBLIC_WALLETCONNECT_APP_ID in your environment variables.')
         }
+
+        // Wait for dynamic imports to complete
+        const [appkitModule, wagmiAdapterModule, chainsModule] = await Promise.all([
+            import('@reown/appkit/react'),
+            import('@reown/appkit-adapter-wagmi'),
+            import('viem/chains')
+        ])
+
+        const { createAppKit } = appkitModule
+        const { WagmiAdapter } = wagmiAdapterModule
+        const { mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base, kakarotStarknetSepolia, astar, astarZkEVM, astarZkyoto } = chainsModule
+
+        const enableNetworks = [mainnet, sepolia, arbitrum, polygon, optimism, avalanche, avalancheFuji, bsc, bscTestnet, base, kakarotStarknetSepolia, astar, astarZkEVM, astarZkyoto]
 
         // Create wagmi adapter
         const wagmiAdapter = new WagmiAdapter({

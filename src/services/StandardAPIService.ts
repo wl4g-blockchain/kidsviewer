@@ -10,7 +10,7 @@ import {
     QuestionTemplate,
     WatchingSessionResponse,
     WatchingStatusResponse,
-} from '../types';
+} from '@/types';
 
 /**
  * Standard API Handler for Production Environment
@@ -94,21 +94,21 @@ export class StandardAPIHandler implements IAPIHandler {
 
     // Authentication APIs
     async register(email: string, phone: string, password: string, name: string): Promise<ApiResponse<{ user: User; token: string }>> {
-        return this.apiCall('/api/v1/auth/register', {
+        return this.apiCall('/api/v1/sys/auth/register', {
             method: 'POST',
             body: JSON.stringify({ email, phone, password, name }),
         });
     }
 
     async login(email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
-        return this.apiCall('/api/v1/auth/login', {
+        return this.apiCall('/api/v1/sys/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password }),
         });
     }
 
     async logout(): Promise<ApiResponse<void>> {
-        return this.apiCall('/api/v1/auth/logout', {
+        return this.apiCall('/api/v1/sys/auth/logout', {
             method: 'POST',
         });
     }
@@ -146,7 +146,7 @@ export class StandardAPIHandler implements IAPIHandler {
 
     // Parental control password verification
     async verifyParentalPassword(password: string): Promise<ApiResponse<boolean>> {
-        return this.apiCall('/api/v1/auth/verify-parental-password', {
+        return this.apiCall('/api/v1/sys/auth/verify-parental-password', {
             method: 'POST',
             body: JSON.stringify({ password }),
         });

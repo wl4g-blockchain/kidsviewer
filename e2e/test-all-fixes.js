@@ -14,7 +14,7 @@ async function testAllFixes() {
     },
     {
       name: 'Public Key API',
-      url: 'http://localhost:5173/api/auth/public-key',
+      url: 'http://localhost:5173/api/auth/pubkey',
       method: 'GET'
     },
     {

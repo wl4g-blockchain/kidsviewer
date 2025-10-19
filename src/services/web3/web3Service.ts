@@ -13,7 +13,7 @@ import {
     GovernanceProposal,
     RewardConfig,
     PiggyBankConfig
-} from '../../types/web3';
+} from '@/types/web3';
 
 export interface IWeb3Service {
     // Wallet management

@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { useSession } from '../providers/AuthProvider'
+import { useSession } from '@/components/auth/AuthProvider'
 import { Navigate } from 'react-router-dom'
 
 interface AuthGuardProps {

@@ -46,7 +46,7 @@
         "src/api/*"
       ],
       "@i18n/*": [
-        "src/i18n/*"
+        "src/components/i18n/*"
       ],
       "@assets/*": [
         "src/assets/*"
@@ -54,11 +54,16 @@
     },
     "allowJs": true,
     "incremental": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
     "src",
-    "tmp"
+    ".next/types/**/*.ts"
   ],
   "references": [
     {

@@ -7,7 +7,7 @@ import {
     TransactionResult,
     VaultBalance,
     AaveProduct
-} from '../types/web3';
+} from '@/types/web3';
 import { Web3ConfigService } from './web3ConfigService';
 
 // Smart Contract ABIs (simplified for demo)

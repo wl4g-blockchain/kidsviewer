@@ -11,7 +11,7 @@ import {
     AppInfo,
     WatchingSessionResponse,
     WatchingStatusResponse,
-} from '../types';
+} from '@/types';
 
 // Default hardcoded credentials for demo
 const DEMO_CREDENTIALS = {

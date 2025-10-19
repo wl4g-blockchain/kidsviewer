@@ -2,8 +2,8 @@
 
 import { ethers } from 'ethers';
 import { Account, RpcProvider } from 'starknet';
-import { WalletConnection, TokenInfo, TransactionResult } from '../../types/web3';
-import { Web3ConfigService } from '../../services/web3ConfigService';
+import { WalletConnection, TokenInfo, TransactionResult } from '@/types/web3';
+import { Web3ConfigService } from '@/services/web3ConfigService';
 
 // Ethereum utilities
 export class EthereumUtils {

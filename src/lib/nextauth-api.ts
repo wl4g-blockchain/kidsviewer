@@ -21,7 +21,7 @@ export class NextAuthAPI {
                 });
 
                 // Use custom login API directly
-                const response = await fetch(`${this.baseUrl}/api/v1/auth/login`, {
+                const response = await fetch(`${this.baseUrl}/api/v1/sys/auth/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ export class NextAuthAPI {
         // For wallet provider, call NextAuth API
         if (provider === 'wallet' && credentials) {
             try {
-                const response = await fetch(`${this.baseUrl}/api/v1/auth/signin/wallet`, {
+                const response = await fetch(`${this.baseUrl}/api/v1/sys/auth/signin/wallet`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export class NextAuthAPI {
         // For social providers, redirect to OAuth
         if (['github', 'google'].includes(provider)) {
             // Redirect to NextAuth OAuth
-            window.location.href = `${this.baseUrl}/api/v1/auth/signin/${provider}`
+            window.location.href = `${this.baseUrl}/api/v1/sys/auth/signin/${provider}`
             return { ok: true }
         }
 
@@ -92,7 +92,7 @@ export class NextAuthAPI {
             // First, get CSRF token for NextAuth signout
             const csrfToken = await this.getCsrfToken()
             
-            const response = await fetch(`${this.baseUrl}/api/v1/auth/signout`, {
+            const response = await fetch(`${this.baseUrl}/api/v1/sys/auth/signout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
@@ -117,7 +117,7 @@ export class NextAuthAPI {
     async getSession() {
         try {
             // First try to get NextAuth session
-            const response = await fetch(`${this.baseUrl}/api/v1/auth/session`)
+            const response = await fetch(`${this.baseUrl}/api/v1/sys/auth/session`)
             if (response.ok) {
                 const sessionData = await response.json()
                 // Check if session has user data (not just empty object)
@@ -136,7 +136,7 @@ export class NextAuthAPI {
 
     async getCsrfToken() {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/auth/csrf`)
+            const response = await fetch(`${this.baseUrl}/api/v1/sys/auth/csrf`)
             if (!response.ok) {
                 return null
             }
@@ -150,7 +150,7 @@ export class NextAuthAPI {
 
     async getPublicKey() {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/auth/public-key`)
+            const response = await fetch(`${this.baseUrl}/api/v1/sys/auth/pubkey`)
             if (!response.ok) {
                 throw new Error('Failed to fetch public key')
             }
@@ -164,7 +164,7 @@ export class NextAuthAPI {
 
     async register(userData: any) {
         try {
-            const response = await fetch(`${this.baseUrl}/api/v1/auth/register`, {
+            const response = await fetch(`${this.baseUrl}/api/v1/sys/auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -196,7 +196,7 @@ export class NextAuthAPI {
             console.log('Wallet login called with:', walletData)
             
             // First, verify wallet signature and get user data
-            const response = await fetch(`${this.baseUrl}/api/v1/auth/wallet`, {
+            const response = await fetch(`${this.baseUrl}/api/v1/sys/auth/wallet`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

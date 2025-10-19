@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useLanguage } from '../i18n/I18nProvider'
+import { useLanguage } from '@/components/i18n/I18nProvider'
 
 export const LanguageSwitcher: React.FC = () => {
   const { currentLanguage, changeLanguage } = useLanguage()

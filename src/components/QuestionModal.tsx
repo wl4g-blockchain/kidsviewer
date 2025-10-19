@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useTranslation } from '../i18n/I18nProvider';
+import { useTranslation } from '@/components/i18n/I18nProvider';
 import { X } from 'lucide-react';
-import { ParentalPasswordModal } from './ParentalPasswordModal';
-import AnswerFeedbackAnimation from './AnswerFeedbackAnimation';
-import { APIFactory } from '../services/APIFactory';
+import { ParentalPasswordModal } from '@/components/ParentalPasswordModal';
+import AnswerFeedbackAnimation from '@/components/AnswerFeedbackAnimation';
+import { APIFactory } from '@/services/APIFactory';
 
 export interface Question {
   id: string;

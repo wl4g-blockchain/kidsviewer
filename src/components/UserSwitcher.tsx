@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSessionData } from './providers/AuthProvider';
-import { useThemeStore } from '../stores/themeStore';
-import { useTranslation, useLanguage } from '../i18n/I18nProvider';
+import { useSessionData } from '@/components/auth/AuthProvider';
+import { useThemeStore } from '@/stores/themeStore';
+import { useTranslation, useLanguage } from '@/components/i18n/I18nProvider';
 import { Users, ChevronDown, LogOut, Crown, Sun, Moon, Monitor, Globe, Settings, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -31,7 +31,7 @@ export const UserSwitcher: React.FC = () => {
       
       try {
         // Use Vite proxy path instead of direct Next.js URL
-        const response = await fetch('/api/v1/user/profile', {
+        const response = await fetch('/api/v1/sys/user/profile', {
           credentials: 'include', // Include cookies for authentication
         });
         if (response.ok) {

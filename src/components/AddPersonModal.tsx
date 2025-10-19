@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from '../i18n/I18nProvider';
+import { useTranslation } from '@/components/i18n/I18nProvider';
 import { X, Check } from 'lucide-react';
-import { useSessionData } from './providers/AuthProvider';
-import { Platform } from '../types';
+import { useSessionData } from '@/components/auth/AuthProvider';
+import { Platform } from '@/types';
 
 interface AddPersonModalProps {
   isOpen: boolean;

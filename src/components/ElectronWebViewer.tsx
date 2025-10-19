@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { useTranslation } from '../i18n/I18nProvider';
+import { useTranslation } from '@/components/i18n/I18nProvider';
 import { AlertCircle, ExternalLink, Loader2, RefreshCw, Maximize2 } from 'lucide-react';
-import { isIOS, isElectron as checkIsElectron } from '../utils/platformUtil';
-import { IOSWebViewer } from './IOSWebViewer';
-import { QuestionsContainer, Question as QuestionType } from './QuestionModal';
-import { useWatchingSession } from '../hooks/useWatchingSession';
+import { isIOS, isElectron as checkIsElectron } from '@/utils/platformUtil';
+import { IOSWebViewer } from '@/components/IOSWebViewer';
+import { QuestionsContainer, Question as QuestionType } from '@/components/QuestionModal';
+import { useWatchingSession } from '@/hooks/useWatchingSession';
 
 interface ElectronWebViewerProps {
   platformId: string;

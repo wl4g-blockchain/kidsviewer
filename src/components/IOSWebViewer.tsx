@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useTranslation } from '../i18n/I18nProvider';
+import { useTranslation } from '@/components/i18n/I18nProvider';
 import { AlertCircle, Loader2, Bug, X, Maximize2, Monitor } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
-import { QuestionsContainer, Question as QuestionType } from './QuestionModal';
-import { useWatchingSession } from '../hooks/useWatchingSession';
+import { QuestionsContainer, Question as QuestionType } from '@/components/QuestionModal';
+import { useWatchingSession } from '@/hooks/useWatchingSession';
 
 interface IOSWebViewerProps {
   platformId: string;

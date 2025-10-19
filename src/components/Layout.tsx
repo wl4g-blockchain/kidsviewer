@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 // import { useSessionData } from './providers/AuthProvider';
-import { useThemeStore } from '../stores/themeStore';
-import { useTranslation } from '../i18n/I18nProvider';
+import { useThemeStore } from '@/stores/themeStore';
+import { useTranslation } from '@/components/i18n/I18nProvider';
 import { Navigation } from './Navigation';
 import { UserSwitcher } from './UserSwitcher';
-import { useAppContext } from '../App';
+import { useAppContext } from '@/App';
 
 interface LayoutProps {
   children: React.ReactNode;

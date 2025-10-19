@@ -1,0 +1,155 @@
+{
+    "name": "kidsviewer",
+    "version": "1.0.0",
+    "private": true,
+    "description": "A parental control app that limits children's screen time and promotes learning through educational challenges",
+    "scripts": {
+        "dev": "next dev",
+        "dev:unified": "node scripts/dev-unified.js",
+        "build": "prisma generate --no-engine && next build",
+        "build:local": "prisma generate && next build",
+        "start": "next start",
+        "lint": "next lint",
+        "preview": "next start",
+        "preelectron-dev": "tsc -p electron/tsconfig.json",
+        "electron-dev": "ELECTRON=true concurrently \"npm run dev\" \"wait-on http://localhost:3000 && ELECTRON_RENDERER_URL=http://localhost:3000 npx electron .\"",
+        "electron-build": "npm run build && tsc -p electron/tsconfig.json && electron-builder",
+        "electron-build-debug": "npm run build && tsc -p electron/tsconfig.json && DEBUG=electron-builder electron-builder",
+        "generate:rsa-keys": "./scripts/generate-rsa-keys.sh",
+        "migrate:version": "prisma version",
+        "migrate:debug": "prisma debug",
+        "migrate:studio": "prisma studio",
+        "migrate:status": "prisma migrate status",
+        "migrate:gen:client:from-schema": "prisma generate",
+        "migrate:gen:schema:from-db": "prisma db pull",
+        "migrate:db:gen-migrations-client:upgrade": "prisma migrate dev",
+        "migrate:db:drop-all:upgrade": "prisma migrate reset",
+        "migrate:db:upgrade:from-schema": "prisma db push",
+        "migrate:db:upgrade:from-migrations": "prisma migrate deploy",
+        "migrate:db:init:data": "prisma db seed",
+        "fix:sequences": "node scripts/fix-all-sequences.js"
+    },
+    "keywords": [
+        "parental-control",
+        "education",
+        "screen-time",
+        "learning",
+        "children"
+    ],
+    "author": "James Wong",
+    "license": "MIT",
+    "dependencies": {
+        "@auth/core": "^0.41.0",
+        "@auth/prisma-adapter": "^2.10.0",
+        "@capacitor/browser": "^7.0.2",
+        "@capacitor/cli": "^7.4.3",
+        "@capacitor/core": "^7.4.3",
+        "@capacitor/ios": "^7.4.3",
+        "@prisma/client": "^5.22.0",
+        "@reown/appkit": "^1.8.9",
+        "@reown/appkit-adapter-wagmi": "^1.8.9",
+        "@tanstack/react-query": "^5.90.2",
+        "@types/bcryptjs": "^2.4.6",
+        "@types/crypto-js": "^4.2.2",
+        "@types/node-rsa": "^1.1.4",
+        "bcryptjs": "^3.0.2",
+        "buffer": "^6.0.3",
+        "clsx": "^2.0.0",
+        "crypto-js": "^4.2.0",
+        "date-fns": "^2.30.0",
+        "ethers": "^6.15.0",
+        "i18next": "^23.7.6",
+        "i18next-browser-languagedetector": "^7.2.0",
+        "jose": "^6.1.0",
+        "jsencrypt": "^3.5.4",
+        "jsrsasign": "^11.1.0",
+        "lucide-react": "^0.294.0",
+        "next": "^15.5.5",
+        "next-auth": "^4.24.11",
+        "node-rsa": "^1.1.1",
+        "process": "^0.11.10",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-i18next": "^13.5.0",
+        "react-router-dom": "^6.20.1",
+        "starknet": "^7.6.4",
+        "tailwind-merge": "^2.2.0",
+        "viem": "^2.38.0",
+        "vite-plugin-node-polyfills": "^0.24.0",
+        "wagmi": "^2.18.0",
+        "zustand": "^4.4.7"
+    },
+    "devDependencies": {
+        "@electron-toolkit/utils": "^4.0.0",
+        "@types/node": "^20.10.0",
+        "@types/react": "^18.2.45",
+        "@types/react-dom": "^18.2.18",
+        "@typescript-eslint/eslint-plugin": "^6.14.0",
+        "@typescript-eslint/parser": "^6.14.0",
+        "@vitejs/plugin-react": "^4.2.1",
+        "autoprefixer": "^10.4.21",
+        "concurrently": "^8.2.2",
+        "cross-env": "^10.1.0",
+        "dotenv": "^17.2.3",
+        "electron": "^37.4.0",
+        "electron-builder": "^26.0.12",
+        "esbuild": "0.25.10",
+        "eslint": "^8.55.0",
+        "eslint-config-next": "^15.5.5",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "eslint-plugin-react-refresh": "^0.4.5",
+        "postcss": "^8.5.6",
+        "prisma": "^5.22.0",
+        "tailwindcss": "^3.4.17",
+        "terser": "^5.44.0",
+        "tsx": "^4.6.2",
+        "typescript": "^5.3.3",
+        "vite": "^5.0.8",
+        "wait-on": "^8.0.0"
+    },
+    "prisma": {
+        "seed": "node prisma/seed.js"
+    },
+    "build": {
+        "appId": "com.wl4g.kidsviewer",
+        "productName": "KidsViewer",
+        "icon": "assets/icon.icns",
+        "directories": {
+            "output": "release"
+        },
+        "files": [
+            ".next/**/*",
+            "dist-electron/**/*",
+            "node_modules/**/*"
+        ],
+        "mac": {
+            "category": "public.app-category.education",
+            "target": "dmg",
+            "hardenedRuntime": false,
+            "gatekeeperAssess": false,
+            "entitlements": "build/entitlements.mac.plist",
+            "entitlementsInherit": "build/entitlements.mac.plist",
+            "notarize": false
+        },
+        "win": {
+            "target": "nsis"
+        },
+        "linux": {
+            "target": "AppImage"
+        },
+        "buildDependenciesFromSource": false,
+        "nodeGypRebuild": false,
+        "npmRebuild": false
+    },
+    "overrides": {
+        "@reown/appkit": "^1.8.9",
+        "esbuild": "0.25.10",
+        "rollup": "^4.0.0"
+    },
+    "optionalDependencies": {
+        "@rollup/rollup-linux-x64-gnu": "^4.0.0"
+    },
+    "resolutions": {
+        "esbuild": "0.25.10"
+    }
+}

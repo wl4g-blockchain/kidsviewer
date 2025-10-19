@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { useTranslation } from '../i18n/I18nProvider';
+import { useTranslation } from '@/components/i18n/I18nProvider';
 import { Lock } from 'lucide-react';
 
 interface ParentalPasswordModalProps {

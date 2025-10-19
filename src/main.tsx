@@ -3,11 +3,11 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import App from './App.tsx'
-import './index.css'
-import { I18nProvider } from './i18n/I18nProvider'
-import { wagmiConfig } from './config/appkit'
-import { setupAPIInterceptor } from './utils/apiInterceptor'
+import App from '@/App.tsx'
+import '@/index.css'
+import { I18nProvider } from '@/components/i18n/I18nProvider.tsx'
+import { wagmiConfig } from '@/config/appkit'
+import { setupAPIInterceptor } from '@/utils/apiInterceptor'
 
 // Setup global API interceptor for handling 401 errors
 setupAPIInterceptor()

@@ -1,8 +1,8 @@
 // Web3 Authentication Service for KidsViewer
 
-import { getAppKit } from '../config/appkit'
+import { getAppKit } from '@/config/appkit'
 import { useSignMessage } from 'wagmi'
-import { WalletConnection } from '../types/web3'
+import { WalletConnection } from '@/types/web3'
 
 export interface Web3AuthState {
     isConnected: boolean

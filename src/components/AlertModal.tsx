@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertCircle, CheckCircle, XCircle, Info } from 'lucide-react';
-import { useThemeStore } from '../stores/themeStore';
+import { useThemeStore } from '@/stores/themeStore';
 
 export type AlertType = 'success' | 'error' | 'warning' | 'info';
 

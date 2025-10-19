@@ -1,16 +1,16 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Layout } from './components/Layout';
-import { AuthGuard } from './components/auth/AuthGuard';
-import { AuthProvider } from './components/providers/AuthProvider';
-import { ParentalHome } from './pages/ParentalHome';
-import { PersonHome } from './pages/PersonHome';
-import { SettingsPage } from './pages/SettingsPage';
-import { SubAccountManagement } from './pages/SubAccountManagement';
-import { UserProfilePage } from './pages/UserProfilePage';
-import { NextAuthLoginPage } from './pages/NextAuthLoginPage';
-import { useSessionData } from './components/providers/AuthProvider';
+import { Layout } from '@/components/Layout';
+import { AuthGuard } from '@/components/auth/AuthGuard';
+import { AuthProvider } from '@/components/auth/AuthProvider';
+import { ParentalHome } from '@/app/home/ParentalHome';
+import { PersonHome } from '@/app/home/PersonHome';
+import { SettingsPage } from '@/app/settings/SettingsPage';
+import { SubAccountManagement } from '@/app/sub-accounts/SubAccountManagement';
+import { UserProfilePage } from '@/app/user-profile/UserProfilePage';
+import { NextAuthLoginPage } from '@/app/login/NextAuthLoginPage';
+import { useSessionData } from '@/components/auth/AuthProvider';
 import { useState, createContext, useContext, useEffect } from 'react';
-import { Person } from './types';
+import { Person } from '@/types';
 
 // Context for managing view mode and active person
 interface AppContextType {

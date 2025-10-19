@@ -1,8 +1,8 @@
 // Global API interceptor for handling authentication errors
 import { nextAuthAPI } from '@/lib/nextauth-api'
 
-// Store original fetch function
-const originalFetch = window.fetch
+// Store original fetch function - only available in browser
+const originalFetch = typeof window !== 'undefined' ? window.fetch : undefined
 
 // Flag to prevent multiple simultaneous auth error handling
 let isHandlingAuthError = false
@@ -18,19 +18,25 @@ export function updateAuthStatus(authenticated: boolean) {
 
 // Custom fetch wrapper that intercepts 401 responses
 export function setupAPIInterceptor() {
+    // Only setup interceptor in browser environment
+    if (typeof window === 'undefined' || !originalFetch) {
+        console.warn('API interceptor can only be set up in browser environment')
+        return
+    }
+
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
         try {
             const url = typeof input === 'string' ? input : input.toString()
 
       // Skip authentication check for auth-related endpoints
-      const isAuthEndpoint = url.includes('/api/v1/auth/signout') || 
-                            url.includes('/api/v1/auth/session') || 
-                            url.includes('/api/v1/auth/csrf') ||
-                            url.includes('/api/v1/auth/public-key') ||
-                            url.includes('/api/v1/auth/login') ||
-                            url.includes('/api/v1/auth/register') ||
-                            url.includes('/api/v1/auth/signin') ||
-                            url.includes('/api/v1/auth/wallet')
+      const isAuthEndpoint = url.includes('/api/v1/sys/auth/signout') || 
+                            url.includes('/api/v1/sys/auth/session') || 
+                            url.includes('/api/v1/sys/auth/csrf') ||
+                            url.includes('/api/v1/sys/auth/pubkey') ||
+                            url.includes('/api/v1/sys/auth/login') ||
+                            url.includes('/api/v1/sys/auth/register') ||
+                            url.includes('/api/v1/sys/auth/signin') ||
+                            url.includes('/api/v1/sys/auth/wallet')
 
             // If user is not authenticated and trying to access protected endpoints, block the request
             if (!isAuthenticated && !isAuthEndpoint && url.includes('/api/v1/')) {
@@ -104,5 +110,7 @@ export function setupAPIInterceptor() {
 
 // Function to restore original fetch (useful for testing)
 export function restoreOriginalFetch() {
-    window.fetch = originalFetch
+    if (typeof window !== 'undefined' && originalFetch) {
+        window.fetch = originalFetch
+    }
 }

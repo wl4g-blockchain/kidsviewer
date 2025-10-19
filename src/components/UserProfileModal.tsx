@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// import { useTranslation } from '../i18n/I18nProvider';
-import { useThemeStore } from '../stores/themeStore';
+// import { useTranslation } from '@/i18n/I18nProvider';
+import { useThemeStore } from '@/stores/themeStore';
 import { X, User, Mail, Github, Wallet, Calendar, Crown, Building, Hash } from 'lucide-react';
 
 interface UserProfile {
@@ -44,7 +44,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onCl
     
     try {
       // Use Vite proxy path instead of direct Next.js URL
-      const response = await fetch('/api/v1/user/profile', {
+      const response = await fetch('/api/v1/sys/user/profile', {
         credentials: 'include', // Include cookies for authentication
       });
       if (!response.ok) {

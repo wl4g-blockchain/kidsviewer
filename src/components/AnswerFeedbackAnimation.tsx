@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from '../i18n/I18nProvider';
+import { useTranslation } from '@/components/i18n/I18nProvider';
 import './AnswerFeedbackAnimation.css';
 
 interface AnswerFeedbackAnimationProps {
